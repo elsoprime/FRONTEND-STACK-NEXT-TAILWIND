@@ -1,0 +1,74 @@
+﻿# 85_IMPLEMENTATION_STATUS
+
+## 1. Estado actual (sincronizado con backend)
+
+Fecha de corte: 2026-03-10
+
+- OpenAPI frontend: sincronizado desde `API-REST-STACK-NODE/openapi`.
+- Documentacion `docs/10`, `docs/50` y `docs/80`: sincronizada con `API-REST-STACK-NODE/docs/frontend/*`.
+- Cobertura de implementacion validada sobre `src/features` (excluye `*.test.*`).
+
+## 2. Cobertura real de endpoints (src/features)
+
+Resumen de auditoria (`OpenAPI /api/v1/*` vs `src/features`, excluyendo `*.test.*`):
+
+- Endpoints OpenAPI auditados (por ruta): 45
+- Endpoints implementados en `src/features`: 45
+- Endpoints pendientes (`OpenAPI - implementados`): 0
+
+### 2.1 Endpoints implementados en `src/features` (45)
+
+- `/api/v1/auth/register`
+- `/api/v1/auth/login/browser`
+- `/api/v1/auth/login/headless`
+- `/api/v1/auth/resend-verification`
+- `/api/v1/auth/forgot-password`
+- `/api/v1/auth/reset-password`
+- `/api/v1/auth/verify-email`
+- `/api/v1/auth/refresh/browser`
+- `/api/v1/auth/refresh/headless`
+- `/api/v1/auth/2fa/setup`
+- `/api/v1/auth/2fa/confirm`
+- `/api/v1/auth/2fa/disable`
+- `/api/v1/auth/recovery-codes/regenerate`
+- `/api/v1/auth/change-password`
+- `/api/v1/auth/logout`
+- `/api/v1/auth/logout-all`
+- `/api/v1/tenant`
+- `/api/v1/tenant/mine`
+- `/api/v1/tenant/switch`
+- `/api/v1/tenant/invitations`
+- `/api/v1/tenant/invitations/accept`
+- `/api/v1/tenant/invitations/revoke`
+- `/api/v1/tenant/transfer-ownership`
+- `/api/v1/tenant/settings`
+- `/api/v1/tenant/settings/effective`
+- `/api/v1/platform/settings`
+- `/api/v1/audit`
+- `/api/v1/modules/crm/activities`
+- `/api/v1/modules/crm/contacts`
+- `/api/v1/modules/crm/contacts/{contactId}`
+- `/api/v1/modules/crm/counters`
+- `/api/v1/modules/crm/opportunities`
+- `/api/v1/modules/crm/opportunities/{opportunityId}`
+- `/api/v1/modules/crm/opportunities/{opportunityId}/stage`
+- `/api/v1/modules/crm/organizations`
+- `/api/v1/modules/crm/organizations/{organizationId}`
+- `/api/v1/modules/hr/employees`
+- `/api/v1/modules/hr/employees/{employeeId}`
+- `/api/v1/modules/hr/employees/{employeeId}/compensation`
+- `/api/v1/modules/inventory/alerts/low-stock`
+- `/api/v1/modules/inventory/categories`
+- `/api/v1/modules/inventory/categories/{categoryId}`
+- `/api/v1/modules/inventory/items`
+- `/api/v1/modules/inventory/items/{itemId}`
+- `/api/v1/modules/inventory/stock-movements`
+
+### 2.2 Endpoints pendientes (`OpenAPI - implementados`) (0)
+
+- Ninguno.
+
+## 3. Nota de alcance
+
+- Este estado solo considera implementacion en `src/features`.
+- Referencias fuera de `src/features` (por ejemplo `src/lib`) no alteran el conteo de cobertura de este documento.
