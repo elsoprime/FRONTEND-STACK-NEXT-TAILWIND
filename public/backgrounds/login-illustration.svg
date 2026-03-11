@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 1065.21 714.51">
+  <defs>
+    <style>
+      .cls-1{fill:#f2f2f2;}
+      .cls-2{fill:#1d4ed8;} /* Blue-700 Custom Color */
+      .cls-3{fill:#3f3d56;}
+      .cls-4{fill:#e6e6e6;}
+      .cls-5{fill:#2f2e41;}
+    </style>
+  </defs>
+  <g id="Layer_2" data-name="Layer 2">
+    <g id="data_analysis" data-name="data analysis">
+      <path class="cls-1" d="M615.66,489.35H141.45a11.17,11.17,0,0,1-11.17-11.17V11.17A11.17,11.17,0,0,1,141.45,0H615.66a11.17,11.17,0,0,1,11.17,11.17V478.18A11.17,11.17,0,0,1,615.66,489.35Z"/>
+      <rect class="cls-2" x="168.2" y="44.69" width="420.43" height="15.64" rx="7.82"/>
+      <rect class="cls-3" x="168.2" y="82.68" width="250.28" height="15.64" rx="7.82"/>
+      
+      <rect class="cls-2" x="168.2" y="150.84" width="60.34" height="250.28" rx="11.17"/>
+      <rect class="cls-4" x="257.58" y="220.11" width="60.34" height="181.01" rx="11.17"/>
+      <rect class="cls-2" x="346.96" y="110.61" width="60.34" height="290.51" rx="11.17"/>
+      <rect class="cls-4" x="436.34" y="190.5" width="60.34" height="210.62" rx="11.17"/>
+      <rect class="cls-2" x="525.72" y="260.34" width="60.34" height="140.78" rx="11.17"/>
+      
+      <path class="cls-5" d="M850.45,350.12c-15.64,0-28.32,12.68-28.32,28.32v80.45H878.77V378.44C878.77,362.8,866.09,350.12,850.45,350.12Z"/>
+      <circle class="cls-5" cx="850.45" cy="310.45" r="25.14"/>
+      <path class="cls-3" d="M950.12,500.45H750.78a20.11,20.11,0,0,1-20.11-20.11V450.12a20.11,20.11,0,0,1,20.11-20.11H950.12a20.11,20.11,0,0,1,20.11,20.11v30.22A20.11,20.11,0,0,1,950.12,500.45Z"/>
+      
+      <ellipse class="cls-4" cx="532.6" cy="680.2" rx="450.5" ry="34.31" opacity="0.3"/>
+    </g>
+  </g>
+</svg>

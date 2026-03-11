@@ -1,0 +1,54 @@
+<svg width="1080" height="1350" viewBox="0 0 1080 1350" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="baseM" x1="0" y1="0" x2="1080" y2="1350" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0B1422"/>
+      <stop offset="0.46" stop-color="#122135"/>
+      <stop offset="1" stop-color="#0D1A2A"/>
+    </linearGradient>
+    <radialGradient id="topGlowM" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(250 220) rotate(20) scale(420 300)">
+      <stop stop-color="#4D9CFF" stop-opacity="0.48"/>
+      <stop offset="1" stop-color="#4D9CFF" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="bottomGlowM" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(840 1120) rotate(-16) scale(430 320)">
+      <stop stop-color="#9C82FF" stop-opacity="0.4"/>
+      <stop offset="1" stop-color="#9C82FF" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="windowLightM" x1="0" y1="0" x2="0" y2="1">
+      <stop stop-color="#89CCFF" stop-opacity="0.4"/>
+      <stop offset="1" stop-color="#89CCFF" stop-opacity="0.05"/>
+    </linearGradient>
+    <filter id="grainM" x="0" y="0" width="100%" height="100%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="2" stitchTiles="stitch"/>
+      <feColorMatrix type="saturate" values="0"/>
+      <feComponentTransfer>
+        <feFuncA type="table" tableValues="0 0.09"/>
+      </feComponentTransfer>
+    </filter>
+  </defs>
+
+  <rect width="1080" height="1350" fill="url(#baseM)"/>
+  <ellipse cx="250" cy="220" rx="420" ry="300" fill="url(#topGlowM)"/>
+  <ellipse cx="840" cy="1120" rx="430" ry="320" fill="url(#bottomGlowM)"/>
+
+  <g opacity="0.58">
+    <rect x="580" y="170" width="380" height="940" rx="22" fill="#1A2D49"/>
+    <rect x="636" y="240" width="268" height="800" rx="16" fill="#274263"/>
+  </g>
+
+  <g opacity="0.48">
+    <rect x="656" y="264" width="108" height="140" rx="8" fill="url(#windowLightM)"/>
+    <rect x="776" y="264" width="108" height="140" rx="8" fill="url(#windowLightM)"/>
+
+    <rect x="656" y="420" width="108" height="140" rx="8" fill="url(#windowLightM)"/>
+    <rect x="776" y="420" width="108" height="140" rx="8" fill="url(#windowLightM)"/>
+
+    <rect x="656" y="576" width="108" height="140" rx="8" fill="url(#windowLightM)"/>
+    <rect x="776" y="576" width="108" height="140" rx="8" fill="url(#windowLightM)"/>
+  </g>
+
+  <path d="M0 972C130 926 282 964 434 934C620 896 760 790 934 820C998 832 1040 856 1080 882V1350H0V972Z" fill="#0F1A2A" fill-opacity="0.8"/>
+  <path d="M0 1022C146 980 296 1028 450 998C630 964 776 850 946 888C1010 902 1050 926 1080 952" stroke="#9ED8FF" stroke-opacity="0.24" stroke-width="3"/>
+  <path d="M0 1098C136 1060 300 1112 460 1086C656 1054 798 946 972 980C1024 990 1058 1008 1080 1026" stroke="#C4B0FF" stroke-opacity="0.22" stroke-width="2"/>
+
+  <rect width="1080" height="1350" fill="#FFFFFF" filter="url(#grainM)"/>
+</svg>

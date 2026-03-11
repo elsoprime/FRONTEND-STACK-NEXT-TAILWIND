@@ -32,7 +32,7 @@ export function HrOverviewPanel({ tenantId }: HrOverviewPanelProps) {
 
   if (employeesQuery.isLoading) {
     return (
-      <div className="mt-6 inline-flex items-center gap-3 rounded-md border border-blue-200 bg-blue-50 px-4 py-3 text-sm font-semibold text-blue-900 dark:border-blue-500/30 dark:bg-blue-500/10 dark:text-blue-100">
+      <div className="mt-6 inline-flex items-center gap-3 rounded-xl border border-primary/25 bg-primary/10 px-4 py-3 text-sm font-semibold text-primary">
         <LoaderCircle className="size-4 animate-spin" />
         Cargando resumen HR...
       </div>
@@ -41,7 +41,7 @@ export function HrOverviewPanel({ tenantId }: HrOverviewPanelProps) {
 
   if (employeesQuery.error) {
     return (
-      <article className="mt-6 rounded-md border border-red-300 bg-red-50 p-4 text-red-800 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-100">
+      <article className="mt-6 rounded-xl border border-destructive/30 bg-destructive/10 p-4 text-destructive">
         <p className="text-sm font-semibold">{resolveErrorCopy(employeesQuery.error)}</p>
       </article>
     );
@@ -50,41 +50,56 @@ export function HrOverviewPanel({ tenantId }: HrOverviewPanelProps) {
   return (
     <div className="mt-6 space-y-6">
       <div className="grid gap-4 md:grid-cols-3">
-        <article className="rounded-lg border border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-950/40">
+        <article className="surface-card surface-card-hover rounded-xl p-4">
           <div className="flex items-center gap-3">
-            <Briefcase className="size-4 text-blue-700 dark:text-blue-400" />
-            <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Total empleados</p>
+            <Briefcase className="size-4 text-primary" />
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+              Total empleados
+            </p>
           </div>
           <p className="mt-3 text-3xl font-bold">{total}</p>
         </article>
 
-        <article className="rounded-lg border border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-950/40">
+        <article className="surface-card surface-card-hover rounded-xl p-4">
           <div className="flex items-center gap-3">
-            <UserCheck className="size-4 text-emerald-700 dark:text-emerald-400" />
-            <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Activos</p>
+            <UserCheck className="size-4 text-emerald-600" />
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+              Activos
+            </p>
           </div>
           <p className="mt-3 text-3xl font-bold">{active}</p>
         </article>
 
-        <article className="rounded-lg border border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-950/40">
+        <article className="surface-card surface-card-hover rounded-xl p-4">
           <div className="flex items-center gap-3">
-            <UserX className="size-4 text-amber-700 dark:text-amber-400" />
-            <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Inactivos</p>
+            <UserX className="size-4 text-amber-600" />
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+              Inactivos
+            </p>
           </div>
           <p className="mt-3 text-3xl font-bold">{inactive}</p>
         </article>
       </div>
 
-      <article className="rounded-lg border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
-        <h3 className="text-sm font-bold uppercase tracking-wider text-slate-500">Ultimos empleados</h3>
+      <article className="surface-card rounded-xl p-5">
+        <h3 className="text-sm font-bold uppercase tracking-[0.15em] text-muted-foreground">
+          Ultimos empleados
+        </h3>
         {employees.length === 0 ? (
-          <p className="mt-3 text-sm text-slate-600 dark:text-slate-400">Sin empleados registrados.</p>
+          <p className="mt-3 text-sm text-muted-foreground">Sin empleados registrados.</p>
         ) : (
           <ul className="mt-3 space-y-2 text-sm">
             {employees.slice(0, 5).map((employee) => (
-              <li key={employee.id} className="flex items-center justify-between rounded-md border border-slate-200 px-3 py-2 dark:border-slate-800">
-                <span className="font-medium">{employee.firstName} {employee.lastName}</span>
-                <span className="text-slate-500 dark:text-slate-400 uppercase">{employee.status}</span>
+              <li
+                key={employee.id}
+                className="flex items-center justify-between rounded-lg border border-border/80 bg-background/70 px-3 py-2.5 transition-colors hover:border-primary/30"
+              >
+                <span className="font-medium">
+                  {employee.firstName} {employee.lastName}
+                </span>
+                <span className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+                  {employee.status}
+                </span>
               </li>
             ))}
           </ul>

@@ -1,0 +1,24 @@
+post:
+  tags:
+    - Auth
+  summary: Verify the email address of a registered user using the latest valid token delivered by a secure external channel
+  operationId: verifyEmail
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: ../../components/schemas/auth.yaml#/VerifyEmailRequest
+  responses:
+    '200':
+      description: Email verified
+      content:
+        application/json:
+          schema:
+            $ref: ../../components/schemas/auth.yaml#/VerifyEmailSuccessResponse
+    '400':
+      description: Invalid, expired, replaced or already used verification token
+      content:
+        application/json:
+          schema:
+            $ref: ../../components/schemas/error.yaml#/ErrorResponse
