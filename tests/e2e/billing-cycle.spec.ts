@@ -40,7 +40,9 @@ test.beforeEach(async ({ page }, testInfo) => {
   await setCsrfCookie(page, testInfo.project.use.baseURL);
 });
 
-test("billing cycle: activate -> cancel -> require new checkout -> reactivate", async ({ page }) => {
+test("billing cycle: activate -> cancel -> require new checkout -> reactivate", async ({
+  page,
+}) => {
   let runtimePlanId: string | null = "plan:starter";
   let checkoutSeq = 0;
   let latestCheckoutSessionId: string | null = null;
@@ -168,7 +170,8 @@ test("billing cycle: activate -> cancel -> require new checkout -> reactivate", 
   await page.route("**/api/v1/billing/checkout/session", async (route) => {
     const payload = route.request().postDataJSON() as { planId: string; provider: string };
     checkoutSeq += 1;
-    latestCheckoutSessionId = checkoutSeq === 1 ? "507f191e810c19729de860aa" : "507f191e810c19729de860ab";
+    latestCheckoutSessionId =
+      checkoutSeq === 1 ? "507f191e810c19729de860aa" : "507f191e810c19729de860ab";
     latestCheckoutPlanId = payload.planId;
 
     await route.fulfill({
@@ -232,7 +235,10 @@ test("billing cycle: activate -> cancel -> require new checkout -> reactivate", 
 
     const payload = route.request().postDataJSON() as { planId: string; checkoutSessionId: string };
 
-    if (payload.checkoutSessionId !== latestCheckoutSessionId || payload.planId !== latestCheckoutPlanId) {
+    if (
+      payload.checkoutSessionId !== latestCheckoutSessionId ||
+      payload.planId !== latestCheckoutPlanId
+    ) {
       await route.fulfill({
         status: 400,
         contentType: "application/json",
@@ -285,11 +291,17 @@ test("billing cycle: activate -> cancel -> require new checkout -> reactivate", 
 
   await expect(checkoutButton).toBeVisible();
   await cancelButton.click();
-  await expect(page.getByText("Suscripcion cancelada. El runtime efectivo se actualizo para este tenant.")).toBeVisible();
+  await expect(
+    page.getByText("Suscripcion cancelada. El runtime efectivo se actualizo para este tenant."),
+  ).toBeVisible();
   await expect(activateButton).toBeDisabled();
 
   await checkoutButton.click();
-  await expect(page.getByText("Checkout creado. Completa el pago en la URL, luego confirma la activacion del plan.")).toBeVisible();
+  await expect(
+    page.getByText(
+      "Checkout creado. Completa el pago en la URL, luego confirma la activacion del plan.",
+    ),
+  ).toBeVisible();
   await expect(activateButton).toBeEnabled();
 
   await activateButton.click();
@@ -439,4 +451,92 @@ test("dashboard blocks module actions when subscription is not active", async ({
 
   await expect(page.getByRole("button", { name: "Alertas de stock" })).toBeDisabled();
   await expect(page.getByRole("button", { name: "Eventos de auditoria" })).toBeDisabled();
+});
+
+test("effective settings shows billing CTA when subscription payment is required", async ({
+  page,
+}) => {
+  await page.route("**/api/v1/auth/refresh/browser", async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        success: true,
+        data: {
+          user: {
+            id: "usr_owner_01",
+            email: "owner@acme.dev",
+            firstName: "Owner",
+            lastName: "Acme",
+            status: "active",
+            isEmailVerified: true,
+          },
+          session: {
+            id: "sess_01",
+            userId: "usr_owner_01",
+            expiresAt: "2026-12-31T23:59:59.000Z",
+          },
+        },
+        traceId: "trace-refresh-ok",
+      }),
+    });
+  });
+
+  await page.route("**/api/v1/tenant/mine", async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        success: true,
+        data: {
+          items: [
+            {
+              tenant: {
+                id: TENANT_ID,
+                name: "Acme",
+                slug: "acme",
+                status: "active",
+                ownerUserId: "usr_owner_01",
+                planId: null,
+                activeModuleKeys: [],
+                memberLimit: 50,
+              },
+              membership: {
+                id: "mem_01",
+                tenantId: TENANT_ID,
+                userId: "usr_owner_01",
+                roleKey: "tenant:owner",
+                status: "active",
+              },
+              isActive: true,
+            },
+          ],
+        },
+        traceId: "trace-tenant-mine",
+      }),
+    });
+  });
+
+  await page.route("**/api/v1/tenant/settings/effective", async (route) => {
+    await route.fulfill({
+      status: 403,
+      contentType: "application/json",
+      body: JSON.stringify({
+        success: false,
+        error: {
+          code: "TENANT_SUBSCRIPTION_PAYMENT_REQUIRED",
+          message: "Subscription payment required",
+        },
+        traceId: "trace-effective-payment-required",
+      }),
+    });
+  });
+
+  await page.goto("/app/settings/tenant/effective");
+
+  await expect(page.getByText("Suscripcion con pago pendiente")).toBeVisible();
+  await expect(page.getByRole("link", { name: "Ir a Billing" })).toHaveAttribute(
+    "href",
+    "/app/settings/billing",
+  );
 });

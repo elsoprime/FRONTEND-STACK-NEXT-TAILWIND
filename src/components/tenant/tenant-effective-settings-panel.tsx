@@ -1,14 +1,15 @@
-﻿"use client";
+"use client";
 
 import { useQuery } from "@tanstack/react-query";
 import { Building2, Globe2, Mail, ReceiptText } from "lucide-react";
+import { AccessDeniedPanel } from "@/components/tenant/access-denied-panel";
 import { TenantRuntimeSummary } from "@/components/tenant/tenant-runtime-summary";
-import { getTenantSettingsEffective } from "@/features/tenant/tenant-settings.service";
 import { resolveTenantErrorMessage } from "@/features/tenant/error-code-map";
 import {
   tenantSettingsEffectiveSchema,
   type TenantSettingsEffective,
 } from "@/features/tenant/tenant-settings.schemas";
+import { getTenantSettingsEffective } from "@/features/tenant/tenant-settings.service";
 import { ApiRequestError } from "@/lib/api/client";
 import { queryKeys } from "@/lib/query/query-keys";
 import { useSessionStore } from "@/store/session-store";
@@ -41,9 +42,7 @@ function SettingsBlock({ title, icon, rows }: SettingsBlockProps) {
       <div className="mt-4 space-y-3">
         {rows.map((row) => (
           <div key={row.label} className="rounded-xl border border-border/85 bg-background/68 p-3">
-            <p className="field-label">
-              {row.label}
-            </p>
+            <p className="field-label">{row.label}</p>
             <p className="mt-1 text-sm font-medium text-foreground">{row.value}</p>
           </div>
         ))}
@@ -80,12 +79,16 @@ export function TenantEffectiveSettingsPanel({
       ? "Formato inesperado en runtime efectivo. Refresca la pagina para recargar el cache."
       : null;
 
+  const apiErrorCode =
+    effectiveQuery.error instanceof ApiRequestError ? effectiveQuery.error.code : null;
   const errorMessage =
     effectiveQuery.error instanceof ApiRequestError
       ? resolveTenantErrorMessage(effectiveQuery.error.code, effectiveQuery.error.message)
       : effectiveQuery.error
         ? "No pudimos cargar la vista efectiva del tenant."
         : dataShapeError;
+
+  const isPaymentRequired = apiErrorCode === "TENANT_SUBSCRIPTION_PAYMENT_REQUIRED";
 
   return (
     <div className="reveal-up space-y-6 [--reveal-delay:60ms]">
@@ -94,11 +97,23 @@ export function TenantEffectiveSettingsPanel({
         <p className="text-sm leading-relaxed text-muted-foreground">{description}</p>
       </div>
 
-      <TenantRuntimeSummary
-        runtime={effectiveSettings?.runtime ?? null}
-        isLoading={effectiveQuery.isLoading}
-        errorMessage={errorMessage}
-      />
+      {isPaymentRequired ? (
+        <AccessDeniedPanel
+          title="Suscripcion con pago pendiente"
+          message={
+            errorMessage ?? resolveTenantErrorMessage("TENANT_SUBSCRIPTION_PAYMENT_REQUIRED")
+          }
+          code="TENANT_SUBSCRIPTION_PAYMENT_REQUIRED"
+          actionLabel="Ir a Billing"
+          actionHref="/app/settings/billing"
+        />
+      ) : (
+        <TenantRuntimeSummary
+          runtime={effectiveSettings?.runtime ?? null}
+          isLoading={effectiveQuery.isLoading}
+          errorMessage={errorMessage}
+        />
+      )}
 
       {effectiveSettings ? (
         <div className="grid gap-4 lg:grid-cols-2">

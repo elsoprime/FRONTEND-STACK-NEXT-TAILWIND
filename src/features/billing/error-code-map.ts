@@ -1,8 +1,10 @@
-﻿const BILLING_ERROR_COPY: Record<string, string> = {
+const BILLING_ERROR_COPY: Record<string, string> = {
   AUTH_UNAUTHENTICATED: "Tu sesion no es valida o expiro. Inicia sesion nuevamente.",
   AUTH_CSRF_INVALID: "La sesion de seguridad no es valida. Recarga la pagina e intenta otra vez.",
   RBAC_PERMISSION_DENIED: "No tienes permisos para administrar el plan del tenant.",
   RBAC_PLAN_DENIED: "El plan seleccionado no esta disponible para este tenant.",
+  TENANT_SUBSCRIPTION_PAYMENT_REQUIRED:
+    "La suscripcion del tenant requiere pago para continuar. Completa el pago desde Billing.",
   TENANT_HEADER_REQUIRED: "Falta el contexto tenant para completar la operacion.",
   TENANT_NOT_FOUND: "No pudimos encontrar el tenant solicitado.",
   GEN_VALIDATION_ERROR: "Revisa los datos ingresados e intenta nuevamente.",

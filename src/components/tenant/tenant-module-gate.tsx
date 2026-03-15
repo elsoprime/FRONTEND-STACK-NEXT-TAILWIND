@@ -1,21 +1,21 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { LoadingScreen } from "@/components/ui/loading-screen";
 import { AccessDeniedPanel } from "@/components/tenant/access-denied-panel";
-import { getTenantSettingsEffective } from "@/features/tenant/tenant-settings.service";
+import { LoadingScreen } from "@/components/ui/loading-screen";
 import { resolveTenantErrorMessage } from "@/features/tenant/error-code-map";
-import {
-  resolveTenantModuleState,
-  type TenantModuleState,
-} from "@/features/tenant/tenant-runtime-guards";
 import {
   hasAllTenantPermissions,
   TENANT_PERMISSION_KEYS,
 } from "@/features/tenant/tenant-permissions";
+import {
+  resolveTenantModuleState,
+  type TenantModuleState,
+} from "@/features/tenant/tenant-runtime-guards";
+import { getTenantSettingsEffective } from "@/features/tenant/tenant-settings.service";
 import { type MembershipView, type TenantView } from "@/features/tenant/tenant.schemas";
-import { queryKeys } from "@/lib/query/query-keys";
 import { ApiRequestError } from "@/lib/api/client";
+import { queryKeys } from "@/lib/query/query-keys";
 import { useSessionStore } from "@/store/session-store";
 import { useTenantStore } from "@/store/tenant-store";
 
@@ -73,12 +73,25 @@ export function TenantModuleGate({
   }
 
   if (runtimeQuery.error) {
-    const code = runtimeQuery.error instanceof ApiRequestError ? runtimeQuery.error.code : "GEN_INTERNAL_ERROR";
-    const message = runtimeQuery.error instanceof ApiRequestError
-      ? resolveTenantErrorMessage(runtimeQuery.error.code, runtimeQuery.error.message)
-      : resolveTenantErrorMessage("GEN_INTERNAL_ERROR");
+    const code =
+      runtimeQuery.error instanceof ApiRequestError
+        ? runtimeQuery.error.code
+        : "GEN_INTERNAL_ERROR";
+    const message =
+      runtimeQuery.error instanceof ApiRequestError
+        ? resolveTenantErrorMessage(runtimeQuery.error.code, runtimeQuery.error.message)
+        : resolveTenantErrorMessage("GEN_INTERNAL_ERROR");
+    const isPaymentRequired = code === "TENANT_SUBSCRIPTION_PAYMENT_REQUIRED";
 
-    return <AccessDeniedPanel title="Error de runtime" message={message} code={code} />;
+    return (
+      <AccessDeniedPanel
+        title={isPaymentRequired ? "Suscripcion con pago pendiente" : "Error de runtime"}
+        message={message}
+        code={code}
+        actionLabel={isPaymentRequired ? "Ir a Billing" : undefined}
+        actionHref={isPaymentRequired ? "/app/settings/billing" : undefined}
+      />
+    );
   }
 
   const runtime = runtimeQuery.data;
