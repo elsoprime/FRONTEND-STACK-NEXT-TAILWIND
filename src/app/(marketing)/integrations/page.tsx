@@ -1,164 +1,87 @@
-"use client";
-
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
-import { MessageSquare, Database, Zap, Server } from "lucide-react";
-
-const integrationCategories = [
-  {
-    name: "Infraestructura Cloud",
-    icon: Server,
-    integrations: [
-      {
-        name: "AWS",
-        description: "Almacenamiento y computación escalable.",
-        color: "text-orange-500",
-      },
-      {
-        name: "Azure",
-        description: "Servicios cloud empresariales de Microsoft.",
-        color: "text-blue-500",
-      },
-      {
-        name: "Google Cloud",
-        description: "Infraestructura de datos e IA avanzada.",
-        color: "text-blue-400",
-      },
-    ],
-  },
-  {
-    name: "Productividad & CRM",
-    icon: MessageSquare,
-    integrations: [
-      {
-        name: "Slack",
-        description: "Notificaciones operativas en tiempo real.",
-        color: "text-purple-500",
-      },
-      {
-        name: "Salesforce",
-        description: "Sincronización bidireccional de clientes.",
-        color: "text-blue-600",
-      },
-      {
-        name: "Microsoft 365",
-        description: "Integración nativa con Excel y Teams.",
-        color: "text-red-500",
-      },
-    ],
-  },
-  {
-    name: "Operaciones & Datos",
-    icon: Database,
-    integrations: [
-      {
-        name: "SAP S/4HANA",
-        description: "Conector nativo para procesos ERP core.",
-        color: "text-blue-800",
-      },
-      {
-        name: "Snowflake",
-        description: "Data warehousing para analítica avanzada.",
-        color: "text-blue-300",
-      },
-      {
-        name: "Datadog",
-        description: "Monitoreo y observabilidad de sistema.",
-        color: "text-purple-600",
-      },
-    ],
-  },
-];
+import { integrationCategories } from "@/lib/marketing.content";
+import { MarketingShell } from "../_marketing-shell";
 
 export default function IntegrationsPage() {
   return (
-    <div className="min-h-screen bg-slate-50 font-sans text-slate-900 dark:bg-slate-950 dark:text-slate-100">
-      <main className="mx-auto max-w-7xl px-6 py-24 lg:px-8">
-        <header className="mb-20 max-w-3xl">
-          <Badge className="mb-4 border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-900 dark:bg-blue-900/20 dark:text-blue-400">
-            Ecosistema NexoStack
-          </Badge>
-          <h1 className="text-4xl font-extrabold tracking-tight sm:text-6xl mb-6">
-            Conecte su Negocio al <br />
-            <span className="text-blue-700">Mundo Digital.</span>
-          </h1>
-          <p className="text-xl leading-relaxed text-slate-600 dark:text-slate-400">
-            NexoStack no es una isla. Nuestra plataforma se integra con las herramientas que su
-            organización ya utiliza para maximizar la eficiencia y centralizar los datos.
-          </p>
-        </header>
+    <MarketingShell>
+      <header className="mb-20 max-w-3xl">
+        <Badge className="mb-4 border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-900 dark:bg-blue-900/20 dark:text-blue-400">
+          Ecosistema NexoStack
+        </Badge>
+        <h1 className="mb-6 text-4xl font-extrabold tracking-tight sm:text-6xl">
+          Conecte su negocio al <br />
+          <span className="text-blue-700">mundo digital.</span>
+        </h1>
+        <p className="text-xl leading-relaxed text-slate-600 dark:text-slate-400">
+          Nuestra plataforma se integra con las herramientas que su organizacion ya usa para
+          centralizar datos y operaciones.
+        </p>
+      </header>
 
-        {/* Categories & Grid */}
-        <section className="space-y-20">
-          {integrationCategories.map((category) => (
-            <div key={category.name}>
-              <div className="flex items-center gap-3 mb-10 border-b border-slate-200 pb-4 dark:border-slate-800">
-                <category.icon className="size-6 text-blue-700 dark:text-blue-400" />
-                <h2 className="text-2xl font-bold tracking-tight">{category.name}</h2>
-              </div>
+      <section className="space-y-20">
+        {integrationCategories.map((category) => (
+          <section key={category.name}>
+            <div className="mb-10 flex items-center gap-3 border-b border-slate-200 pb-4 dark:border-slate-800">
+              <category.icon className="size-6 text-blue-700 dark:text-blue-400" />
+              <h2 className="text-2xl font-bold tracking-tight">{category.name}</h2>
+            </div>
 
-              <div className="grid gap-6 md:grid-cols-3">
-                {category.integrations.map((app) => (
-                  <article
-                    key={app.name}
-                    className="group relative rounded-2xl border border-slate-200 bg-white p-8 transition-all hover:shadow-xl hover:border-blue-200 dark:border-slate-800 dark:bg-slate-900/50 dark:hover:border-blue-900"
-                  >
-                    <div className="flex justify-between items-start mb-6">
-                      <div className="size-12 rounded-xl bg-slate-50 flex items-center justify-center font-black text-xs text-slate-400 border border-slate-100 dark:bg-slate-800 dark:border-slate-700 group-hover:bg-white transition-colors">
-                        {app.name.substring(0, 2)}
-                      </div>
-                      <Badge
-                        variant="outline"
-                        className="text-[10px] uppercase font-bold text-slate-400"
-                      >
-                        Certificada
-                      </Badge>
+            <div className="grid gap-6 md:grid-cols-3">
+              {category.integrations.map((integration) => (
+                <article
+                  key={integration.name}
+                  className="group relative rounded-2xl border border-slate-200 bg-white p-8 transition-all hover:border-blue-200 hover:shadow-xl dark:border-slate-800 dark:bg-slate-900/50 dark:hover:border-blue-900"
+                >
+                  <div className="mb-6 flex items-start justify-between">
+                    <div className="flex size-12 items-center justify-center rounded-xl border border-slate-100 bg-slate-50 text-xs font-black text-slate-500 dark:border-slate-700 dark:bg-slate-800">
+                      {integration.acronym}
                     </div>
-                    <h3 className="text-xl font-bold mb-2 group-hover:text-blue-700 transition-colors">
-                      {app.name}
-                    </h3>
-                    <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed mb-6">
-                      {app.description}
-                    </p>
-                    <Link
-                      href={`/contact/connectors?integration=${encodeURIComponent(app.name)}`}
-                      className="text-xs font-bold uppercase tracking-widest text-blue-700 flex items-center gap-2 group-hover:gap-3 transition-all"
-                    >
-                      Configurar Conector
-                      <Zap className="size-3 fill-current" />
-                    </Link>
-                  </article>
-                ))}
-              </div>
+                    <Badge variant="outline" className="text-[10px] font-bold text-slate-400 uppercase">
+                      Certificada
+                    </Badge>
+                  </div>
+                  <h3 className="mb-2 text-xl font-bold transition-colors group-hover:text-blue-700">
+                    {integration.name}
+                  </h3>
+                  <p className="mb-6 text-sm leading-relaxed text-slate-500 dark:text-slate-400">
+                    {integration.description}
+                  </p>
+                  <Link
+                    href={`/contact/connectors?integration=${encodeURIComponent(integration.name)}`}
+                    className="text-xs font-bold tracking-widest text-blue-700 uppercase"
+                  >
+                    Configurar conector
+                  </Link>
+                </article>
+              ))}
             </div>
-          ))}
-        </section>
+          </section>
+        ))}
+      </section>
 
-        {/* Custom Integration CTA */}
-        <section className="mt-32 rounded-3xl bg-blue-700 p-12 lg:p-20 text-white text-center shadow-2xl shadow-blue-700/20">
-          <div className="max-w-3xl mx-auto">
-            <h2 className="text-3xl font-bold mb-6 sm:text-4xl">¿No encuentra su herramienta?</h2>
-            <p className="text-blue-100 text-lg mb-10">
-              Nuestro equipo de ingeniería puede desarrollar conectores personalizados para sistemas
-              legados o propietarios, garantizando el cumplimiento de los contratos de API.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link
-                href="/contact/custom-connector"
-                className="bg-white text-blue-700 px-10 py-4 rounded-md font-bold hover:bg-blue-50 transition shadow-lg"
-              >
-                Solicitar Conector Propio
-              </Link>
-              <Link
-                href="/developers#api-docs"
-                className="border border-blue-400 text-white px-10 py-4 rounded-md font-bold hover:bg-blue-800 transition"
-              >
-                Ver API Docs
-              </Link>
-            </div>
-          </div>
-        </section>
-      </main>
-    </div>
+      <section className="mt-24 rounded-3xl bg-blue-700 p-12 text-center text-white lg:p-20">
+        <h2 className="mb-6 text-3xl font-bold sm:text-4xl">No encuentra su herramienta?</h2>
+        <p className="mx-auto mb-10 max-w-3xl text-lg text-blue-100">
+          Podemos desarrollar conectores personalizados para sistemas legacy manteniendo contratos
+          API y trazabilidad.
+        </p>
+        <div className="flex flex-col justify-center gap-4 sm:flex-row">
+          <Link
+            href="/contact/custom-connector"
+            className="rounded-md bg-white px-10 py-4 font-bold text-blue-700 transition hover:bg-blue-50"
+          >
+            Solicitar conector propio
+          </Link>
+          <Link
+            href="/developers#api-docs"
+            className="rounded-md border border-blue-400 px-10 py-4 font-bold text-white transition hover:bg-blue-800"
+          >
+            Ver API docs
+          </Link>
+        </div>
+      </section>
+    </MarketingShell>
   );
 }

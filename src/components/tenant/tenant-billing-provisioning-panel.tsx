@@ -23,10 +23,12 @@ import {
   type BillingCheckoutSession,
   type TenantSubscriptionData,
 } from "@/features/billing/billing.schemas";
+import { getMyTenantMemberships } from "@/features/tenant/tenant.service";
 import { getTenantSettingsEffective } from "@/features/tenant/tenant-settings.service";
 import { ApiRequestError } from "@/lib/api/client";
 import { queryKeys } from "@/lib/query/query-keys";
 import { invalidateTenantRuntimeQueries } from "@/lib/query/tenant-cache";
+import { cn } from "@/lib/utils";
 import { useSessionStore } from "@/store/session-store";
 import { useTenantStore } from "@/store/tenant-store";
 
@@ -44,20 +46,6 @@ function formatModules(values: string[]): string {
   return values.length > 0 ? values.join(", ") : "sin modulos";
 }
 
-function resolvePlanActionLabel(
-  currentPlanId: string | null,
-  selectedPlanId: string | null,
-): string {
-  if (!selectedPlanId) {
-    return "Selecciona un plan";
-  }
-
-  if (currentPlanId === selectedPlanId) {
-    return "Reasignar plan actual";
-  }
-
-  return "Asignar plan al tenant";
-}
 
 export function TenantBillingProvisioningPanel({
   tenantId,
@@ -104,8 +92,11 @@ export function TenantBillingProvisioningPanel({
   }, [currentPlanId, plansQuery.data]);
 
   const selectedPlanId = selectedPlanIdOverride ?? defaultSelectedPlanId;
+  const hasCheckoutSession = Boolean(latestCheckoutSession?.id);
+  const isSelectedPlanActivated = Boolean(selectedPlanId && currentPlanId === selectedPlanId);
+  const activationDetectedAfterCheckout = hasCheckoutSession && isSelectedPlanActivated;
 
-  async function refreshTenantRuntime(): Promise<void> {
+  async function refreshTenantRuntime(): Promise<string | null> {
     await invalidateTenantRuntimeQueries(queryClient, tenantId);
 
     const effectiveResponse = await getTenantSettingsEffective(tenantId);
@@ -114,7 +105,9 @@ export function TenantBillingProvisioningPanel({
       queryKeys.tenantSettingsEffective(tenantId),
       effectiveResponse.data.settings,
     );
-    setEffectiveRuntime(effectiveResponse.data.settings.runtime ?? null);
+    const nextRuntime = effectiveResponse.data.settings.runtime ?? null;
+    setEffectiveRuntime(nextRuntime);
+    return nextRuntime?.planId ?? null;
   }
 
   function syncActiveTenantState(nextTenant: TenantSubscriptionData["tenant"]): void {
@@ -146,13 +139,64 @@ export function TenantBillingProvisioningPanel({
     return resolveBillingErrorMessage("GEN_INTERNAL_ERROR");
   }
 
+  const verifyActivationMutation = useMutation({
+    mutationFn: async () => {
+      const membershipsResponse = await getMyTenantMemberships();
+      setLastTraceId(membershipsResponse.traceId);
+
+      const currentMembership = membershipsResponse.data.items.find((item) => item.tenant.id === tenantId);
+      if (currentMembership) {
+        setActiveTenantContext({
+          tenant: currentMembership.tenant,
+          membership: currentMembership.membership,
+          effectiveRuntime,
+        });
+      }
+
+      const runtimePlanId = await refreshTenantRuntime();
+      return runtimePlanId;
+    },
+    onSuccess: (runtimePlanId) => {
+      if (selectedPlanId && runtimePlanId === selectedPlanId) {
+        setViewState({
+          status: "success",
+          message: `Pago confirmado y plan ${selectedPlanId} activo en runtime.`,
+        });
+        return;
+      }
+
+      setViewState({
+        status: "error",
+        message:
+          "Aun no se confirma la activacion del plan. Completa el pago en checkout y vuelve a verificar.",
+      });
+    },
+    onError: (error: unknown) => {
+      setViewState({
+        status: "error",
+        message: resolveUnknownErrorMessage(error),
+      });
+    },
+  });
+
   const assignMutation = useMutation({
     mutationFn: async () => {
       if (!selectedPlanId) {
         throw new Error("Debes seleccionar un plan antes de asignarlo.");
       }
 
-      return assignTenantSubscription(tenantId, { planId: selectedPlanId });
+      if (!latestCheckoutSession?.id) {
+        throw new Error("Debes crear una sesion de checkout antes de asignar el plan.");
+      }
+
+      if (latestCheckoutSession.planId !== selectedPlanId) {
+        throw new Error("La sesion de checkout no coincide con el plan seleccionado.");
+      }
+
+      return assignTenantSubscription(tenantId, {
+        planId: selectedPlanId,
+        checkoutSessionId: latestCheckoutSession.id,
+      });
     },
     onSuccess: async (response) => {
       setLastTraceId(response.traceId);
@@ -185,6 +229,7 @@ export function TenantBillingProvisioningPanel({
         queryClient.invalidateQueries({ queryKey: queryKeys.tenantSubscription(tenantId) }),
       ]);
       await refreshTenantRuntime();
+      setLatestCheckoutSession(null);
       setViewState({
         status: "success",
         message: "Suscripcion cancelada. El runtime efectivo se actualizo para este tenant.",
@@ -215,7 +260,7 @@ export function TenantBillingProvisioningPanel({
       setViewState({
         status: "success",
         message:
-          "Checkout simulado creado. Procesa el webhook para completar pending -> paid -> activated.",
+          "Checkout creado. Completa el pago en la URL, luego confirma la activacion del plan.",
       });
     },
     onError: (error: unknown) => {
@@ -228,25 +273,51 @@ export function TenantBillingProvisioningPanel({
 
   const selectedPlan = plansQuery.data?.find((plan) => plan.key === selectedPlanId) ?? null;
   const isWorking =
-    assignMutation.isPending || cancelMutation.isPending || checkoutMutation.isPending;
+    assignMutation.isPending ||
+    cancelMutation.isPending ||
+    checkoutMutation.isPending ||
+    verifyActivationMutation.isPending;
+  const canAssignSelectedPlan =
+    Boolean(selectedPlanId) &&
+    Boolean(latestCheckoutSession?.id) &&
+    latestCheckoutSession?.planId === selectedPlanId;
+  const stepSummaries = [
+    {
+      label: "1. Seleccionar plan",
+      description: selectedPlanId ? `Plan elegido: ${selectedPlanId}` : "Selecciona un plan disponible",
+      done: Boolean(selectedPlanId),
+    },
+    {
+      label: "2. Iniciar checkout",
+      description: hasCheckoutSession
+        ? `Sesion ${latestCheckoutSession?.providerSessionId} en estado ${latestCheckoutSession?.status}`
+        : "Crea sesion de checkout para comenzar el pago",
+      done: hasCheckoutSession,
+    },
+    {
+      label: "3. Confirmar activacion",
+      description: isSelectedPlanActivated
+        ? "Plan activo en tenant y runtime efectivo actualizado"
+        : "Tras pagar, usa confirmar/validar para cerrar la activacion",
+      done: isSelectedPlanActivated,
+    },
+  ] as const;
 
   return (
-    <div className="space-y-6">
-      <article className="rounded-xl border border-slate-200 bg-slate-50 p-5 dark:border-slate-800 dark:bg-slate-950/40">
+    <div className="reveal-up space-y-6 [--reveal-delay:60ms]">
+      <article className="surface-card border-border/85 bg-card/88 p-5">
         <div className="space-y-2">
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-blue-700 dark:text-blue-400">
-            Aprovisionamiento
-          </p>
-          <h2 className="text-2xl font-bold tracking-tight">Billing y plan del tenant</h2>
-          <p className="text-sm text-slate-600 dark:text-slate-400">
-            Selecciona un plan para <span className="font-semibold">{tenantName}</span>, aplica
+          <p className="label-kicker text-primary/90">Aprovisionamiento</p>
+          <h2 className="text-2xl font-bold tracking-tight text-foreground">Billing y plan del tenant</h2>
+          <p className="text-sm leading-relaxed text-muted-foreground">
+            Selecciona un plan para <span className="font-semibold text-foreground">{tenantName}</span>, aplica
             suscripcion directa o inicia checkout en modo simulado.
           </p>
         </div>
       </article>
 
       {plansQuery.isLoading ? (
-        <div className="rounded-xl border border-blue-200 bg-blue-50 p-5 text-blue-900 dark:border-blue-500/30 dark:bg-blue-500/10 dark:text-blue-100">
+        <div className="rounded-xl border border-primary/35 bg-primary/14 p-5 text-primary">
           <div className="flex items-center gap-3 text-sm font-semibold">
             <LoaderCircle className="size-4 animate-spin" />
             Cargando catalogo de planes...
@@ -255,7 +326,7 @@ export function TenantBillingProvisioningPanel({
       ) : null}
 
       {plansQuery.error ? (
-        <article className="rounded-md border border-red-300 bg-red-50 p-4 text-red-800 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-100">
+        <article className="rounded-xl border border-destructive/45 bg-destructive/14 p-4 text-red-200">
           <div className="flex items-center gap-3">
             <ShieldAlert className="size-4" />
             <p className="text-sm font-semibold">{resolveUnknownErrorMessage(plansQuery.error)}</p>
@@ -273,34 +344,34 @@ export function TenantBillingProvisioningPanel({
               <button
                 key={plan.key}
                 type="button"
-                className={`rounded-xl border p-5 text-left transition ${
+                className={cn(
+                  "rounded-2xl border p-5 text-left transition-all duration-200",
                   isSelected
-                    ? "border-blue-500 bg-blue-50/70 dark:border-blue-500/50 dark:bg-blue-500/10"
-                    : "border-slate-200 bg-white hover:border-blue-300 dark:border-slate-800 dark:bg-slate-900"
-                }`}
-                onClick={() => setSelectedPlanIdOverride(plan.key)}
+                    ? "border-primary/50 bg-primary/16 shadow-[0_12px_30px_-15px_oklch(0.58_0.16_42/0.4)]"
+                    : "border-border/85 bg-card/88 hover:border-primary/35 hover:bg-card/95",
+                )}
+                onClick={() => {
+                  setSelectedPlanIdOverride(plan.key);
+                  if (latestCheckoutSession?.planId !== plan.key) {
+                    setLatestCheckoutSession(null);
+                  }
+                }}
               >
                 <div className="flex items-center justify-between gap-3">
-                  <h3 className="text-base font-bold text-slate-900 dark:text-slate-100">
-                    {plan.name}
-                  </h3>
+                  <h3 className="text-base font-bold text-foreground">{plan.name}</h3>
                   {isCurrent ? (
-                    <span className="inline-flex items-center gap-1 rounded-full border border-emerald-300 bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-700 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-300">
-                      <ShieldCheck className="size-3" />
+                    <span className="inline-flex items-center gap-1 rounded-full border border-emerald-400/50 bg-emerald-500/14 px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-[0.1em] text-emerald-100">
+                      <ShieldCheck className="size-3.5" />
                       Activo
                     </span>
                   ) : null}
                 </div>
 
-                <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">
-                  {plan.description}
-                </p>
-                <p className="mt-3 text-xs font-semibold uppercase tracking-wider text-slate-500">
+                <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{plan.description}</p>
+                <p className="field-label mt-4">
                   Modulos permitidos
                 </p>
-                <p className="mt-1 text-sm text-slate-700 dark:text-slate-300">
-                  {formatModules(plan.allowedModuleKeys)}
-                </p>
+                <p className="mt-1 text-sm font-medium text-foreground">{formatModules(plan.allowedModuleKeys)}</p>
               </button>
             );
           })}
@@ -308,33 +379,52 @@ export function TenantBillingProvisioningPanel({
       ) : null}
 
       {selectedPlan ? (
-        <article className="rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+        <article className="surface-card border-border/85 bg-card/88 p-5">
+          <div className="mb-5 space-y-3">
+            <p className="field-label">
+              Flujo guiado de activacion
+            </p>
+            <div className="space-y-2">
+              {stepSummaries.map((step) => (
+                <div
+                  key={step.label}
+                  className={cn(
+                    "rounded-xl border px-4 py-3 text-sm transition-colors",
+                    step.done
+                      ? "border-emerald-400/40 bg-emerald-500/10 text-emerald-100"
+                      : "border-border/70 bg-muted/20 text-muted-foreground",
+                  )}
+                >
+                  <p className="font-semibold">{step.label}</p>
+                  <p className="mt-0.5 opacity-85">{step.description}</p>
+                </div>
+              ))}
+            </div>
+          </div>
           <div className="grid gap-3 md:grid-cols-3">
             <Button
               type="button"
-              size="lg"
-              className="h-11 rounded-md"
-              disabled={isWorking || !selectedPlanId}
+              className="h-11 rounded-xl"
+              disabled={isWorking || !canAssignSelectedPlan}
               onClick={() => {
                 setViewState({ status: "idle" });
                 assignMutation.mutate();
               }}
             >
               {assignMutation.isPending ? (
-                <span className="inline-flex items-center gap-2">
+                <>
                   <LoaderCircle className="size-4 animate-spin" />
                   Aplicando...
-                </span>
+                </>
               ) : (
-                resolvePlanActionLabel(currentPlanId, selectedPlanId)
+                "Confirmar pago y activar plan"
               )}
             </Button>
 
             <Button
               type="button"
-              size="lg"
               variant="outline"
-              className="h-11 rounded-md"
+              className="h-11 rounded-xl"
               disabled={isWorking || !selectedPlanId}
               onClick={() => {
                 setViewState({ status: "idle" });
@@ -342,23 +432,46 @@ export function TenantBillingProvisioningPanel({
               }}
             >
               {checkoutMutation.isPending ? (
-                <span className="inline-flex items-center gap-2">
+                <>
                   <LoaderCircle className="size-4 animate-spin" />
                   Creando checkout...
-                </span>
+                </>
               ) : (
                 <span className="inline-flex items-center gap-2">
                   <CreditCard className="size-4" />
-                  Crear checkout simulado
+                  Iniciar checkout
                 </span>
               )}
             </Button>
 
             <Button
               type="button"
-              size="lg"
               variant="outline"
-              className="h-11 rounded-md"
+              className="h-11 rounded-xl"
+              disabled={isWorking}
+              onClick={() => {
+                setViewState({ status: "idle" });
+                verifyActivationMutation.mutate();
+              }}
+            >
+              {verifyActivationMutation.isPending ? (
+                <>
+                  <LoaderCircle className="size-4 animate-spin" />
+                  Verificando...
+                </>
+              ) : (
+                <span className="inline-flex items-center gap-2">
+                  <ShieldCheck className="size-4" />
+                  Verificar activacion
+                </span>
+              )}
+            </Button>
+          </div>
+          <div className="mt-3">
+            <Button
+              type="button"
+              variant="outline"
+              className="h-11 rounded-xl text-destructive hover:bg-destructive/10 hover:text-destructive"
               disabled={isWorking || currentPlanId === null}
               onClick={() => {
                 setViewState({ status: "idle" });
@@ -366,10 +479,10 @@ export function TenantBillingProvisioningPanel({
               }}
             >
               {cancelMutation.isPending ? (
-                <span className="inline-flex items-center gap-2">
+                <>
                   <LoaderCircle className="size-4 animate-spin" />
                   Cancelando...
-                </span>
+                </>
               ) : (
                 <span className="inline-flex items-center gap-2">
                   <CircleSlash className="size-4" />
@@ -382,28 +495,27 @@ export function TenantBillingProvisioningPanel({
       ) : null}
 
       {latestCheckoutSession ? (
-        <article className="rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
-          <div className="flex items-center gap-2 text-sm font-semibold text-slate-700 dark:text-slate-300">
-            <Sparkles className="size-4" />
+        <article className="surface-card border-border/85 bg-card/88 p-5">
+          <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
+            <Sparkles className="size-4 text-primary" />
             Ultima sesion de checkout
           </div>
-          <div className="mt-3 space-y-1 text-sm text-slate-600 dark:text-slate-400">
+          <div className="mt-4 space-y-2 text-sm text-muted-foreground">
             <p>
-              Provider session:{" "}
-              <span className="font-mono">{latestCheckoutSession.providerSessionId}</span>
+              Provider session: <span className="font-mono text-foreground">{latestCheckoutSession.providerSessionId}</span>
             </p>
             <p>
-              Estado: <span className="font-semibold">{latestCheckoutSession.status}</span>
+              Estado: <span className="font-semibold text-foreground">{latestCheckoutSession.status}</span>
             </p>
             <p>
-              Expira en: <span className="font-semibold">{latestCheckoutSession.expiresAt}</span>
+              Expira en: <span className="font-semibold text-foreground">{latestCheckoutSession.expiresAt}</span>
             </p>
           </div>
           <a
             href={latestCheckoutSession.checkoutUrl}
             target="_blank"
             rel="noreferrer"
-            className="mt-4 inline-flex items-center gap-2 rounded-md border border-slate-300 px-3 py-2 text-sm font-semibold transition hover:border-blue-700 hover:text-blue-700 dark:border-slate-700 dark:hover:border-blue-400 dark:hover:text-blue-400"
+            className="mt-5 inline-flex h-10 items-center gap-2 rounded-xl border border-border/80 bg-background/50 px-4 text-sm font-semibold transition-all hover:border-primary/35 hover:text-primary"
           >
             Abrir checkout URL
             <ExternalLink className="size-4" />
@@ -411,8 +523,19 @@ export function TenantBillingProvisioningPanel({
         </article>
       ) : null}
 
+      {activationDetectedAfterCheckout ? (
+        <article className="rounded-xl border border-emerald-400/55 bg-emerald-500/14 p-4 text-emerald-100">
+          <div className="flex items-center gap-3">
+            <ShieldCheck className="size-4" />
+            <p className="text-sm font-semibold">
+              Activacion detectada: el plan seleccionado ya esta activo en el runtime del tenant.
+            </p>
+          </div>
+        </article>
+      ) : null}
+
       {viewState.status === "success" ? (
-        <article className="rounded-md border border-emerald-300 bg-emerald-50 p-4 text-emerald-800 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-100">
+        <article className="rounded-xl border border-emerald-400/55 bg-emerald-500/14 p-4 text-emerald-100">
           <div className="flex items-center gap-3">
             <ShieldCheck className="size-4" />
             <p className="text-sm font-semibold">{viewState.message}</p>
@@ -421,7 +544,7 @@ export function TenantBillingProvisioningPanel({
       ) : null}
 
       {viewState.status === "error" ? (
-        <article className="rounded-md border border-red-300 bg-red-50 p-4 text-red-800 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-100">
+        <article className="rounded-xl border border-destructive/45 bg-destructive/14 p-4 text-red-200">
           <div className="flex items-center gap-3">
             <ShieldAlert className="size-4" />
             <p className="text-sm font-semibold">{viewState.message}</p>
@@ -431,3 +554,8 @@ export function TenantBillingProvisioningPanel({
     </div>
   );
 }
+
+
+
+
+

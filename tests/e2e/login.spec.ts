@@ -1,4 +1,10 @@
 import { expect, test } from "@playwright/test";
+import { setCsrfCookie } from "./helpers/csrf";
+import { attachTenantDashboardMocks } from "./helpers/dashboard-mocks";
+
+test.beforeEach(async ({ page }, testInfo) => {
+  await setCsrfCookie(page, testInfo.project.use.baseURL);
+});
 
 function buildTenantSummary(id: string, name: string) {
   return {
@@ -175,10 +181,9 @@ test("register flow shows verification required state", async ({ page }) => {
   await expect(
     page.getByText("Si la cuenta es elegible, enviamos instrucciones de verificacion a"),
   ).toBeVisible();
-  await expect(page.getByText("Continuar a verificacion de email")).toBeVisible();
-  await page.getByRole("link", { name: "Continuar a verificacion de email" }).click();
-  await expect(page).toHaveURL(/\/auth\/verify-email\?email=ana%40acme\.dev$/);
-  await expect(page.getByLabel("Email de la cuenta")).toHaveValue("ana@acme.dev");
+  await expect(
+    page.getByText("Por seguridad, continua manualmente en la pantalla de verificacion de email."),
+  ).toBeVisible();
 });
 
 test("verify email flow redirects to login", async ({ page }) => {
@@ -210,7 +215,6 @@ test("verify email flow redirects to login", async ({ page }) => {
   await page.goto("/auth/verify-email?email=owner@acme.dev&token=token_123456");
 
   await expect(page.getByRole("heading", { name: "Verifica tu email" })).toBeVisible();
-  await expect(page.getByLabel("Email de la cuenta")).toHaveValue("owner@acme.dev");
   await expect(page.getByLabel("Token de verificacion")).toHaveValue("token_123456");
   await page.getByRole("button", { name: "Confirmar verificacion" }).click();
 
@@ -276,7 +280,7 @@ test("verify email flow offers generic resend when token is invalid", async ({ p
   });
 });
 
-test("protected app route restores session through browser refresh", async ({ page }) => {
+test("protected app route restores session through browser refresh", async ({ page }, testInfo) => {
   await page.route("**/api/v1/auth/refresh/browser", async (route) => {
     await route.fulfill({
       status: 200,
@@ -329,12 +333,16 @@ test("protected app route restores session through browser refresh", async ({ pa
     });
   });
 
+  await setCsrfCookie(page, testInfo.project.use.baseURL);
+
+  attachTenantDashboardMocks(page);
   await page.goto("/app");
 
   await expect(page.getByRole("heading", { name: "Dashboard tenant" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Acme" })).toBeVisible();
 });
 
-test("protected app route redirects to login when browser refresh fails", async ({ page }) => {
+test("protected app route redirects to login when browser refresh fails", async ({ page }, testInfo) => {
   await page.route("**/api/v1/auth/refresh/browser", async (route) => {
     await route.fulfill({
       status: 401,
@@ -350,6 +358,9 @@ test("protected app route redirects to login when browser refresh fails", async 
     });
   });
 
+  await setCsrfCookie(page, testInfo.project.use.baseURL);
+
+  attachTenantDashboardMocks(page);
   await page.goto("/app");
 
   await expect(page).toHaveURL(/\/login\?expired=1$/);
@@ -410,9 +421,7 @@ test("login muestra mensaje de rate limit", async ({ page }) => {
   ).toBeVisible();
 });
 
-test("logout route clears active session and blocks protected routes afterwards", async ({
-  page,
-}) => {
+test("logout route clears active session and blocks protected routes afterwards", async ({ page }, testInfo) => {
   await page.route("**/api/v1/auth/login/browser", async (route) => {
     await route.fulfill({
       status: 200,
@@ -505,7 +514,19 @@ test("logout route clears active session and blocks protected routes afterwards"
   await expect(page).toHaveURL(/\/login\?loggedOut=1$/);
   await expect(page.getByText("La sesion actual se cerro correctamente.")).toBeVisible();
 
+  await setCsrfCookie(page, testInfo.project.use.baseURL);
+
+  attachTenantDashboardMocks(page);
   await page.goto("/app");
 
   await expect(page).toHaveURL(/\/login\?expired=1$/);
 });
+
+
+
+
+
+
+
+
+

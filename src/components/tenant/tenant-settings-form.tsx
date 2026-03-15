@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -60,14 +60,14 @@ type FieldProps = {
 
 function SettingsSection({ title, description, icon, children }: SettingsSectionProps) {
   return (
-    <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+    <section className="surface-card rounded-xl border-border/85 bg-card/88 p-5">
       <div className="flex items-start gap-3">
-        <div className="rounded-md border border-blue-200 bg-blue-50 p-2 text-blue-700 dark:border-blue-500/30 dark:bg-blue-500/10 dark:text-blue-300">
+        <div className="rounded-md border border-primary/35 bg-primary/14 p-2 text-primary">
           {icon}
         </div>
         <div>
           <h3 className="text-lg font-bold tracking-tight">{title}</h3>
-          <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">{description}</p>
+          <p className="mt-1 text-sm text-muted-foreground">{description}</p>
         </div>
       </div>
 
@@ -79,7 +79,7 @@ function SettingsSection({ title, description, icon, children }: SettingsSection
 function Field({ id, label, error, children }: FieldProps) {
   return (
     <div className="space-y-2">
-      <label htmlFor={id} className="text-xs font-bold uppercase tracking-wider text-slate-500">
+      <label htmlFor={id} className="field-label">
         {label}
       </label>
       {children}
@@ -221,7 +221,7 @@ export function TenantSettingsForm({ tenantId, tenantName }: TenantSettingsFormP
 
   if (settingsQuery.isLoading) {
     return (
-      <div className="rounded-xl border border-blue-200 bg-blue-50 p-5 text-blue-900 dark:border-blue-500/30 dark:bg-blue-500/10 dark:text-blue-100">
+      <div className="rounded-xl border border-primary/35 bg-primary/14 p-5 text-primary">
         <div className="flex items-center gap-3 text-sm font-semibold">
           <LoaderCircle className="size-4 animate-spin" />
           Cargando configuracion del tenant...
@@ -237,7 +237,7 @@ export function TenantSettingsForm({ tenantId, tenantName }: TenantSettingsFormP
         : resolveTenantErrorMessage("GEN_INTERNAL_ERROR");
 
     return (
-      <article className="rounded-md border border-red-300 bg-red-50 p-4 text-red-800 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-100">
+      <article className="rounded-xl border border-destructive/45 bg-destructive/14 p-4 text-red-200">
         <div className="flex items-center gap-3">
           <ShieldAlert className="size-4" />
           <p className="text-sm font-semibold">{queryErrorCode}</p>
@@ -247,11 +247,11 @@ export function TenantSettingsForm({ tenantId, tenantName }: TenantSettingsFormP
   }
 
   return (
-    <div className="space-y-6">
-      <div className="rounded-lg border border-blue-200 bg-blue-50 p-4 text-blue-900 dark:border-blue-500/30 dark:bg-blue-500/10 dark:text-blue-100">
+    <div className="reveal-up space-y-6 [--reveal-delay:60ms]">
+      <div className="rounded-xl border border-primary/35 bg-primary/14 p-4 text-primary">
         <div className="flex gap-3">
           <Info className="mt-0.5 size-4 shrink-0" />
-          <p className="text-sm">
+          <p className="text-sm leading-relaxed">
             Estas editando el singleton de configuracion del tenant{" "}
             <span className="font-semibold">{tenantName}</span>. El runtime efectivo se recalcula
             despues de guardar.
@@ -274,9 +274,9 @@ export function TenantSettingsForm({ tenantId, tenantName }: TenantSettingsFormP
               id="branding-display-name"
               type="text"
               className={cn(
-                "h-11 w-full rounded-md border border-slate-300 bg-white px-3 text-sm text-slate-900 outline-none transition-all placeholder:text-slate-400 focus:border-blue-600 focus:ring-4 focus:ring-blue-100 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:ring-blue-900/30",
+                "h-11 w-full rounded-xl border border-border/80 bg-background/70 px-3 text-sm text-foreground outline-none transition-all placeholder:text-muted-foreground focus:border-primary/60 focus:ring-4 focus:ring-primary/20",
                 errors.branding?.displayName &&
-                  "border-red-500 focus:ring-red-100 dark:focus:ring-red-900/30",
+                  "border-destructive focus:ring-destructive/25",
               )}
               {...register("branding.displayName")}
             />
@@ -291,9 +291,9 @@ export function TenantSettingsForm({ tenantId, tenantName }: TenantSettingsFormP
               id="branding-support-email"
               type="email"
               className={cn(
-                "h-11 w-full rounded-md border border-slate-300 bg-white px-3 text-sm text-slate-900 outline-none transition-all placeholder:text-slate-400 focus:border-blue-600 focus:ring-4 focus:ring-blue-100 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:ring-blue-900/30",
+                "h-11 w-full rounded-xl border border-border/80 bg-background/70 px-3 text-sm text-foreground outline-none transition-all placeholder:text-muted-foreground focus:border-primary/60 focus:ring-4 focus:ring-primary/20",
                 errors.branding?.supportEmail &&
-                  "border-red-500 focus:ring-red-100 dark:focus:ring-red-900/30",
+                  "border-destructive focus:ring-destructive/25",
               )}
               {...register("branding.supportEmail")}
             />
@@ -308,9 +308,9 @@ export function TenantSettingsForm({ tenantId, tenantName }: TenantSettingsFormP
               id="branding-support-url"
               type="url"
               className={cn(
-                "h-11 w-full rounded-md border border-slate-300 bg-white px-3 text-sm text-slate-900 outline-none transition-all placeholder:text-slate-400 focus:border-blue-600 focus:ring-4 focus:ring-blue-100 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:ring-blue-900/30",
+                "h-11 w-full rounded-xl border border-border/80 bg-background/70 px-3 text-sm text-foreground outline-none transition-all placeholder:text-muted-foreground focus:border-primary/60 focus:ring-4 focus:ring-primary/20",
                 errors.branding?.supportUrl &&
-                  "border-red-500 focus:ring-red-100 dark:focus:ring-red-900/30",
+                  "border-destructive focus:ring-destructive/25",
               )}
               {...register("branding.supportUrl")}
             />
@@ -331,9 +331,9 @@ export function TenantSettingsForm({ tenantId, tenantName }: TenantSettingsFormP
               id="localization-default-timezone"
               type="text"
               className={cn(
-                "h-11 w-full rounded-md border border-slate-300 bg-white px-3 text-sm text-slate-900 outline-none transition-all placeholder:text-slate-400 focus:border-blue-600 focus:ring-4 focus:ring-blue-100 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:ring-blue-900/30",
+                "h-11 w-full rounded-xl border border-border/80 bg-background/70 px-3 text-sm text-foreground outline-none transition-all placeholder:text-muted-foreground focus:border-primary/60 focus:ring-4 focus:ring-primary/20",
                 errors.localization?.defaultTimezone &&
-                  "border-red-500 focus:ring-red-100 dark:focus:ring-red-900/30",
+                  "border-destructive focus:ring-destructive/25",
               )}
               {...register("localization.defaultTimezone")}
             />
@@ -349,9 +349,9 @@ export function TenantSettingsForm({ tenantId, tenantName }: TenantSettingsFormP
               type="text"
               maxLength={3}
               className={cn(
-                "h-11 w-full rounded-md border border-slate-300 bg-white px-3 text-sm uppercase text-slate-900 outline-none transition-all placeholder:text-slate-400 focus:border-blue-600 focus:ring-4 focus:ring-blue-100 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:ring-blue-900/30",
+                "h-11 w-full rounded-xl border border-border/80 bg-background/70 px-3 text-sm uppercase text-foreground outline-none transition-all placeholder:text-muted-foreground focus:border-primary/60 focus:ring-4 focus:ring-primary/20",
                 errors.localization?.defaultCurrency &&
-                  "border-red-500 focus:ring-red-100 dark:focus:ring-red-900/30",
+                  "border-destructive focus:ring-destructive/25",
               )}
               {...register("localization.defaultCurrency")}
             />
@@ -366,9 +366,9 @@ export function TenantSettingsForm({ tenantId, tenantName }: TenantSettingsFormP
               id="localization-default-language"
               type="text"
               className={cn(
-                "h-11 w-full rounded-md border border-slate-300 bg-white px-3 text-sm text-slate-900 outline-none transition-all placeholder:text-slate-400 focus:border-blue-600 focus:ring-4 focus:ring-blue-100 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:ring-blue-900/30",
+                "h-11 w-full rounded-xl border border-border/80 bg-background/70 px-3 text-sm text-foreground outline-none transition-all placeholder:text-muted-foreground focus:border-primary/60 focus:ring-4 focus:ring-primary/20",
                 errors.localization?.defaultLanguage &&
-                  "border-red-500 focus:ring-red-100 dark:focus:ring-red-900/30",
+                  "border-destructive focus:ring-destructive/25",
               )}
               {...register("localization.defaultLanguage")}
             />
@@ -389,9 +389,9 @@ export function TenantSettingsForm({ tenantId, tenantName }: TenantSettingsFormP
               id="contact-primary-email"
               type="email"
               className={cn(
-                "h-11 w-full rounded-md border border-slate-300 bg-white px-3 text-sm text-slate-900 outline-none transition-all placeholder:text-slate-400 focus:border-blue-600 focus:ring-4 focus:ring-blue-100 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:ring-blue-900/30",
+                "h-11 w-full rounded-xl border border-border/80 bg-background/70 px-3 text-sm text-foreground outline-none transition-all placeholder:text-muted-foreground focus:border-primary/60 focus:ring-4 focus:ring-primary/20",
                 errors.contact?.primaryEmail &&
-                  "border-red-500 focus:ring-red-100 dark:focus:ring-red-900/30",
+                  "border-destructive focus:ring-destructive/25",
               )}
               {...register("contact.primaryEmail")}
             />
@@ -402,9 +402,9 @@ export function TenantSettingsForm({ tenantId, tenantName }: TenantSettingsFormP
               id="contact-phone"
               type="text"
               className={cn(
-                "h-11 w-full rounded-md border border-slate-300 bg-white px-3 text-sm text-slate-900 outline-none transition-all placeholder:text-slate-400 focus:border-blue-600 focus:ring-4 focus:ring-blue-100 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:ring-blue-900/30",
+                "h-11 w-full rounded-xl border border-border/80 bg-background/70 px-3 text-sm text-foreground outline-none transition-all placeholder:text-muted-foreground focus:border-primary/60 focus:ring-4 focus:ring-primary/20",
                 errors.contact?.phone &&
-                  "border-red-500 focus:ring-red-100 dark:focus:ring-red-900/30",
+                  "border-destructive focus:ring-destructive/25",
               )}
               {...register("contact.phone")}
             />
@@ -419,9 +419,9 @@ export function TenantSettingsForm({ tenantId, tenantName }: TenantSettingsFormP
               id="contact-website-url"
               type="url"
               className={cn(
-                "h-11 w-full rounded-md border border-slate-300 bg-white px-3 text-sm text-slate-900 outline-none transition-all placeholder:text-slate-400 focus:border-blue-600 focus:ring-4 focus:ring-blue-100 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:ring-blue-900/30",
+                "h-11 w-full rounded-xl border border-border/80 bg-background/70 px-3 text-sm text-foreground outline-none transition-all placeholder:text-muted-foreground focus:border-primary/60 focus:ring-4 focus:ring-primary/20",
                 errors.contact?.websiteUrl &&
-                  "border-red-500 focus:ring-red-100 dark:focus:ring-red-900/30",
+                  "border-destructive focus:ring-destructive/25",
               )}
               {...register("contact.websiteUrl")}
             />
@@ -442,9 +442,9 @@ export function TenantSettingsForm({ tenantId, tenantName }: TenantSettingsFormP
               id="billing-billing-email"
               type="email"
               className={cn(
-                "h-11 w-full rounded-md border border-slate-300 bg-white px-3 text-sm text-slate-900 outline-none transition-all placeholder:text-slate-400 focus:border-blue-600 focus:ring-4 focus:ring-blue-100 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:ring-blue-900/30",
+                "h-11 w-full rounded-xl border border-border/80 bg-background/70 px-3 text-sm text-foreground outline-none transition-all placeholder:text-muted-foreground focus:border-primary/60 focus:ring-4 focus:ring-primary/20",
                 errors.billing?.billingEmail &&
-                  "border-red-500 focus:ring-red-100 dark:focus:ring-red-900/30",
+                  "border-destructive focus:ring-destructive/25",
               )}
               {...register("billing.billingEmail")}
             />
@@ -459,9 +459,9 @@ export function TenantSettingsForm({ tenantId, tenantName }: TenantSettingsFormP
               id="billing-legal-name"
               type="text"
               className={cn(
-                "h-11 w-full rounded-md border border-slate-300 bg-white px-3 text-sm text-slate-900 outline-none transition-all placeholder:text-slate-400 focus:border-blue-600 focus:ring-4 focus:ring-blue-100 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:ring-blue-900/30",
+                "h-11 w-full rounded-xl border border-border/80 bg-background/70 px-3 text-sm text-foreground outline-none transition-all placeholder:text-muted-foreground focus:border-primary/60 focus:ring-4 focus:ring-primary/20",
                 errors.billing?.legalName &&
-                  "border-red-500 focus:ring-red-100 dark:focus:ring-red-900/30",
+                  "border-destructive focus:ring-destructive/25",
               )}
               {...register("billing.legalName")}
             />
@@ -476,27 +476,26 @@ export function TenantSettingsForm({ tenantId, tenantName }: TenantSettingsFormP
               id="billing-tax-id"
               type="text"
               className={cn(
-                "h-11 w-full rounded-md border border-slate-300 bg-white px-3 text-sm text-slate-900 outline-none transition-all placeholder:text-slate-400 focus:border-blue-600 focus:ring-4 focus:ring-blue-100 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:ring-blue-900/30",
+                "h-11 w-full rounded-xl border border-border/80 bg-background/70 px-3 text-sm text-foreground outline-none transition-all placeholder:text-muted-foreground focus:border-primary/60 focus:ring-4 focus:ring-primary/20",
                 errors.billing?.taxId &&
-                  "border-red-500 focus:ring-red-100 dark:focus:ring-red-900/30",
+                  "border-destructive focus:ring-destructive/25",
               )}
               {...register("billing.taxId")}
             />
           </Field>
         </SettingsSection>
 
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3 pt-2">
           <Button
             type="submit"
-            size="lg"
-            className="h-11 rounded-md bg-blue-700 px-5 font-semibold text-white hover:bg-blue-800"
+            className="h-11 rounded-xl px-6 font-semibold"
             disabled={updateMutation.isPending}
           >
             {updateMutation.isPending ? (
-              <span className="inline-flex items-center gap-2">
+              <>
                 <LoaderCircle className="size-4 animate-spin" />
                 Guardando cambios...
-              </span>
+              </>
             ) : (
               "Guardar configuracion del tenant"
             )}
@@ -505,8 +504,7 @@ export function TenantSettingsForm({ tenantId, tenantName }: TenantSettingsFormP
           <Button
             type="button"
             variant="outline"
-            size="lg"
-            className="h-11 rounded-md"
+            className="h-11 rounded-xl px-6"
             onClick={() =>
               settingsQuery.data ? reset(toTenantSettingsFormValues(settingsQuery.data)) : undefined
             }
@@ -518,7 +516,7 @@ export function TenantSettingsForm({ tenantId, tenantName }: TenantSettingsFormP
       </form>
 
       {viewState.status === "success" ? (
-        <article className="rounded-md border border-emerald-300 bg-emerald-50 p-4 text-emerald-800 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-100">
+        <article className="rounded-xl border border-emerald-400/55 bg-emerald-500/14 p-4 text-emerald-100">
           <div className="flex items-center gap-3">
             <ShieldCheck className="size-4" />
             <p className="text-sm font-semibold">
@@ -529,7 +527,7 @@ export function TenantSettingsForm({ tenantId, tenantName }: TenantSettingsFormP
       ) : null}
 
       {viewState.status === "error" && errorCopy ? (
-        <article className="rounded-md border border-red-300 bg-red-50 p-4 text-red-800 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-100">
+        <article className="rounded-xl border border-destructive/45 bg-destructive/14 p-4 text-red-200">
           <div className="flex items-center gap-3">
             <ShieldAlert className="size-4" />
             <p className="text-sm font-semibold">{errorCopy}</p>
@@ -539,3 +537,5 @@ export function TenantSettingsForm({ tenantId, tenantName }: TenantSettingsFormP
     </div>
   );
 }
+
+

@@ -32,24 +32,19 @@ type SettingsBlockProps = {
 
 function SettingsBlock({ title, icon, rows }: SettingsBlockProps) {
   return (
-    <article className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+    <article className="surface-card rounded-xl border-border/85 bg-card/88 p-5">
       <div className="flex items-center gap-2">
         {icon}
-        <h3 className="text-sm font-bold uppercase tracking-wider text-slate-700 dark:text-slate-200">
-          {title}
-        </h3>
+        <h3 className="text-sm font-bold uppercase tracking-wider text-foreground">{title}</h3>
       </div>
 
       <div className="mt-4 space-y-3">
         {rows.map((row) => (
-          <div
-            key={row.label}
-            className="rounded-md border border-slate-200 bg-slate-50 p-3 dark:border-slate-800 dark:bg-slate-950/40"
-          >
-            <p className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
+          <div key={row.label} className="rounded-xl border border-border/85 bg-background/68 p-3">
+            <p className="field-label">
               {row.label}
             </p>
-            <p className="mt-1 text-sm text-slate-900 dark:text-slate-100">{row.value}</p>
+            <p className="mt-1 text-sm font-medium text-foreground">{row.value}</p>
           </div>
         ))}
       </div>
@@ -93,10 +88,10 @@ export function TenantEffectiveSettingsPanel({
         : dataShapeError;
 
   return (
-    <div className="space-y-6">
+    <div className="reveal-up space-y-6 [--reveal-delay:60ms]">
       <div className="space-y-2">
-        <h2 className="text-2xl font-bold tracking-tight">{heading}</h2>
-        <p className="text-sm text-slate-600 dark:text-slate-400">{description}</p>
+        <h2 className="text-2xl font-bold tracking-tight text-foreground">{heading}</h2>
+        <p className="text-sm leading-relaxed text-muted-foreground">{description}</p>
       </div>
 
       <TenantRuntimeSummary
@@ -109,7 +104,7 @@ export function TenantEffectiveSettingsPanel({
         <div className="grid gap-4 lg:grid-cols-2">
           <SettingsBlock
             title="Marca"
-            icon={<Building2 className="size-4 text-blue-700 dark:text-blue-400" />}
+            icon={<Building2 className="size-4 text-primary" />}
             rows={[
               {
                 label: "Nombre para mostrar",
@@ -128,7 +123,7 @@ export function TenantEffectiveSettingsPanel({
 
           <SettingsBlock
             title="Localizacion"
-            icon={<Globe2 className="size-4 text-blue-700 dark:text-blue-400" />}
+            icon={<Globe2 className="size-4 text-primary" />}
             rows={[
               {
                 label: "Zona horaria por defecto",
@@ -147,7 +142,7 @@ export function TenantEffectiveSettingsPanel({
 
           <SettingsBlock
             title="Contacto"
-            icon={<Mail className="size-4 text-blue-700 dark:text-blue-400" />}
+            icon={<Mail className="size-4 text-primary" />}
             rows={[
               {
                 label: "Correo principal",
@@ -163,7 +158,7 @@ export function TenantEffectiveSettingsPanel({
 
           <SettingsBlock
             title="Facturacion"
-            icon={<ReceiptText className="size-4 text-blue-700 dark:text-blue-400" />}
+            icon={<ReceiptText className="size-4 text-primary" />}
             rows={[
               {
                 label: "Correo de facturacion",

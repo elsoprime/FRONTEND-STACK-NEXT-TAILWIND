@@ -1,9 +1,10 @@
-"use client";
+﻿"use client";
 
 import { useQueryClient } from "@tanstack/react-query";
-import { LoaderCircle, ShieldAlert } from "lucide-react";
+import { ShieldAlert } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
+import { LoadingScreen } from "@/components/ui/loading-screen";
 import { Button } from "@/components/ui/button";
 import { bootstrapTenantShell } from "@/features/tenant/tenant-context.service";
 import { resolveTenantErrorMessage } from "@/features/tenant/error-code-map";
@@ -96,29 +97,31 @@ export function TenantContextGate({
 
   if (!activeContext && !gateErrorCode) {
     return (
-      <div className="mt-8 inline-flex items-center gap-3 rounded-md border border-blue-200 bg-blue-50 px-4 py-3 text-sm font-semibold text-blue-900 dark:border-blue-500/30 dark:bg-blue-500/10 dark:text-blue-100">
-        <LoaderCircle className="size-4 animate-spin" />
-        {loadingCopy}
-      </div>
+      <LoadingScreen
+        label={loadingCopy}
+        hint="Sincronizando tenant activo, permisos RBAC y estado de suscripción."
+      />
     );
   }
 
   if (gateErrorCode) {
     return (
-      <article className="mt-8 rounded-md border border-red-300 bg-red-50 p-4 text-red-800 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-100">
-        <div className="flex items-center gap-3">
-          <ShieldAlert className="size-4" />
-          <p className="text-sm font-semibold">{resolveTenantErrorMessage(gateErrorCode)}</p>
-        </div>
-        <div className="mt-4 flex gap-3">
-          <Button type="button" onClick={() => router.refresh()}>
-            Reintentar
-          </Button>
-          <Button type="button" variant="outline" onClick={() => router.replace("/logout")}>
-            Cerrar sesion
-          </Button>
-        </div>
-      </article>
+      <section className="flex min-h-[calc(100dvh-4.5rem)] items-center justify-center px-4 py-8 sm:px-6 lg:px-8">
+        <article className="surface-card w-full max-w-xl border-destructive/30 bg-destructive/10 p-5 text-destructive dark:border-destructive/45 dark:bg-destructive/15">
+          <div className="flex items-center gap-3">
+            <ShieldAlert className="size-4" />
+            <p className="text-sm font-semibold">{resolveTenantErrorMessage(gateErrorCode)}</p>
+          </div>
+          <div className="mt-4 flex gap-3">
+            <Button type="button" onClick={() => router.refresh()}>
+              Reintentar
+            </Button>
+            <Button type="button" variant="outline" onClick={() => router.replace("/logout")}>
+              Cerrar sesion
+            </Button>
+          </div>
+        </article>
+      </section>
     );
   }
 

@@ -1,35 +1,51 @@
 "use client";
 
-import { useMemo } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useMemo, useState } from "react";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import {
+  Activity,
   ArrowRight,
+  ArrowRightLeft,
+  BellRing,
   Boxes,
   BriefcaseBusiness,
+  ClipboardCopy,
   LoaderCircle,
+  ReceiptText,
+  ScanSearch,
   Settings2,
   Sparkles,
-  Users,
+  UserPlus,
+  Users2,
 } from "lucide-react";
-import Image from "next/image";
 import Link from "next/link";
 import { TenantContextGate } from "@/components/tenant/tenant-context-gate";
+import { TenantDashboardInteractionGuide } from "@/components/tenant/dashboard/dashboard-interaction-guide";
+import {
+  DashboardFeedbackBanner,
+  DashboardGridContainer,
+  DashboardMetricCard,
+  DashboardModuleCard,
+  DashboardQuickActionCard,
+  DashboardSection,
+} from "@/components/tenant/dashboard/dashboard-primitives";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { listTenantAuditLogs } from "@/features/audit/audit.service";
+import { getBillingPlans } from "@/features/billing/billing.service";
 import { getCrmCounters } from "@/features/crm/crm.service";
 import { listHrEmployees } from "@/features/hr/hr.service";
-import {
-  listInventoryCategories,
-  listInventoryItems,
-  listInventoryLowStockAlerts,
-} from "@/features/inventory/inventory.service";
+import { listInventoryLowStockAlerts } from "@/features/inventory/inventory.service";
 import { resolveTenantErrorMessage } from "@/features/tenant/error-code-map";
+import { hasTenantPermission, TENANT_PERMISSION_KEYS } from "@/features/tenant/tenant-permissions";
 import {
   resolveTenantModuleState,
   type TenantModuleState,
 } from "@/features/tenant/tenant-runtime-guards";
 import { getTenantSettingsEffective } from "@/features/tenant/tenant-settings.service";
 import { type TenantRuntime } from "@/features/tenant/tenant-settings.schemas";
+import { createTenantInvitation } from "@/features/tenant/tenant.service";
 import { type MembershipView, type TenantView } from "@/features/tenant/tenant.schemas";
 import { ApiRequestError } from "@/lib/api/client";
 import { queryKeys } from "@/lib/query/query-keys";
@@ -39,76 +55,24 @@ import { useTenantStore } from "@/store/tenant-store";
 
 type ModuleKey = "inventory" | "crm" | "hr";
 
-type ModuleCatalogItem = {
-  key: ModuleKey;
-  title: string;
-  description: string;
-  href: string;
-  illustrationSrc: string;
-  icon: React.ElementType;
-  accentClassName: string;
-  stateHintEnabled: string;
-  stateHintDisabled: string;
-  stats: [string, string, string];
-};
+type DashboardFeedbackState =
+  | { status: "idle" }
+  | { status: "success"; message: string; code?: string | null }
+  | { status: "warning"; message: string; code: string }
+  | { status: "error"; message: string; code: string };
 
-const MODULE_CATALOG: ReadonlyArray<ModuleCatalogItem> = [
-  {
-    key: "inventory",
-    title: "Inventory",
-    description: "Control de stock, categorias y alertas operativas para el tenant activo.",
-    href: "/app/modules/inventory",
-    illustrationSrc: "/inventory-module.svg",
-    icon: Boxes,
-    accentClassName: "from-primary/35 via-primary/15 to-transparent",
-    stateHintEnabled: "Disponible para activar desde Tenant Settings.",
-    stateHintDisabled: "Este modulo no esta incluido en el plan actual.",
-    stats: ["Categorias", "Items", "Bajo stock"],
-  },
-  {
-    key: "crm",
-    title: "CRM",
-    description: "Pipeline comercial, contactos y oportunidades en un flujo unificado.",
-    href: "/app/modules/crm",
-    illustrationSrc: "/crm-module.svg",
-    icon: BriefcaseBusiness,
-    accentClassName: "from-accent/40 via-accent/18 to-transparent",
-    stateHintEnabled: "Disponible para activar desde Tenant Settings.",
-    stateHintDisabled: "Este modulo no esta incluido en el plan actual.",
-    stats: ["Contactos", "Organizaciones", "Oportunidades"],
-  },
-  {
-    key: "hr",
-    title: "HR",
-    description: "Gestion de empleados y estructura de talento del tenant actual.",
-    href: "/app/modules/hr",
-    illustrationSrc: "/hr-module.svg",
-    icon: Users,
-    accentClassName: "from-emerald-500/30 via-emerald-400/15 to-transparent",
-    stateHintEnabled: "Disponible para activar desde Tenant Settings.",
-    stateHintDisabled: "Este modulo no esta incluido en el plan actual.",
-    stats: ["Total", "Activos", "Inactivos"],
-  },
-];
-
-const MODULE_STATE_COPY: Record<TenantModuleState, string> = {
-  active: "Activo",
-  enabled: "Habilitado",
-  disabled: "No disponible",
-};
-
-const MODULE_STATE_BADGE_CLASSNAME: Record<TenantModuleState, string> = {
-  active:
-    "border-emerald-300 bg-emerald-50 text-emerald-700 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-300",
-  enabled:
-    "border-amber-300 bg-amber-50 text-amber-700 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-300",
-  disabled: "border-border bg-card/80 text-muted-foreground",
-};
-
+const ACCESS_BLOCKING_CODES = new Set([
+  "RBAC_PERMISSION_DENIED",
+  "RBAC_ROLE_DENIED",
+  "RBAC_PLAN_DENIED",
+  "RBAC_MODULE_DENIED",
+  "TENANT_OWNER_REQUIRED",
+  "TENANT_SUBSCRIPTION_PAYMENT_REQUIRED",
+]);
 function resolveModuleState(
   tenant: TenantView,
   moduleKey: ModuleKey,
-  runtimeState: TenantRuntime | null | undefined,
+  runtimeState: TenantRuntime | null,
 ): TenantModuleState {
   if (runtimeState) {
     return resolveTenantModuleState(runtimeState, moduleKey);
@@ -117,75 +81,55 @@ function resolveModuleState(
   return tenant.activeModuleKeys.includes(moduleKey) ? "active" : "disabled";
 }
 
-function resolveUnknownError(error: unknown): string {
+function resolveUnknownError(error: unknown): { code: string; message: string } {
   if (error instanceof ApiRequestError) {
-    return resolveTenantErrorMessage(error.code, error.message);
+    return {
+      code: error.code,
+      message: resolveTenantErrorMessage(error.code, error.message),
+    };
   }
 
-  return resolveTenantErrorMessage("GEN_INTERNAL_ERROR");
+  return {
+    code: "GEN_INTERNAL_ERROR",
+    message: resolveTenantErrorMessage("GEN_INTERNAL_ERROR"),
+  };
 }
 
-function ModuleMetrics({
-  state,
-  labels,
-  values,
-  isLoading,
-  error,
-  enabledHint,
-  disabledHint,
-}: {
-  state: TenantModuleState;
-  labels: [string, string, string];
-  values: [number, number, number];
-  isLoading: boolean;
-  error: unknown;
-  enabledHint: string;
-  disabledHint: string;
-}) {
-  if (state !== "active") {
-    return (
-      <div className="mt-4 rounded-xl border border-dashed border-border/80 bg-background/70 px-3 py-3 text-sm text-muted-foreground">
-        {state === "enabled" ? enabledHint : disabledHint}
-      </div>
-    );
+function isBlockedByAccessControl(error: unknown): boolean {
+  return error instanceof ApiRequestError && ACCESS_BLOCKING_CODES.has(error.code);
+}
+
+function formatAuditAction(action: string): string {
+  const normalized = action.replace(/[._:]/g, " ").replace(/\s+/g, " ").trim();
+  if (normalized.length === 0) {
+    return "Evento";
   }
 
-  if (isLoading) {
-    return (
-      <div className="mt-4 grid grid-cols-3 gap-2">
-        {[0, 1, 2].map((slot) => (
-          <div key={slot} className="rounded-lg border border-border/80 bg-background/70 p-2.5">
-            <div className="h-3 w-14 animate-pulse rounded bg-muted" />
-            <div className="mt-2 h-5 w-10 animate-pulse rounded bg-muted" />
-          </div>
-        ))}
-      </div>
-    );
+  return normalized.charAt(0).toUpperCase() + normalized.slice(1);
+}
+
+function formatAuditTimestamp(value: string): string {
+  const parsedDate = new Date(value);
+
+  if (Number.isNaN(parsedDate.getTime())) {
+    return "fecha no disponible";
   }
 
-  if (error) {
-    return (
-      <div className="mt-4 rounded-xl border border-destructive/30 bg-destructive/10 px-3 py-3 text-sm text-destructive">
-        {resolveUnknownError(error)}
-      </div>
-    );
-  }
+  return new Intl.DateTimeFormat("es-CL", {
+    dateStyle: "short",
+    timeStyle: "short",
+  }).format(parsedDate);
+}
 
-  return (
-    <div className="mt-4 grid grid-cols-3 gap-2">
-      {labels.map((label, index) => (
-        <div
-          key={label}
-          className="rounded-lg border border-border/80 bg-background/75 p-2.5 transition-colors group-hover:border-primary/30"
-        >
-          <p className="text-[10px] font-semibold uppercase tracking-[0.11em] text-muted-foreground">
-            {label}
-          </p>
-          <p className="mt-1 text-xl font-bold text-foreground">{values[index]}</p>
-        </div>
-      ))}
-    </div>
-  );
+function resolveSeverityClass(severity: string): string {
+  switch (severity) {
+    case "critical":
+      return "border-destructive/45 bg-destructive/14 text-red-200";
+    case "warning":
+      return "border-amber-400/65 bg-amber-500/14 text-amber-100";
+    default:
+      return "border-accent/45 bg-accent/12 text-foreground";
+  }
 }
 
 function DashboardMarketplaceContent({
@@ -196,59 +140,54 @@ function DashboardMarketplaceContent({
   membership: MembershipView;
 }) {
   const setLastTraceId = useSessionStore((state) => state.setLastTraceId);
+  const lastTraceId = useSessionStore((state) => state.lastTraceId);
   const tenantId = useTenantStore((state) => state.tenantId);
-  const effectiveRuntime = useTenantStore((state) => state.effectiveRuntime);
+  const storedRuntime = useTenantStore((state) => state.effectiveRuntime);
   const setEffectiveRuntime = useTenantStore((state) => state.setEffectiveRuntime);
+  const runtimeCache = tenantId === tenant.id ? storedRuntime : null;
 
-  const storedRuntime = tenantId === tenant.id ? effectiveRuntime : null;
+  const [inviteEmail, setInviteEmail] = useState("");
+  const [feedback, setFeedback] = useState<DashboardFeedbackState>({ status: "idle" });
+  const [copiedTraceId, setCopiedTraceId] = useState(false);
+
+  const canManageInvites = hasTenantPermission(
+    membership.roleKey,
+    TENANT_PERMISSION_KEYS.INVITATIONS_CREATE,
+  );
+  const canManageSettings = hasTenantPermission(
+    membership.roleKey,
+    TENANT_PERMISSION_KEYS.SETTINGS_UPDATE,
+  );
 
   const runtimeQuery = useQuery({
     queryKey: queryKeys.tenantSettingsEffective(tenant.id),
     queryFn: async () => {
       const response = await getTenantSettingsEffective(tenant.id);
       setLastTraceId(response.traceId);
-      const runtime = response.data.settings.runtime ?? null;
-      setEffectiveRuntime(runtime);
-      return runtime;
+      setEffectiveRuntime(response.data.settings.runtime ?? null);
+      return response.data.settings;
     },
-    initialData: storedRuntime ?? undefined,
     staleTime: 120_000,
   });
 
-  const runtime = runtimeQuery.data ?? storedRuntime;
+  const runtime = runtimeQuery.data?.runtime ?? runtimeCache;
 
-  const moduleState = useMemo(
-    () => ({
-      inventory: resolveModuleState(tenant, "inventory", runtime),
-      crm: resolveModuleState(tenant, "crm", runtime),
-      hr: resolveModuleState(tenant, "hr", runtime),
-    }),
-    [runtime, tenant],
-  );
+  const inventoryState = resolveModuleState(tenant, "inventory", runtime);
+  const crmState = resolveModuleState(tenant, "crm", runtime);
+  const hrState = resolveModuleState(tenant, "hr", runtime);
 
-  const inventoryCategoriesQuery = useQuery({
-    queryKey: queryKeys.inventoryCategories(tenant.id),
-    enabled: moduleState.inventory === "active",
+  const billingPlansQuery = useQuery({
+    queryKey: queryKeys.billingPlans(),
     queryFn: async () => {
-      const response = await listInventoryCategories(tenant.id, { page: 1, limit: 20 });
+      const response = await getBillingPlans();
       setLastTraceId(response.traceId);
-      return response;
-    },
-  });
-
-  const inventoryItemsQuery = useQuery({
-    queryKey: queryKeys.inventoryItems(tenant.id),
-    enabled: moduleState.inventory === "active",
-    queryFn: async () => {
-      const response = await listInventoryItems(tenant.id, { page: 1, limit: 20 });
-      setLastTraceId(response.traceId);
-      return response;
+      return response.data.items;
     },
   });
 
   const inventoryLowStockQuery = useQuery({
     queryKey: queryKeys.inventoryLowStockAlerts(tenant.id),
-    enabled: moduleState.inventory === "active",
+    enabled: inventoryState === "active",
     queryFn: async () => {
       const response = await listInventoryLowStockAlerts(tenant.id, { page: 1, limit: 5 });
       setLastTraceId(response.traceId);
@@ -258,7 +197,7 @@ function DashboardMarketplaceContent({
 
   const crmCountersQuery = useQuery({
     queryKey: queryKeys.crmCounters(tenant.id),
-    enabled: moduleState.crm === "active",
+    enabled: crmState === "active",
     queryFn: async () => {
       const response = await getCrmCounters(tenant.id);
       setLastTraceId(response.traceId);
@@ -266,19 +205,9 @@ function DashboardMarketplaceContent({
     },
   });
 
-  const hrEmployeesQuery = useQuery({
-    queryKey: queryKeys.hrEmployees(tenant.id),
-    enabled: moduleState.hr === "active",
-    queryFn: async () => {
-      const response = await listHrEmployees(tenant.id, { page: 1, limit: 20 });
-      setLastTraceId(response.traceId);
-      return response;
-    },
-  });
-
   const hrActiveEmployeesQuery = useQuery({
     queryKey: ["tenant", tenant.id, "hr", "employees", "status", "active"],
-    enabled: moduleState.hr === "active",
+    enabled: hrState === "active",
     queryFn: async () => {
       const response = await listHrEmployees(tenant.id, { page: 1, limit: 1, status: "active" });
       setLastTraceId(response.traceId);
@@ -286,223 +215,680 @@ function DashboardMarketplaceContent({
     },
   });
 
-  const inventoryError =
-    inventoryCategoriesQuery.error ?? inventoryItemsQuery.error ?? inventoryLowStockQuery.error;
-  const hrError = hrEmployeesQuery.error ?? hrActiveEmployeesQuery.error;
+  const auditRecentQuery = useQuery({
+    queryKey: queryKeys.tenantAuditLogs(tenant.id, "recent"),
+    queryFn: async () => {
+      const response = await listTenantAuditLogs(tenant.id, { page: 1, limit: 6 });
+      setLastTraceId(response.traceId);
+      return response;
+    },
+  });
 
-  const inventoryValues: [number, number, number] = [
-    inventoryCategoriesQuery.data?.pagination.total ?? 0,
-    inventoryItemsQuery.data?.pagination.total ?? 0,
-    inventoryLowStockQuery.data?.pagination.total ?? 0,
-  ];
+  const auditCriticalQuery = useQuery({
+    queryKey: queryKeys.tenantAuditLogs(tenant.id, "critical"),
+    queryFn: async () => {
+      const response = await listTenantAuditLogs(tenant.id, {
+        page: 1,
+        limit: 1,
+        severity: "critical",
+      });
+      setLastTraceId(response.traceId);
+      return response;
+    },
+  });
 
-  const crmCounters = crmCountersQuery.data?.data.counters;
-  const crmValues: [number, number, number] = [
-    crmCounters?.contactsActive ?? 0,
-    crmCounters?.organizationsActive ?? 0,
-    crmCounters?.opportunitiesOpen ?? 0,
-  ];
+  const inviteMutation = useMutation({
+    mutationFn: async () => {
+      const normalizedEmail = inviteEmail.trim();
 
-  const hrTotal = hrEmployeesQuery.data?.pagination.total ?? 0;
-  const hrActive = hrActiveEmployeesQuery.data?.pagination.total ?? 0;
-  const hrValues: [number, number, number] = [hrTotal, hrActive, Math.max(hrTotal - hrActive, 0)];
+      if (normalizedEmail.length === 0) {
+        throw new Error("Debes ingresar un email valido para enviar la invitacion.");
+      }
+
+      return createTenantInvitation(tenant.id, {
+        email: normalizedEmail,
+        roleKey: "tenant:member",
+      });
+    },
+    onSuccess: (response) => {
+      setLastTraceId(response.traceId);
+      setFeedback({
+        status: "success",
+        message: `Invitacion enviada a ${response.data.invitation.email}.`,
+      });
+      setInviteEmail("");
+    },
+    onError: (error: unknown) => {
+      if (error instanceof ApiRequestError) {
+        setLastTraceId(error.traceId ?? null);
+        setFeedback({
+          status: "error",
+          code: error.code,
+          message: resolveTenantErrorMessage(error.code, error.message),
+        });
+        return;
+      }
+
+      setFeedback({
+        status: "warning",
+        code: "GEN_VALIDATION_ERROR",
+        message:
+          error instanceof Error
+            ? error.message
+            : resolveTenantErrorMessage("GEN_VALIDATION_ERROR"),
+      });
+    },
+  });
+
+  const tenantPlanId = runtime?.planId ?? tenant.planId;
+  const currentPlan = billingPlansQuery.data?.find((plan) => plan.key === tenantPlanId) ?? null;
+  const subscriptionStatus = tenantPlanId ? "Activa" : "Sin suscripcion";
+
+  const lowStockAlerts = inventoryLowStockQuery.data?.pagination.total ?? 0;
+  const openOpportunities = crmCountersQuery.data?.data.counters.opportunitiesOpen ?? 0;
+  const activeEmployees = hrActiveEmployeesQuery.data?.pagination.total ?? 0;
+  const criticalEvents = auditCriticalQuery.data?.pagination.total ?? 0;
+  const latestDomainCode =
+    feedback.status === "warning" || feedback.status === "error" ? feedback.code : null;
+
+  const auditModuleState = auditRecentQuery.error
+    ? isBlockedByAccessControl(auditRecentQuery.error)
+      ? "restricted"
+      : "active"
+    : "active";
+
+  const canOpenInventoryAlerts = inventoryState === "active";
+  const canOpenAudit = auditModuleState === "active";
+
+  const auditEvents = auditRecentQuery.data?.data.items ?? [];
+  const auditError = auditRecentQuery.error ? resolveUnknownError(auditRecentQuery.error) : null;
+  const runtimeError = runtimeQuery.error ? resolveUnknownError(runtimeQuery.error) : null;
+
+  const supportEmail =
+    runtimeQuery.data?.branding.supportEmail ?? runtimeQuery.data?.contact.primaryEmail;
+  const supportUrl =
+    runtimeQuery.data?.branding.supportUrl ?? runtimeQuery.data?.contact.websiteUrl;
+
+  const dependencyCards = useMemo(
+    () => [
+      {
+        label: "Tenant activo",
+        value: tenant.name,
+        hint: `slug: ${tenant.slug}`,
+      },
+      {
+        label: "Plan vigente",
+        value: currentPlan?.name ?? tenantPlanId ?? "Sin plan",
+        hint: `Suscripcion: ${subscriptionStatus}`,
+      },
+      {
+        label: "Modulos activos",
+        value:
+          tenant.activeModuleKeys.length > 0
+            ? tenant.activeModuleKeys.join(", ")
+            : "sin modulos",
+        hint: canManageInvites && canManageSettings
+          ? "Puede invitar y gestionar plan"
+          : "Acciones restringidas por permisos",
+      },
+    ],
+    [
+      currentPlan?.name,
+      canManageInvites,
+      canManageSettings,
+
+      subscriptionStatus,
+      tenant.name,
+      tenant.slug,
+      tenant.activeModuleKeys,
+      tenantPlanId,
+    ],
+  );
+
+  const handleInvite = () => {
+    if (!canManageInvites) {
+      setFeedback({
+        status: "warning",
+        code: "RBAC_PERMISSION_DENIED",
+        message: resolveTenantErrorMessage("RBAC_PERMISSION_DENIED"),
+      });
+      return;
+    }
+
+    setFeedback({ status: "idle" });
+    inviteMutation.mutate();
+  };
+
+  const handleCopyTraceId = async () => {
+    if (!lastTraceId) {
+      return;
+    }
+
+    try {
+      await navigator.clipboard.writeText(lastTraceId);
+      setCopiedTraceId(true);
+      setTimeout(() => setCopiedTraceId(false), 1300);
+    } catch {
+      setFeedback({
+        status: "warning",
+        code: "GEN_INTERNAL_ERROR",
+        message: "No se pudo copiar el traceId automaticamente. Copialo manualmente.",
+      });
+    }
+  };
 
   return (
-    <section className="mx-auto max-w-7xl px-4 pb-10 pt-6 sm:px-6 lg:px-8">
-      <article className="surface-card relative overflow-hidden p-6 sm:p-7">
-        <div className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-gradient-to-r from-primary/18 via-accent/15 to-transparent" />
-        <div className="pointer-events-none absolute -right-24 -top-24 size-64 rounded-full bg-primary/12 blur-3xl" />
+    <section className="mx-auto w-full max-w-[1440px] space-y-5 px-4 pb-10 pt-6 sm:px-6 lg:px-8">
+      <article className="surface-card reveal-up relative overflow-hidden p-6 sm:p-7 [--reveal-delay:40ms]">
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-gradient-to-r from-primary/18 via-accent/14 to-transparent" />
+        <div className="pointer-events-none absolute -left-20 -top-16 size-64 rounded-full bg-primary/10 blur-3xl" />
 
-        <div className="relative flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
-          <div className="space-y-3">
-            <Badge
-              variant="outline"
-              className="border-primary/25 bg-primary/10 text-primary dark:border-primary/35"
-            >
-              Tenant Dashboard
-            </Badge>
-            <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
-              Marketplace de modulos
-            </h1>
-            <p className="max-w-3xl text-sm leading-relaxed text-muted-foreground sm:text-base">
-              Gestiona <span className="font-semibold text-foreground">{tenant.name}</span> desde un
-              tablero vivo con estado de runtime, acceso por modulo y senal operativa en tiempo
-              real.
-            </p>
+        <div className="relative space-y-5">
+          <div className="grid gap-4 lg:grid-cols-[1fr_auto] lg:items-start">
+            <div className="space-y-3">
+              <Badge variant="outline" className="border-primary/25 bg-primary/10 text-primary">
+                Tenant Control Center
+              </Badge>
+              <div>
+                <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
+                  Dashboard tenant
+                </h1>
+                <p className="mt-2 max-w-3xl text-sm leading-relaxed text-muted-foreground sm:text-base">
+                  Vista concentrada y simetrica para controlar estado modular, alertas criticas y operaciones
+                  del tenant activo sin sobrecarga visual.
+                </p>
+              </div>
+            </div>
 
-            <div className="flex flex-wrap items-center gap-2.5">
-              <span className="inline-flex items-center gap-1.5 rounded-full border border-border/80 bg-background/75 px-3 py-1 text-xs font-semibold text-foreground">
-                <Sparkles className="size-3.5 text-primary" />
-                Plan: {runtime?.planId ?? tenant.planId ?? "sin plan"}
-              </span>
-              <span className="inline-flex rounded-full border border-border/80 bg-background/75 px-3 py-1 text-xs font-semibold text-foreground">
-                Rol: {membership.roleKey}
-              </span>
-              <span className="inline-flex rounded-full border border-border/80 bg-background/75 px-3 py-1 text-xs font-semibold text-foreground">
-                Modulos activos: {tenant.activeModuleKeys.length}
-              </span>
+            <div className="flex flex-wrap gap-2 lg:justify-end">
+              <Link href="/app/tenants/create">
+                <Button size="sm" className="rounded-lg">
+                  Crear tenant
+                </Button>
+              </Link>
+              <Link href="/app/tenants/select">
+                <Button size="sm" variant="outline" className="rounded-lg">
+                  <ArrowRightLeft className="size-4" />
+                  Cambiar tenant
+                </Button>
+              </Link>
+              <Link href="/app/settings/tenant">
+                <Button size="sm" variant="outline" className="rounded-lg">
+                  <Settings2 className="size-4" />
+                  Configuracion
+                </Button>
+              </Link>
+              <Link href="/app/settings/billing">
+                <Button size="sm" className="rounded-lg">
+                  <ReceiptText className="size-4" />
+                  Plan y billing
+                </Button>
+              </Link>
             </div>
           </div>
 
-          <div className="flex flex-wrap gap-2">
-            <Link href="/app/settings/tenant">
-              <Button size="sm" className="rounded-lg">
-                <Settings2 className="size-4" />
-                Tenant settings
-              </Button>
-            </Link>
-            <Link href="/app/settings/billing">
-              <Button size="sm" variant="outline" className="rounded-lg">
-                Gestionar plan
-              </Button>
-            </Link>
-            <Link href="/app/tenants/select">
-              <Button size="sm" variant="ghost" className="rounded-lg">
-                Cambiar tenant
-              </Button>
-            </Link>
+          <div className="grid gap-3 md:grid-cols-3">
+            {dependencyCards.map((dependency) => (
+              <article
+                key={dependency.label}
+                className="rounded-xl border border-border/85 bg-background/72 px-4 py-3"
+              >
+                <p className="text-[10px] font-semibold uppercase tracking-[0.11em] text-muted-foreground">
+                  {dependency.label}
+                </p>
+                <p className="mt-1 text-base font-semibold text-foreground">{dependency.value}</p>
+                <p className="text-xs text-muted-foreground">{dependency.hint}</p>
+              </article>
+            ))}
           </div>
         </div>
       </article>
 
-      {runtimeQuery.isLoading && !storedRuntime ? (
-        <div className="mt-4 inline-flex items-center gap-2 rounded-xl border border-primary/25 bg-primary/10 px-4 py-2 text-sm font-semibold text-primary">
-          <LoaderCircle className="size-4 animate-spin" />
-          Sincronizando runtime efectivo del tenant...
-        </div>
-      ) : null}
+      <DashboardSection
+        eyebrow="Resumen Principal"
+        title="Metricas clave del tenant"
+        description="Tarjetas concentradas y simetricas para lectura rapida en cualquier viewport."
+        className="reveal-up [--reveal-delay:90ms]"
+      >
+        <DashboardGridContainer columns={3}>
+          <DashboardMetricCard
+            title="Usuarios activos"
+            value={hrState === "active" ? String(activeEmployees) : "N/A"}
+            hint={hrState === "active" ? "Empleados activos en HR" : "Habilita HR para ver actividad"}
+            icon={Users2}
+            tone="accent"
+            isLoading={hrState === "active" && hrActiveEmployeesQuery.isLoading}
+          />
 
-      {runtimeQuery.error ? (
-        <div className="mt-4 rounded-xl border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm font-semibold text-destructive">
-          {resolveUnknownError(runtimeQuery.error)}
-        </div>
-      ) : null}
+          <DashboardMetricCard
+            title="Plan vigente"
+            value={currentPlan?.name ?? tenantPlanId ?? "Sin plan"}
+            hint={
+              currentPlan
+                ? `${currentPlan.allowedModuleKeys.length} modulos permitidos`
+                : "Sin aprovisionamiento"
+            }
+            icon={Sparkles}
+            tone="default"
+            isLoading={billingPlansQuery.isLoading}
+          />
 
-      <div className="mt-6 grid gap-4 lg:grid-cols-3">
-        {MODULE_CATALOG.map((module) => {
-          const state = moduleState[module.key];
-          const metrics =
-            module.key === "inventory"
-              ? {
-                  values: inventoryValues,
-                  isLoading:
-                    inventoryCategoriesQuery.isLoading ||
-                    inventoryItemsQuery.isLoading ||
-                    inventoryLowStockQuery.isLoading,
-                  error: inventoryError,
-                }
-              : module.key === "crm"
-                ? {
-                    values: crmValues,
-                    isLoading: crmCountersQuery.isLoading,
-                    error: crmCountersQuery.error,
-                  }
-                : {
-                    values: hrValues,
-                    isLoading: hrEmployeesQuery.isLoading || hrActiveEmployeesQuery.isLoading,
-                    error: hrError,
-                  };
+          <DashboardMetricCard
+            title="Alertas de stock"
+            value={inventoryState === "active" ? String(lowStockAlerts) : "N/A"}
+            hint={inventoryState === "active" ? "Productos en riesgo de quiebre" : "Inventory no activo"}
+            icon={BellRing}
+            tone={lowStockAlerts > 0 ? "warning" : "success"}
+            isLoading={inventoryLowStockQuery.isLoading}
+          />
 
-          const Icon = module.icon;
-          const actionHref =
-            state === "active"
-              ? module.href
-              : state === "enabled"
-                ? "/app/settings/tenant"
-                : "/app/settings/billing";
-          const actionCopy =
-            state === "active"
-              ? "Abrir modulo"
-              : state === "enabled"
-                ? "Activar modulo"
-                : "Ver plan";
+          <DashboardMetricCard
+            title="Oportunidades abiertas"
+            value={crmState === "active" ? String(openOpportunities) : "N/A"}
+            hint={crmState === "active" ? "Pipeline comercial en curso" : "CRM no activo"}
+            icon={BriefcaseBusiness}
+            tone={openOpportunities > 0 ? "accent" : "default"}
+            isLoading={crmCountersQuery.isLoading}
+          />
+        </DashboardGridContainer>
+      </DashboardSection>
 
-          return (
-            <article
-              key={module.key}
-              className="surface-card surface-card-hover group relative isolate overflow-hidden p-5"
-            >
-              {state === "disabled" ? (
-                <div className="pointer-events-none absolute inset-0 z-0">
-                  <div className="absolute inset-y-0 right-0 w-3/4">
-                    <Image
-                      src={module.illustrationSrc}
-                      alt=""
-                      fill
-                      aria-hidden
-                      sizes="(max-width: 1024px) 70vw, 30vw"
-                      className="object-cover object-right opacity-18 saturate-80"
-                    />
-                  </div>
-                  <div className="absolute inset-0 bg-gradient-to-r from-card/96 via-card/92 via-60% to-card/84" />
-                  <div className="absolute inset-y-0 right-0 w-2/3 bg-gradient-to-l from-primary/12 via-primary/6 to-transparent" />
-                </div>
-              ) : null}
-
-              <div
-                className={cn(
-                  "pointer-events-none absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r",
-                  module.accentClassName,
-                )}
-              />
-              <div className="relative z-10">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex size-11 items-center justify-center rounded-xl border border-primary/25 bg-primary/10 text-primary">
-                    <Icon className="size-5" />
-                  </div>
-                  <span
-                    className={cn(
-                      "inline-flex rounded-full border px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.12em]",
-                      MODULE_STATE_BADGE_CLASSNAME[state],
-                    )}
-                  >
-                    {MODULE_STATE_COPY[state]}
-                  </span>
-                </div>
-
-                <h2 className="mt-4 text-xl font-semibold tracking-tight text-foreground">
-                  {module.title}
-                </h2>
-                <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-                  {module.description}
-                </p>
-
-                <ModuleMetrics
-                  state={state}
-                  labels={module.stats}
-                  values={metrics.values}
-                  isLoading={metrics.isLoading}
-                  error={metrics.error}
-                  enabledHint={module.stateHintEnabled}
-                  disabledHint={module.stateHintDisabled}
+      <div className="grid items-start gap-5 xl:grid-cols-2">
+        <DashboardSection
+          eyebrow="Actividades Recientes"
+          title="Eventos operativos"
+          description="Bloque simetrico con scroll independiente para no romper el ritmo visual."
+          className="reveal-up min-h-[420px] [--reveal-delay:140ms]"
+          contentClassName="max-h-[330px] space-y-2 overflow-y-auto pr-1"
+        >
+          {auditRecentQuery.isLoading ? (
+            <div className="space-y-2">
+              {[0, 1, 2, 3].map((slot) => (
+                <div
+                  key={slot}
+                  className="h-14 animate-pulse rounded-xl border border-border/70 bg-muted/45"
                 />
+              ))}
+            </div>
+          ) : null}
 
-                <div className="mt-5 flex items-center gap-2">
-                  <Link href={actionHref}>
-                    <Button size="sm" className="rounded-lg">
-                      {actionCopy}
-                      <ArrowRight className="size-4" />
-                    </Button>
-                  </Link>
-                  <Link href="/app/settings/tenant">
-                    <Button size="sm" variant="outline" className="rounded-lg">
-                      Configurar
-                    </Button>
-                  </Link>
-                </div>
-              </div>
+          {!auditRecentQuery.isLoading && auditError ? (
+            <DashboardFeedbackBanner
+              tone={auditError.code === "RBAC_PERMISSION_DENIED" ? "warning" : "error"}
+              title={
+                auditError.code === "RBAC_PERMISSION_DENIED"
+                  ? "Sin acceso a auditoria"
+                  : "Error al cargar eventos"
+              }
+              description={auditError.message}
+              code={auditError.code}
+            />
+          ) : null}
+
+          {!auditRecentQuery.isLoading && !auditError && auditEvents.length === 0 ? (
+            <div className="rounded-xl border border-border/80 bg-background/75 px-4 py-3 text-sm text-muted-foreground">
+              No hay eventos recientes para este tenant.
+            </div>
+          ) : null}
+
+          {!auditRecentQuery.isLoading && !auditError && auditEvents.length > 0 ? (
+            <ul className="space-y-2">
+              {auditEvents.map((event) => (
+                <li
+                  key={event.id}
+                  className="rounded-xl border border-border/80 bg-background/75 px-3 py-2.5"
+                >
+                  <div className="flex flex-wrap items-start justify-between gap-2">
+                    <div>
+                      <p className="text-sm font-semibold text-foreground">{formatAuditAction(event.action)}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {event.resource.type}
+                        {event.resource.label ? ` - ${event.resource.label}` : ""}
+                      </p>
+                    </div>
+                    <span
+                      className={cn(
+                        "rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.1em]",
+                        resolveSeverityClass(event.severity),
+                      )}
+                    >
+                      {event.severity}
+                    </span>
+                  </div>
+                  <div className="mt-1 flex items-center justify-between gap-2 text-xs text-muted-foreground">
+                    <span>{formatAuditTimestamp(event.createdAt)}</span>
+                    <span className="font-mono">trace: {event.traceId}</span>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          ) : null}
+        </DashboardSection>
+
+        <DashboardSection
+          eyebrow="Senales Criticas"
+          title="Stock y oportunidades"
+          description="Segundo bloque simetrico para monitoreo rapido de riesgo comercial y operativo."
+          className="reveal-up min-h-[420px] [--reveal-delay:190ms]"
+        >
+          <div className="grid gap-3 sm:grid-cols-2">
+            <article className="rounded-xl border border-border/80 bg-background/75 p-4">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+                Alertas de stock
+              </p>
+              <p className="mt-2 text-3xl font-bold text-foreground">
+                {inventoryState === "active" ? lowStockAlerts : "N/A"}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                {inventoryState === "active"
+                  ? "Productos con bajo stock en inventario"
+                  : "Inventory no esta activo para este tenant"}
+              </p>
             </article>
-          );
-        })}
+
+            <article className="rounded-xl border border-border/80 bg-background/75 p-4">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+                Oportunidades abiertas
+              </p>
+              <p className="mt-2 text-3xl font-bold text-foreground">
+                {crmState === "active" ? openOpportunities : "N/A"}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                {crmState === "active"
+                  ? "Pipeline comercial abierto en CRM"
+                  : "CRM no esta activo para este tenant"}
+              </p>
+            </article>
+          </div>
+
+          <div className="mt-3 grid gap-3 sm:grid-cols-2">
+            <Link href="/app/inventory/alerts" className="block">
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full rounded-lg"
+                disabled={!canOpenInventoryAlerts}
+              >
+                Ver alertas de stock
+              </Button>
+            </Link>
+            <Link href="/app/crm/opportunities" className="block">
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full rounded-lg"
+                disabled={crmState !== "active"}
+              >
+                Ver oportunidades
+              </Button>
+            </Link>
+          </div>
+
+          {runtimeError ? (
+            <div className="mt-4">
+              <DashboardFeedbackBanner
+                tone="error"
+                title="Dependencia critica de runtime"
+                description={runtimeError.message}
+                code={runtimeError.code}
+              />
+            </div>
+          ) : null}
+        </DashboardSection>
       </div>
+
+      <DashboardSection
+        eyebrow="Modulos"
+        title="Accesos modulares del tenant"
+        description="Tarjetas simetricas por modulo con estado, metrica y rutas de accion."
+        className="reveal-up [--reveal-delay:240ms]"
+      >
+        <DashboardGridContainer columns={2}>
+          <DashboardModuleCard
+            title="Inventory"
+            description="Control de stock y alertas de quiebre para operacion diaria."
+            icon={Boxes}
+            state={inventoryState}
+            metrics={[
+              {
+                label: "Bajo stock",
+                value: inventoryState === "active" ? String(lowStockAlerts) : "N/A",
+              },
+              { label: "Estado", value: inventoryState === "active" ? "Monitoreado" : "Limitado" },
+            ]}
+            primaryHref="/app/inventory"
+            primaryLabel="Abrir modulo"
+            secondaryHref="/app/settings/tenant"
+            secondaryLabel="Configurar"
+            note={
+              inventoryState === "disabled"
+                ? "No incluido en el plan actual."
+                : inventoryState === "enabled"
+                  ? "Habilitado en runtime, pendiente de activacion efectiva."
+                  : "Alertas de stock integradas al resumen principal."
+            }
+            accentClassName="from-primary/35 via-primary/15 to-transparent"
+          />
+
+          <DashboardModuleCard
+            title="CRM"
+            description="Pipeline comercial con foco en oportunidades abiertas."
+            icon={BriefcaseBusiness}
+            state={crmState}
+            metrics={[
+              {
+                label: "Oportunidades",
+                value: crmState === "active" ? String(openOpportunities) : "N/A",
+              },
+              {
+                label: "Estado",
+                value: crmState === "active" ? "Operativo" : "Limitado",
+              },
+            ]}
+            primaryHref="/app/crm"
+            primaryLabel="Abrir modulo"
+            secondaryHref="/app/settings/tenant"
+            secondaryLabel="Configurar"
+            note={
+              crmState === "disabled"
+                ? "Modulo no incluido en el plan vigente."
+                : crmState === "enabled"
+                  ? "Disponible para activacion desde tenant settings."
+                  : "Metrica de pipeline sincronizada al dashboard."
+            }
+            accentClassName="from-accent/40 via-accent/18 to-transparent"
+          />
+
+          <DashboardModuleCard
+            title="HR"
+            description="Seguimiento de empleados activos e indicadores de talento."
+            icon={Users2}
+            state={hrState}
+            metrics={[
+              { label: "Activos", value: hrState === "active" ? String(activeEmployees) : "N/A" },
+              { label: "Estado", value: hrState === "active" ? "Operativo" : "Limitado" },
+            ]}
+            primaryHref="/app/hr"
+            primaryLabel="Abrir modulo"
+            secondaryHref="/app/settings/tenant"
+            secondaryLabel="Configurar"
+            note={
+              hrState === "disabled"
+                ? "No incluido en plan o runtime actual."
+                : hrState === "enabled"
+                  ? "Habilitado, requiere activacion completa."
+                  : "Usuarios activos del tenant disponibles en resumen."
+            }
+            accentClassName="from-emerald-500/30 via-emerald-400/15 to-transparent"
+          />
+
+          <DashboardModuleCard
+            title="Audit"
+            description="Trazabilidad de eventos recientes y criticidad operacional."
+            icon={Activity}
+            state={auditModuleState}
+            metrics={[
+              { label: "Recientes", value: String(auditEvents.length) },
+              { label: "Criticos", value: String(criticalEvents) },
+            ]}
+            primaryHref="/app/audit"
+            primaryLabel="Abrir auditoria"
+            secondaryHref="/app/settings/tenant/effective"
+            secondaryLabel="Ver runtime"
+            note={
+              auditError
+                ? `${auditError.message} (${auditError.code})`
+                : "Ultimos eventos y severidad visibles desde el dashboard."
+            }
+            accentClassName="from-slate-500/35 via-slate-400/15 to-transparent"
+          />
+        </DashboardGridContainer>
+      </DashboardSection>
+
+      <DashboardSection
+        eyebrow="Acciones Rapidas"
+        title="Operaciones inmediatas"
+        description="Invitacion, billing y soporte en una fila compacta de uso frecuente."
+        className="reveal-up [--reveal-delay:290ms]"
+      >
+        <DashboardGridContainer columns={3}>
+          <DashboardQuickActionCard
+            title="Invitar usuario"
+            description="Invitacion tenant-scoped con validaciones de negocio y feedback por codigo de error."
+            icon={UserPlus}
+          >
+            <div className="space-y-3">
+              <Input
+                type="email"
+                value={inviteEmail}
+                onChange={(event) => setInviteEmail(event.target.value)}
+                placeholder="usuario@empresa.com"
+                aria-label="Email para invitacion tenant"
+                className="h-10 rounded-lg"
+              />
+              <Button
+                type="button"
+                className="w-full rounded-lg"
+                onClick={handleInvite}
+                disabled={inviteMutation.isPending || inviteEmail.trim().length === 0}
+              >
+                {inviteMutation.isPending ? (
+                  <>
+                    <LoaderCircle className="size-4 animate-spin" />
+                    Enviando invitacion...
+                  </>
+                ) : (
+                  <>
+                    Invitar miembro
+                    <ArrowRight className="size-4" />
+                  </>
+                )}
+              </Button>
+            </div>
+          </DashboardQuickActionCard>
+
+          <DashboardQuickActionCard
+            title="Plan y suscripcion"
+            description="Control de provisioning con acceso directo a upgrade o downgrade."
+            icon={ReceiptText}
+          >
+            <div className="space-y-2">
+              <article className="rounded-xl border border-border/80 bg-background/75 px-3 py-2.5">
+                <p className="text-xs text-muted-foreground">Plan vigente</p>
+                <p className="text-sm font-semibold text-foreground">{currentPlan?.name ?? "Sin plan"}</p>
+              </article>
+              <Link href="/app/settings/billing" className="block">
+                <Button type="button" className="w-full rounded-lg">
+                  Abrir billing
+                </Button>
+              </Link>
+            </div>
+          </DashboardQuickActionCard>
+
+          <DashboardQuickActionCard
+            title="Soporte y trazabilidad"
+            description="Comparte traceId con soporte y abre auditoria cuando exista un incidente."
+            icon={ScanSearch}
+          >
+            <div className="space-y-2">
+              <article className="rounded-xl border border-border/80 bg-background/75 px-3 py-2.5">
+                <p className="text-xs text-muted-foreground">Ultimo traceId</p>
+                <p className="break-all font-mono text-xs text-foreground">{lastTraceId ?? "sin traza"}</p>
+              </article>
+              <div className="grid grid-cols-2 gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="rounded-lg"
+                  onClick={() => void handleCopyTraceId()}
+                  disabled={!lastTraceId}
+                >
+                  <ClipboardCopy className="size-4" />
+                  {copiedTraceId ? "Copiado" : "Copiar"}
+                </Button>
+                <Link href="/app/audit" className="block">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="w-full rounded-lg"
+                    disabled={!canOpenAudit}
+                  >
+                    Eventos de auditoria
+                  </Button>
+                </Link>
+              </div>
+              {supportUrl ? (
+                <a href={supportUrl} target="_blank" rel="noreferrer">
+                  <Button type="button" className="w-full rounded-lg">
+                    Ir a soporte
+                  </Button>
+                </a>
+              ) : (
+                <p className="text-xs text-muted-foreground">
+                  {supportEmail
+                    ? `Email soporte: ${supportEmail}`
+                    : "Configura un canal de soporte en tenant settings."}
+                </p>
+              )}
+            </div>
+          </DashboardQuickActionCard>
+        </DashboardGridContainer>
+
+        {feedback.status !== "idle" ? (
+          <div className="mt-4">
+            <DashboardFeedbackBanner
+              tone={
+                feedback.status === "success"
+                  ? "success"
+                  : feedback.status === "warning"
+                    ? "warning"
+                    : "error"
+              }
+              title={
+                feedback.status === "success"
+                  ? "Accion completada"
+                  : feedback.status === "warning"
+                    ? "Validacion de negocio"
+                    : "Error de dominio"
+              }
+              description={feedback.message}
+              code={feedback.status === "success" ? undefined : feedback.code}
+            />
+          </div>
+        ) : null}
+      </DashboardSection>
+
+      <TenantDashboardInteractionGuide
+        lastDomainCode={latestDomainCode}
+        lastTraceId={lastTraceId}
+      />
     </section>
   );
 }
-
 export function TenantDashboardMarketplace() {
   return (
     <main className="min-h-[calc(100dvh-4.5rem)]">
-      <TenantContextGate loadingCopy="Preparando tu dashboard principal...">
+      <TenantContextGate loadingCopy="Preparando centro de control tenant...">
         {({ tenant, membership }) => (
           <DashboardMarketplaceContent tenant={tenant} membership={membership} />
         )}
@@ -510,3 +896,36 @@ export function TenantDashboardMarketplace() {
     </main>
   );
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

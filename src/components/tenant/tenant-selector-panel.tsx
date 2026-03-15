@@ -1,16 +1,14 @@
-"use client";
+﻿"use client";
 
 import { useQueryClient } from "@tanstack/react-query";
-import { LoaderCircle, ShieldAlert, ShieldCheck, Building2, ArrowRightLeft } from "lucide-react";
+import { ArrowRightLeft, Building2, ShieldAlert, ShieldCheck } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { LoadingScreen } from "@/components/ui/loading-screen";
 import { Button } from "@/components/ui/button";
 import { type TenantMembershipSummary } from "@/features/tenant/tenant.schemas";
 import { resolveTenantErrorMessage } from "@/features/tenant/error-code-map";
-import {
-  getMyTenantMembershipSummaries,
-  switchActiveTenant,
-} from "@/features/tenant/tenant.service";
+import { getMyTenantMembershipSummaries, switchActiveTenant } from "@/features/tenant/tenant.service";
 import { ApiRequestError } from "@/lib/api/client";
 import { clearPreviousTenantScopedQueries } from "@/lib/query/tenant-cache";
 import { useSessionStore } from "@/store/session-store";
@@ -28,7 +26,8 @@ type TenantSelectorViewState =
 
 export function TenantSelectorPanel({
   title = "Selecciona un tenant activo",
-  description = "Elige el tenant con el que deseas continuar y el frontend fijara el contexto activo de la sesion.",
+  description =
+    "Elige el tenant con el que deseas continuar y el frontend fijara el contexto activo de la sesion.",
 }: TenantSelectorPanelProps) {
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -55,14 +54,44 @@ export function TenantSelectorPanel({
         }
 
         if (items.length === 1) {
-          router.replace("/app");
+          const onlyItem = items[0];
+
+          if (onlyItem.isActive) {
+            setActiveTenantContext({
+              tenant: onlyItem.tenant,
+              membership: onlyItem.membership,
+            });
+            router.replace("/app");
+            return;
+          }
+
+          void switchActiveTenant({ tenantId: onlyItem.tenant.id })
+            .then((response) => {
+              clearPreviousTenantScopedQueries(queryClient, previousTenantId);
+              setActiveTenantContext({
+                tenant: response.data.tenant,
+                membership: response.data.membership,
+              });
+              setLastTraceId(response.traceId);
+              router.replace("/app");
+            })
+            .catch((error: unknown) => {
+              if (error instanceof ApiRequestError) {
+                setLastTraceId(error.traceId ?? null);
+                if (isActive) {
+                  setViewState({ status: "error", code: error.code });
+                }
+                return;
+              }
+
+              if (isActive) {
+                setViewState({ status: "error", code: "GEN_INTERNAL_ERROR" });
+              }
+            });
           return;
         }
 
-        setViewState({
-          status: "ready",
-          items,
-        });
+        setViewState({ status: "ready", items });
       })
       .catch((error: unknown) => {
         if (error instanceof ApiRequestError) {
@@ -80,7 +109,7 @@ export function TenantSelectorPanel({
     return () => {
       isActive = false;
     };
-  }, [router, setLastTraceId]);
+  }, [queryClient, previousTenantId, router, setActiveTenantContext, setLastTraceId]);
 
   const activateTenant = async (tenantId: string) => {
     setSwitchingTenantId(tenantId);
@@ -97,15 +126,9 @@ export function TenantSelectorPanel({
     } catch (error) {
       if (error instanceof ApiRequestError) {
         setLastTraceId(error.traceId ?? null);
-        setViewState({
-          status: "error",
-          code: error.code,
-        });
+        setViewState({ status: "error", code: error.code });
       } else {
-        setViewState({
-          status: "error",
-          code: "GEN_INTERNAL_ERROR",
-        });
+        setViewState({ status: "error", code: "GEN_INTERNAL_ERROR" });
       }
     } finally {
       setSwitchingTenantId(null);
@@ -114,16 +137,18 @@ export function TenantSelectorPanel({
 
   if (viewState.status === "loading") {
     return (
-      <div className="mt-8 inline-flex items-center gap-3 rounded-xl border border-primary/25 bg-primary/10 px-4 py-3 text-sm font-semibold text-primary">
-        <LoaderCircle className="size-4 animate-spin" />
-        Cargando tenants disponibles...
-      </div>
+      <LoadingScreen
+        variant="inline"
+        className="py-4"
+        label="Cargando tenants disponibles..."
+        hint="Validando membresías y estado activo de sesión."
+      />
     );
   }
 
   if (viewState.status === "error") {
     return (
-      <article className="mt-8 rounded-xl border border-destructive/30 bg-destructive/10 p-4 text-destructive">
+      <article className="surface-card mt-6 border-destructive/30 bg-destructive/10 p-4 text-destructive dark:border-destructive/45 dark:bg-destructive/15">
         <div className="flex items-center gap-3">
           <ShieldAlert className="size-4" />
           <p className="text-sm font-semibold">{resolveTenantErrorMessage(viewState.code)}</p>
@@ -138,69 +163,172 @@ export function TenantSelectorPanel({
   }
 
   return (
-    <div className="mt-8 space-y-6">
+    <div className="mt-6 space-y-6">
       <div className="space-y-2">
-        <h2 className="text-2xl font-bold tracking-tight">{title}</h2>
-        <p className="text-sm text-muted-foreground">{description}</p>
+        <h2 className="text-2xl font-bold tracking-tight text-foreground">{title}</h2>
+        <p className="max-w-3xl text-sm text-muted-foreground">{description}</p>
       </div>
 
-      <div className="grid gap-4">
+      <div className="hidden overflow-hidden rounded-2xl border border-border/85 bg-card/88 shadow-[0_20px_44px_-28px_oklch(0.16_0.03_58/0.72)] md:block">
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[760px] text-sm">
+            <thead className="border-b border-border/80 bg-background/55">
+              <tr className="text-left">
+                <th className="px-4 py-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+                  Tenant
+                </th>
+                <th className="px-4 py-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+                  Slug
+                </th>
+                <th className="px-4 py-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+                  Rol
+                </th>
+                <th className="px-4 py-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+                  Estado
+                </th>
+                <th className="px-4 py-3 text-right text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+                  Accion
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {viewState.items.map((item) => {
+                const isSwitching = switchingTenantId === item.tenant.id;
+
+                return (
+                  <tr
+                    key={item.membership.id}
+                    className="border-b border-border/70 last:border-b-0 hover:bg-background/45"
+                  >
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-2">
+                        <Building2 className="size-4 text-primary" />
+                        <span className="font-semibold text-foreground">{item.tenant.name}</span>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 font-mono text-xs text-muted-foreground">{item.tenant.slug}</td>
+                    <td className="px-4 py-3">
+                      <span className="rounded-md border border-border/80 bg-background/70 px-2 py-1 text-xs font-medium text-foreground">
+                        {item.membership.roleKey}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3">
+                      {item.isActive ? (
+                        <span className="inline-flex items-center rounded-full border border-emerald-400/50 bg-emerald-500/14 px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-[0.1em] text-emerald-100">
+                          Activo
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center rounded-full border border-border/80 bg-background/70 px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">
+                          Disponible
+                        </span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      {item.isActive ? (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          className="rounded-lg"
+                          onClick={() => {
+                            setActiveTenantContext({
+                              tenant: item.tenant,
+                              membership: item.membership,
+                            });
+                            router.replace("/app");
+                          }}
+                        >
+                          <ShieldCheck className="mr-2 size-4" />
+                          Continuar
+                        </Button>
+                      ) : (
+                        <Button
+                          type="button"
+                          size="sm"
+                          className="rounded-lg"
+                          onClick={() => void activateTenant(item.tenant.id)}
+                          disabled={isSwitching}
+                        >
+                          {isSwitching ? (
+                            "Activando..."
+                          ) : (
+                            <>
+                              <ArrowRightLeft className="mr-2 size-4" />
+                              Activar
+                            </>
+                          )}
+                        </Button>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div className="space-y-3 md:hidden">
         {viewState.items.map((item) => {
           const isSwitching = switchingTenantId === item.tenant.id;
 
           return (
-            <article key={item.membership.id} className="surface-card surface-card-hover p-5">
-              <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-                <div className="space-y-2">
+            <article key={item.membership.id} className="surface-card border-border/85 bg-card/88 p-4">
+              <div className="space-y-3">
+                <div className="flex items-center justify-between gap-2">
                   <div className="flex items-center gap-2">
                     <Building2 className="size-4 text-primary" />
-                    <p className="text-lg font-semibold">{item.tenant.name}</p>
-                    {item.isActive ? (
-                      <span className="rounded-full border border-emerald-500/30 bg-emerald-500/12 px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-[0.1em] text-emerald-700 dark:text-emerald-300">
-                        Activo
-                      </span>
-                    ) : null}
+                    <p className="font-semibold text-foreground">{item.tenant.name}</p>
                   </div>
-                  <p className="text-sm text-muted-foreground">
-                    slug: <span className="font-mono">{item.tenant.slug}</span>
+                  {item.isActive ? (
+                    <span className="rounded-full border border-emerald-400/50 bg-emerald-500/14 px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-[0.1em] text-emerald-100">
+                      Activo
+                    </span>
+                  ) : null}
+                </div>
+
+                <div className="grid gap-2">
+                  <p className="rounded-lg border border-border/80 bg-background/68 px-3 py-2 text-xs text-muted-foreground">
+                    slug: <span className="font-mono text-foreground">{item.tenant.slug}</span>
                   </p>
-                  <p className="text-sm text-muted-foreground">
-                    Rol actual: <span className="font-semibold">{item.membership.roleKey}</span>
+                  <p className="rounded-lg border border-border/80 bg-background/68 px-3 py-2 text-xs text-muted-foreground">
+                    Rol: <span className="font-semibold text-foreground">{item.membership.roleKey}</span>
                   </p>
                 </div>
 
-                <div className="flex items-center gap-3">
-                  {item.isActive ? (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      className="rounded-full"
-                      onClick={() => router.replace("/app")}
-                    >
-                      <ShieldCheck className="mr-2 size-4" />
-                      Continuar con este tenant
-                    </Button>
-                  ) : (
-                    <Button
-                      type="button"
-                      className="rounded-full"
-                      onClick={() => void activateTenant(item.tenant.id)}
-                      disabled={isSwitching}
-                    >
-                      {isSwitching ? (
-                        <>
-                          <LoaderCircle className="mr-2 size-4 animate-spin" />
-                          Activando...
-                        </>
-                      ) : (
-                        <>
-                          <ArrowRightLeft className="mr-2 size-4" />
-                          Activar tenant
-                        </>
-                      )}
-                    </Button>
-                  )}
-                </div>
+                {item.isActive ? (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="w-full rounded-lg"
+                    onClick={() => {
+                      setActiveTenantContext({
+                        tenant: item.tenant,
+                        membership: item.membership,
+                      });
+                      router.replace("/app");
+                    }}
+                  >
+                    <ShieldCheck className="mr-2 size-4" />
+                    Continuar con este tenant
+                  </Button>
+                ) : (
+                  <Button
+                    type="button"
+                    className="w-full rounded-lg"
+                    onClick={() => void activateTenant(item.tenant.id)}
+                    disabled={isSwitching}
+                  >
+                    {isSwitching ? (
+                      "Activando..."
+                    ) : (
+                      <>
+                        <ArrowRightLeft className="mr-2 size-4" />
+                        Activar tenant
+                      </>
+                    )}
+                  </Button>
+                )}
               </div>
             </article>
           );

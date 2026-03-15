@@ -4,9 +4,7 @@ import {
   ChartColumnIncreasing,
   Layers3,
   LockKeyhole,
-  Orbit,
   ShieldAlert,
-  Sparkles,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
@@ -326,3 +324,4 @@ export function LandingPage() {
     </main>
   );
 }
+

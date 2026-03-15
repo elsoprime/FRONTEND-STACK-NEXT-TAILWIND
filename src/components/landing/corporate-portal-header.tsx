@@ -43,28 +43,36 @@ export function CorporatePortalHeader() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border/75 bg-background/78 backdrop-blur-xl">
-      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/55 to-transparent" />
+    <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/80 backdrop-blur-xl transition-all duration-300">
+      {/* Accent Top Line */}
+      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent opacity-70" />
+
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="flex min-h-[4.6rem] items-center justify-between gap-3 py-3">
+        <div className="flex h-20 items-center justify-between gap-4">
+          {/* Logo Section */}
           <Link
             href="/"
-            className="flex min-w-0 items-center gap-3 transition-opacity hover:opacity-90"
+            className="group flex flex-shrink-0 items-center gap-3 transition-all duration-300 hover:opacity-100"
           >
-            <div className="flex size-10 shrink-0 items-center justify-center rounded-full border border-primary/30 bg-primary text-primary-foreground shadow-lg shadow-primary/30">
-              <Cloud className="size-4" />
+            <div className="relative flex size-11 items-center justify-center rounded-xl border border-primary/20 bg-gradient-to-br from-primary/10 to-primary/5 p-2 shadow-sm transition-all duration-300 group-hover:border-primary/40 group-hover:shadow-md group-hover:shadow-primary/10">
+              <Cloud className="size-5 text-primary transition-transform duration-500 group-hover:scale-110" />
+              <div className="absolute -inset-1 rounded-xl bg-primary/5 opacity-0 blur-sm transition-opacity group-hover:opacity-100" />
             </div>
-            <div className="min-w-0">
-              <p className="truncate text-sm font-semibold tracking-tight text-foreground sm:text-base">
-                ERP Solutions Media
-              </p>
-              <p className="hidden text-[10px] font-medium tracking-[0.16em] text-muted-foreground uppercase sm:block">
-                Enterprise Control Hub
-              </p>
+            <div className="flex flex-col leading-tight">
+              <span className="text-lg font-bold tracking-tight text-foreground transition-colors group-hover:text-primary">
+                ERP Solutions
+              </span>
+              <span className="text-[10px] font-bold tracking-[0.2em] text-muted-foreground uppercase opacity-70">
+                Media Hub
+              </span>
             </div>
           </Link>
 
-          <nav aria-label="Navegacion principal" className="hidden items-center gap-1 md:flex">
+          {/* Center Navigation - Desktop */}
+          <nav
+            aria-label="Navegación principal"
+            className="hidden items-center justify-center gap-1 lg:flex"
+          >
             {navItems.map((item) => {
               const isActive = isActivePath(pathname, item.href);
 
@@ -74,58 +82,66 @@ export function CorporatePortalHeader() {
                   href={item.href}
                   aria-current={isActive ? "page" : undefined}
                   className={cn(
-                    "nav-link-pill",
-                    isActive &&
-                      "bg-primary/14 text-foreground shadow-[inset_0_0_0_1px_oklch(0.58_0.16_42/0.24)]",
+                    "relative px-4 py-2 text-sm font-semibold transition-all duration-300 hover:text-primary",
+                    isActive ? "text-primary" : "text-muted-foreground",
                   )}
                 >
                   {item.label}
+                  {isActive && (
+                    <span className="absolute inset-x-4 -bottom-1 h-0.5 rounded-full bg-primary/60 shadow-[0_0_8px_rgba(var(--primary),0.4)]" />
+                  )}
                 </Link>
               );
             })}
           </nav>
 
-          <div className="hidden items-center gap-1.5 sm:gap-2 md:flex">
-            <span className="hidden items-center gap-1 rounded-full border border-emerald-500/25 bg-emerald-500/10 px-2.5 py-1 text-[10px] font-semibold tracking-[0.12em] text-emerald-700 uppercase lg:inline-flex dark:text-emerald-300">
+          {/* Quick Actions - Desktop */}
+          <div className="hidden items-center gap-3 md:flex lg:gap-4">
+            <div className="mr-2 hidden items-center gap-2 rounded-full border border-emerald-500/20 bg-emerald-500/5 px-3 py-1.5 text-[10px] font-bold tracking-widest text-emerald-600 uppercase xl:flex dark:text-emerald-400">
               <ShieldCheck className="size-3.5" />
-              SOC2
-            </span>
+              SOC2 Compliant
+            </div>
+
             <Link
               href="/login"
-              className="inline-flex h-10 items-center justify-center rounded-md border border-border/80 bg-card/80 px-4 text-center text-sm leading-none font-semibold text-foreground shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/30 hover:bg-primary/10 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/65"
+              className="text-sm font-semibold text-muted-foreground transition-colors hover:text-foreground"
             >
-              Acceso a clientes
+              Acceso clientes
             </Link>
+
             <Link
               href="/contact/plan"
-              className="inline-flex h-10 items-center justify-center rounded-md border border-primary/35 bg-primary px-5 text-center text-sm leading-none font-semibold text-primary-foreground shadow-md shadow-primary/35 transition-all duration-200 hover:-translate-y-0.5 hover:brightness-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/65"
+              className="group relative inline-flex h-11 items-center justify-center overflow-hidden rounded-full bg-primary px-6 text-sm font-bold text-primary-foreground shadow-lg shadow-primary/25 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-primary/30 active:scale-[0.98]"
             >
-              Solicitar demo
+              <span className="relative z-10">Solicitar demo</span>
+              <div className="absolute inset-0 z-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full transition-transform duration-700 group-hover:translate-x-full" />
             </Link>
           </div>
 
-          <div className="flex items-center gap-2 md:hidden">
+          {/* Mobile Actions/Toggle */}
+          <div className="flex items-center gap-3 md:hidden">
             <Link
               href="/contact/plan"
-              className="inline-flex h-9 items-center justify-center rounded-md border border-primary/35 bg-primary px-3 text-center text-xs leading-none font-semibold text-primary-foreground shadow-sm shadow-primary/30 transition-all duration-200 hover:brightness-105"
+              className="inline-flex h-10 items-center justify-center rounded-full bg-primary px-4 text-xs font-bold text-primary-foreground shadow-md shadow-primary/20 transition-all active:scale-95"
             >
               Demo
             </Link>
             <button
               type="button"
-              aria-label={isMobileMenuOpen ? "Cerrar menu" : "Abrir menu"}
+              aria-label={isMobileMenuOpen ? "Cerrar menú" : "Abrir menú"}
               aria-expanded={isMobileMenuOpen}
-              className="inline-flex size-9 items-center justify-center rounded-md border border-border bg-card/75 text-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/65"
+              className="inline-flex size-10 items-center justify-center rounded-full border border-border bg-card/50 text-foreground transition-all hover:bg-muted active:scale-90"
               onClick={() => setIsMobileMenuOpen((prev) => !prev)}
             >
-              {isMobileMenuOpen ? <X className="size-4" /> : <Menu className="size-4" />}
+              {isMobileMenuOpen ? <X className="size-5" /> : <Menu className="size-5" />}
             </button>
           </div>
         </div>
 
-        {isMobileMenuOpen ? (
-          <div className="space-y-3 border-t border-border/70 py-3 md:hidden">
-            <nav aria-label="Navegacion movil" className="grid grid-cols-2 gap-2">
+        {/* Mobile Navigation Menu */}
+        {isMobileMenuOpen && (
+          <div className="mt-2 space-y-4 border-t border-border/50 pb-6 pt-4 md:hidden animate-in fade-in slide-in-from-top-2 duration-300">
+            <nav aria-label="Navegación móvil" className="grid grid-cols-2 gap-3">
               {mobileNavItems.map((item) => {
                 const isActive = isActivePath(pathname, item.href);
 
@@ -136,10 +152,10 @@ export function CorporatePortalHeader() {
                     onClick={() => setIsMobileMenuOpen(false)}
                     aria-current={isActive ? "page" : undefined}
                     className={cn(
-                      "inline-flex h-9 items-center justify-center rounded-md border text-xs font-semibold uppercase tracking-[0.1em]",
+                      "flex h-11 items-center justify-center rounded-xl border text-xs font-bold uppercase tracking-wider transition-all active:scale-[0.97]",
                       isActive
-                        ? "border-primary/35 bg-primary/14 text-foreground"
-                        : "border-border/70 bg-card/70 text-muted-foreground",
+                        ? "border-primary/40 bg-primary/10 text-primary shadow-sm"
+                        : "border-border/60 bg-card/40 text-muted-foreground",
                     )}
                   >
                     {item.label}
@@ -147,21 +163,21 @@ export function CorporatePortalHeader() {
                 );
               })}
             </nav>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-col gap-3 pt-2">
               <Link
                 href="/login"
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="inline-flex h-9 flex-1 items-center justify-center rounded-md border border-border/80 bg-card/80 text-center text-xs leading-none font-semibold uppercase tracking-[0.1em] text-foreground shadow-sm transition-colors hover:border-primary/30 hover:bg-primary/10"
+                className="flex h-12 items-center justify-center rounded-xl border border-border/80 bg-card/80 text-sm font-bold uppercase tracking-widest text-foreground shadow-sm active:scale-[0.97]"
               >
                 Acceso clientes
               </Link>
-              <span className="inline-flex h-9 items-center rounded-md border border-emerald-500/25 bg-emerald-500/10 px-3 text-xs font-semibold uppercase tracking-[0.1em] text-emerald-700 dark:text-emerald-300">
-                <ShieldCheck className="mr-1.5 size-3.5" />
-                SOC2
-              </span>
+              <div className="flex h-10 items-center justify-center gap-2 rounded-xl bg-emerald-500/5 text-xs font-bold uppercase tracking-widest text-emerald-600 dark:text-emerald-400">
+                <ShieldCheck className="size-4" />
+                Certificación SOC2
+              </div>
             </div>
           </div>
-        ) : null}
+        )}
       </div>
     </header>
   );

@@ -1,4 +1,10 @@
 import { expect, test } from "@playwright/test";
+import { attachTenantDashboardMocks } from "./helpers/dashboard-mocks";
+import { setCsrfCookie } from "./helpers/csrf";
+
+test.beforeEach(async ({ page }, testInfo) => {
+  await setCsrfCookie(page, testInfo.project.use.baseURL);
+});
 
 function buildRefreshSuccess() {
   return {
@@ -57,7 +63,7 @@ function buildTenantSettings(displayName = "Acme") {
     },
     billing: {
       billingEmail: "billing@acme.dev",
-      legalName: "Acme SPA",
+      legalName: "Acme Corporation",
       taxId: "76.123.456-7",
     },
   };
@@ -83,7 +89,7 @@ function buildTenantSettingsEffective(displayName = "Acme") {
     },
     billing: {
       billingEmail: "billing@acme.dev",
-      legalName: "Acme SPA",
+      legalName: "Acme Corporation",
       taxId: "76.123.456-7",
     },
     runtime: {
@@ -179,20 +185,21 @@ test("tenant settings page loads singleton data and saves changes", async ({ pag
     });
   });
 
+  attachTenantDashboardMocks(page);
   await page.goto("/app/settings/tenant");
 
   await expect(
     page.getByRole("heading", { level: 1, name: "Configuracion del tenant" }),
   ).toBeVisible();
-  await expect(page.getByLabel("Display Name")).toHaveValue("Acme");
+  await expect(page.getByLabel("Nombre para mostrar")).toHaveValue("Acme");
   await expect(page.getByRole("heading", { level: 3, name: "Runtime efectivo" })).toBeVisible();
   await expect(page.getByText("plan:growth")).toBeVisible();
 
-  await page.getByLabel("Display Name").fill("Acme Labs");
-  await page.getByRole("button", { name: "Guardar tenant settings" }).click();
+  await page.getByLabel("Nombre para mostrar").fill("Acme Labs");
+  await page.getByRole("button", { name: "Guardar configuracion del tenant" }).click();
 
-  await expect(page.getByText("Tenant settings actualizados correctamente.")).toBeVisible();
-  await expect(page.getByLabel("Display Name")).toHaveValue("Acme Labs");
+  await expect(page.getByText(/Tenant settings actualizados correctamente/i)).toBeVisible();
+  await expect(page.getByLabel("Nombre para mostrar")).toHaveValue("Acme Labs");
   expect(capturedPayload).toMatchObject({
     branding: {
       displayName: "Acme Labs",
@@ -252,6 +259,7 @@ test("effective settings page renders runtime and resolved values", async ({ pag
     });
   });
 
+  attachTenantDashboardMocks(page);
   await page.goto("/app/settings/tenant/effective");
 
   await expect(
@@ -260,5 +268,9 @@ test("effective settings page renders runtime and resolved values", async ({ pag
   await expect(page.getByText("Inventory Analytics")).toBeVisible();
   await expect(page.getByText("CRM Base")).toBeVisible();
   await expect(page.getByText("America/Santiago")).toBeVisible();
-  await expect(page.getByText("Acme SPA")).toBeVisible();
+  await expect(page.getByText("Acme Corporation")).toBeVisible();
 });
+
+
+
+

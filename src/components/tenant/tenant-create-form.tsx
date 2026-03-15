@@ -100,17 +100,17 @@ export function TenantCreateForm() {
     viewState.status === "error" ? resolveTenantErrorMessage(viewState.code) : null;
 
   return (
-    <div className="mt-8 space-y-6">
+    <div className="reveal-up space-y-6 [--reveal-delay:60ms]">
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
         <div className="space-y-2">
           <label
             htmlFor="tenant-name"
-            className="text-xs font-bold uppercase tracking-wider text-slate-500"
+            className="field-label"
           >
             Nombre del tenant
           </label>
           <div className="relative group">
-            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 transition-colors group-focus-within:text-blue-600">
+            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground transition-colors group-focus-within:text-primary">
               <Building2 className="size-4" />
             </div>
             <input
@@ -118,26 +118,26 @@ export function TenantCreateForm() {
               type="text"
               placeholder="Acme Holdings"
               className={cn(
-                "h-11 w-full rounded-md border border-slate-300 bg-white pl-10 pr-3 text-sm text-slate-900 outline-none transition-all placeholder:text-slate-400 focus:border-blue-600 focus:ring-4 focus:ring-blue-100 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:ring-blue-900/30",
-                errors.name && "border-red-500 focus:ring-red-100 dark:focus:ring-red-900/30",
+                "h-11 w-full rounded-xl border border-border/80 bg-background/70 pl-10 pr-3 text-sm text-foreground outline-none transition-all placeholder:text-muted-foreground focus:border-primary/60 focus:ring-4 focus:ring-primary/20",
+                errors.name && "border-destructive focus:ring-destructive/25",
               )}
               {...register("name")}
             />
           </div>
           {errors.name ? (
-            <p className="text-xs font-medium text-red-500">{errors.name.message}</p>
+            <p className="text-xs font-medium text-destructive">{errors.name.message}</p>
           ) : null}
         </div>
 
         <div className="space-y-2">
           <label
             htmlFor="tenant-slug"
-            className="text-xs font-bold uppercase tracking-wider text-slate-500"
+            className="field-label"
           >
             Slug publico
           </label>
           <div className="relative group">
-            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 transition-colors group-focus-within:text-blue-600">
+            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground transition-colors group-focus-within:text-primary">
               <Hash className="size-4" />
             </div>
             <input
@@ -145,16 +145,16 @@ export function TenantCreateForm() {
               type="text"
               placeholder="acme-holdings"
               className={cn(
-                "h-11 w-full rounded-md border border-slate-300 bg-white pl-10 pr-3 text-sm text-slate-900 outline-none transition-all placeholder:text-slate-400 focus:border-blue-600 focus:ring-4 focus:ring-blue-100 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:ring-blue-900/30",
-                errors.slug && "border-red-500 focus:ring-red-100 dark:focus:ring-red-900/30",
+                "h-11 w-full rounded-xl border border-border/80 bg-background/70 pl-10 pr-3 text-sm text-foreground outline-none transition-all placeholder:text-muted-foreground focus:border-primary/60 focus:ring-4 focus:ring-primary/20",
+                errors.slug && "border-destructive focus:ring-destructive/25",
               )}
               {...register("slug")}
             />
           </div>
           {errors.slug ? (
-            <p className="text-xs font-medium text-red-500">{errors.slug.message}</p>
+            <p className="text-xs font-medium text-destructive">{errors.slug.message}</p>
           ) : (
-            <p className="text-xs text-slate-500 dark:text-slate-400">
+            <p className="text-xs text-muted-foreground">
               Opcional. Si lo dejas vacio, el backend puede resolverlo automaticamente.
             </p>
           )}
@@ -162,32 +162,32 @@ export function TenantCreateForm() {
 
         <Button
           type="submit"
-          className="h-11 rounded-md bg-blue-700 px-5 font-semibold text-white hover:bg-blue-800"
+          className="h-11 w-full rounded-xl font-semibold sm:w-auto"
           disabled={isLoading}
         >
           {isLoading ? (
-            <span className="inline-flex items-center gap-2">
+            <>
               <LoaderCircle className="size-4 animate-spin" />
               Creando tenant...
-            </span>
+            </>
           ) : (
             "Crear tenant y activar contexto"
           )}
         </Button>
       </form>
 
-      <div className="rounded-lg border border-blue-200 bg-blue-50 p-4 text-blue-900 dark:border-blue-500/30 dark:bg-blue-500/10 dark:text-blue-100">
+      <div className="rounded-xl border border-primary/35 bg-primary/14 p-4 text-primary">
         <div className="flex gap-3">
           <Info className="mt-0.5 size-4 shrink-0" />
           <p className="text-sm">
-            Esta pantalla ejecuta `create tenant` y luego `tenant/switch` para dejar la sesion con
+            Esta pantalla ejecuta <code className="font-mono font-bold">create tenant</code> y luego <code className="font-mono font-bold">tenant/switch</code> para dejar la sesion con
             contexto activo real antes de volver al shell.
           </p>
         </div>
       </div>
 
       {viewState.status === "error" ? (
-        <article className="rounded-md border border-red-300 bg-red-50 p-4 text-red-800 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-100">
+        <article className="rounded-xl border border-destructive/45 bg-destructive/14 p-4 text-red-200">
           <div className="flex items-center gap-3">
             <ShieldAlert className="size-4" />
             <p className="text-sm font-semibold">{errorMessage}</p>
@@ -196,7 +196,7 @@ export function TenantCreateForm() {
       ) : null}
 
       {viewState.status === "success" ? (
-        <article className="rounded-md border border-emerald-300 bg-emerald-50 p-4 text-emerald-800 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-100">
+        <article className="rounded-xl border border-emerald-400/55 bg-emerald-500/14 p-4 text-emerald-100">
           <div className="flex items-center gap-3">
             <ShieldCheck className="size-4" />
             <p className="text-sm font-semibold">

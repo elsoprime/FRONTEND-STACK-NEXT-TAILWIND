@@ -1,4 +1,10 @@
 import { expect, test } from "@playwright/test";
+import { attachTenantDashboardMocks } from "./helpers/dashboard-mocks";
+import { setCsrfCookie } from "./helpers/csrf";
+
+test.beforeEach(async ({ page }, testInfo) => {
+  await setCsrfCookie(page, testInfo.project.use.baseURL);
+});
 
 function buildTenantSummary(id: string, name: string, activeModuleKeys: string[] = []) {
   return {
@@ -95,6 +101,7 @@ test("app shell auto-switches when exactly one tenant exists", async ({ page }) 
     });
   });
 
+  attachTenantDashboardMocks(page);
   await page.goto("/app");
 
   await expect(page.getByRole("heading", { level: 2, name: "Acme" })).toBeVisible();
@@ -172,11 +179,11 @@ test("tenant selector activates the chosen tenant and returns to shell", async (
   });
 
   await page.goto("/app/tenants/select");
-  await page.getByRole("button", { name: "Activar tenant" }).nth(1).click();
+  await page.getByRole("button", { name: /Activar( tenant)?/i }).nth(1).click();
 
   await expect(page).toHaveURL(/\/app$/);
   await expect(page.getByRole("heading", { level: 2, name: "Globex" })).toBeVisible();
-  await expect(page.getByText("crm")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "CRM" })).toBeVisible();
 });
 
 test("tenant create form creates and activates a new tenant", async ({ page }) => {
@@ -239,3 +246,7 @@ test("tenant create form creates and activates a new tenant", async ({ page }) =
   await expect(page.getByRole("heading", { level: 2, name: "Nexa" })).toBeVisible();
   await expect(page.getByText("inventory, crm", { exact: false })).toBeVisible();
 });
+
+
+
+

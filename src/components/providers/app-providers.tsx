@@ -16,7 +16,7 @@ export function AppProviders({ children }: AppProvidersProps) {
         defaultOptions: {
           queries: {
             staleTime: 30_000,
-            retry: 2,
+            retry: false,
             refetchOnWindowFocus: false,
           },
         },
@@ -31,3 +31,4 @@ export function AppProviders({ children }: AppProvidersProps) {
     </ThemeProvider>
   );
 }
+

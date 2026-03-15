@@ -60,7 +60,7 @@ export function TenantRuntimeSummary({
 }: TenantRuntimeSummaryProps) {
   if (isLoading) {
     return (
-      <div className="rounded-xl border border-blue-200 bg-blue-50 p-5 text-blue-900 dark:border-blue-500/30 dark:bg-blue-500/10 dark:text-blue-100">
+      <div className="rounded-xl border border-primary/35 bg-primary/14 p-5 text-primary">
         <div className="flex items-center gap-3 text-sm font-semibold">
           <LoaderCircle className="size-4 animate-spin" />
           Cargando runtime efectivo...
@@ -71,7 +71,7 @@ export function TenantRuntimeSummary({
 
   if (errorMessage) {
     return (
-      <article className="rounded-xl border border-red-300 bg-red-50 p-5 text-red-800 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-100">
+      <article className="rounded-xl border border-destructive/45 bg-destructive/14 p-5 text-red-200">
         <div className="flex items-center gap-3">
           <ShieldAlert className="size-4" />
           <p className="text-sm font-semibold">{errorMessage}</p>
@@ -82,10 +82,10 @@ export function TenantRuntimeSummary({
 
   if (!runtime) {
     return (
-      <article className="rounded-xl border border-slate-200 bg-slate-50 p-5 text-slate-700 dark:border-slate-800 dark:bg-slate-950/40 dark:text-slate-200">
+      <article className="surface-card rounded-xl border-border/85 bg-card/88 p-5">
         <div className="flex items-center gap-3">
-          <Settings2 className="size-4" />
-          <p className="text-sm font-semibold">
+          <Settings2 className="size-4 text-muted-foreground" />
+          <p className="text-sm font-semibold text-muted-foreground">
             El runtime efectivo todavia no esta disponible para este tenant.
           </p>
         </div>
@@ -98,35 +98,35 @@ export function TenantRuntimeSummary({
     typeof runtime.planId === "string" && runtime.planId.trim().length > 0 ? runtime.planId : null;
 
   return (
-    <article className="rounded-xl border border-slate-200 bg-slate-50 p-6 dark:border-slate-800 dark:bg-slate-950/40">
+    <article className="reveal-up surface-card rounded-xl border-border/85 bg-card/88 p-6 [--reveal-delay:40ms]">
       <div className="space-y-2">
         <div className="flex items-center gap-2">
-          <Settings2 className="size-4 text-blue-700 dark:text-blue-400" />
-          <h3 className="text-lg font-bold">{title}</h3>
+          <Settings2 className="size-4 text-primary" />
+          <h3 className="text-lg font-bold tracking-tight">{title}</h3>
         </div>
-        <p className="text-sm text-slate-600 dark:text-slate-400">{description}</p>
+        <p className="text-sm text-muted-foreground">{description}</p>
       </div>
 
-      <div className="mt-5 grid gap-4 lg:grid-cols-2">
-        <div className="rounded-lg border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
-          <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Plan</p>
-          <p className="mt-2 text-sm font-semibold text-slate-900 dark:text-slate-100">
+      <div className="mt-6 grid gap-4 lg:grid-cols-2">
+        <div className="rounded-xl border border-border/80 bg-background/50 p-4">
+          <p className="field-label">Plan</p>
+          <p className="mt-2 text-sm font-semibold text-foreground">
             {planId ?? "sin plan asignado"}
           </p>
         </div>
 
-        <div className="rounded-lg border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
-          <p className="text-xs font-bold uppercase tracking-wider text-slate-500">
+        <div className="rounded-xl border border-border/80 bg-background/50 p-4">
+          <p className="field-label">
             Feature Flags activas
           </p>
-          <p className="mt-2 text-sm font-semibold text-slate-900 dark:text-slate-100">
+          <p className="mt-2 text-sm font-semibold text-foreground">
             {formatValues(featureFlagKeys)}
           </p>
         </div>
       </div>
 
-      <div className="mt-5 rounded-lg border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
-        <p className="text-xs font-bold uppercase tracking-wider text-slate-500">
+      <div className="mt-5 rounded-xl border border-border/80 bg-background/50 p-4">
+        <p className="field-label">
           Estado por modulo
         </p>
         <div className="mt-4 grid gap-3 md:grid-cols-3">
@@ -136,12 +136,12 @@ export function TenantRuntimeSummary({
             return (
               <div
                 key={module.key}
-                className="rounded-md border border-slate-200 bg-slate-50 p-3 dark:border-slate-800 dark:bg-slate-950/40"
+                className="rounded-xl border border-border/80 bg-card/60 p-3"
               >
-                <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+                <p className="text-sm font-semibold text-foreground">
                   {module.label}
                 </p>
-                <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                <p className="mt-1 text-xs text-muted-foreground">
                   {resolveModuleStateCopy(state)}
                 </p>
               </div>
@@ -150,26 +150,26 @@ export function TenantRuntimeSummary({
         </div>
       </div>
 
-      <div className="mt-5 rounded-lg border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
-        <p className="text-xs font-bold uppercase tracking-wider text-slate-500">
+      <div className="mt-5 rounded-xl border border-border/80 bg-background/50 p-4">
+        <p className="field-label">
           Catalogo esperado de features
         </p>
         <div className="mt-4 grid gap-3 md:grid-cols-2">
           {RUNTIME_FEATURE_LABELS.map((feature) => (
             <div
               key={feature.key}
-              className="flex items-center justify-between rounded-md border border-slate-200 bg-slate-50 px-3 py-2 dark:border-slate-800 dark:bg-slate-950/40"
+              className="flex items-center justify-between rounded-xl border border-border/80 bg-card/60 px-3 py-2"
             >
-              <span className="text-sm font-medium text-slate-900 dark:text-slate-100">
+              <span className="text-sm font-medium text-foreground">
                 {feature.label}
               </span>
               {hasTenantFeatureFlag(runtime, feature.key) ? (
-                <span className="inline-flex items-center gap-1 rounded-full border border-emerald-300 bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-700 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-300">
+                <span className="inline-flex items-center gap-1 rounded-full border border-emerald-400/45 bg-emerald-500/12 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-[0.05em] text-emerald-200">
                   <ShieldCheck className="size-3" />
                   Activa
                 </span>
               ) : (
-                <span className="rounded-full border border-slate-300 bg-slate-100 px-2 py-0.5 text-[11px] font-semibold text-slate-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300">
+                <span className="rounded-full border border-border/85 bg-muted/40 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-[0.05em] text-muted-foreground">
                   Inactiva
                 </span>
               )}
@@ -180,3 +180,4 @@ export function TenantRuntimeSummary({
     </article>
   );
 }
+

@@ -1,9 +1,10 @@
-"use client";
+﻿"use client";
 
 import { useQueryClient } from "@tanstack/react-query";
-import { LoaderCircle, ShieldAlert } from "lucide-react";
+import { LoaderCircle, ShieldAlert, ShieldCheck } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { logoutAllSessions, logoutCurrentSession } from "@/features/auth/auth.service";
 import { clearClientAuthState } from "@/features/auth/session-lifecycle";
@@ -102,44 +103,66 @@ export function LogoutFlow({ mode }: LogoutFlowProps) {
   const copy = resolveCopy(mode);
 
   return (
-    <main className="min-h-screen bg-slate-50 px-6 py-12 text-slate-900 dark:bg-slate-950 dark:text-slate-100">
-      <section className="mx-auto max-w-3xl rounded-xl border border-slate-200 bg-white p-8 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-blue-700 dark:text-blue-400">
-          Sesion segura
-        </p>
-        <h1 className="mt-3 text-3xl font-bold tracking-tight">{copy.heading}</h1>
-        <p className="mt-3 text-sm text-slate-600 dark:text-slate-400">{copy.description}</p>
+    <main className="relative min-h-screen px-4 py-10 sm:px-6 lg:px-8">
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_12%_0%,oklch(0.6_0.08_42/0.18),transparent_38%),radial-gradient(circle_at_90%_6%,oklch(0.58_0.08_214/0.16),transparent_42%)]" />
 
-        {viewState.status === "loading" ? (
-          <div className="mt-8 inline-flex items-center gap-3 rounded-md border border-blue-300/70 bg-blue-50/70 px-4 py-3 text-sm font-semibold text-blue-900 dark:border-blue-500/30 dark:bg-blue-500/10 dark:text-blue-100">
-            <LoaderCircle className="size-4 animate-spin" />
-            Procesando cierre de sesion...
-          </div>
-        ) : null}
+      <section className="relative mx-auto flex min-h-[calc(100dvh-5rem)] w-full max-w-[920px] items-center justify-center">
+        <article className="surface-card reveal-up w-full max-w-2xl overflow-hidden p-7 sm:p-8 [--reveal-delay:40ms]">
+          <div className="pointer-events-none absolute inset-x-0 top-0 h-20 bg-gradient-to-r from-primary/24 via-accent/16 to-transparent" />
 
-        {viewState.status === "error" ? (
-          <article className="mt-8 rounded-md border border-red-300/70 bg-red-50/70 p-4 text-red-900 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-100">
-            <div className="flex items-start gap-3">
-              <ShieldAlert className="mt-0.5 size-4 shrink-0" />
-              <div className="space-y-3">
-                <p className="text-sm font-semibold">
-                  No pudimos cerrar la sesion en este momento. Reintenta la operacion.
-                </p>
-                {viewState.traceId ? (
-                  <p className="text-xs opacity-80">Referencia tecnica: {viewState.traceId}</p>
-                ) : null}
-                <div className="flex gap-3">
-                  <Button type="button" onClick={() => setAttempt((current) => current + 1)}>
-                    Reintentar
-                  </Button>
-                  <Button type="button" variant="outline" onClick={() => router.push("/app")}>
-                    Volver al shell
-                  </Button>
+          <div className="relative space-y-4">
+            <Badge variant="outline" className="border-primary/35 bg-primary/12 text-primary">
+              Sesion segura
+            </Badge>
+
+            <div>
+              <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
+                {copy.heading}
+              </h1>
+              <p className="mt-2 text-sm text-muted-foreground sm:text-base">{copy.description}</p>
+            </div>
+
+            {viewState.status === "loading" ? (
+              <div className="rounded-xl border border-primary/35 bg-primary/14 px-4 py-3 text-primary">
+                <div className="flex items-center gap-3 text-sm font-semibold">
+                  <LoaderCircle className="size-4 animate-spin" />
+                  Procesando cierre de sesion...
                 </div>
               </div>
-            </div>
-          </article>
-        ) : null}
+            ) : null}
+
+            {viewState.status === "error" ? (
+              <article className="rounded-xl border border-destructive/45 bg-destructive/14 p-4 text-red-200">
+                <div className="flex items-start gap-3">
+                  <ShieldAlert className="mt-0.5 size-4 shrink-0" />
+                  <div className="space-y-3">
+                    <p className="text-sm font-semibold">
+                      No pudimos cerrar la sesion en este momento. Reintenta la operacion.
+                    </p>
+                    {viewState.traceId ? (
+                      <p className="text-xs opacity-80">Referencia tecnica: {viewState.traceId}</p>
+                    ) : null}
+                    <div className="flex flex-wrap gap-2">
+                      <Button type="button" onClick={() => setAttempt((current) => current + 1)}>
+                        Reintentar
+                      </Button>
+                      <Button type="button" variant="outline" onClick={() => router.push("/app")}>
+                        Volver al dashboard
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </article>
+            ) : null}
+
+            {viewState.status === "loading" ? (
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <ShieldCheck className="size-3.5" />
+                El estado local se limpia automaticamente al completar la operacion.
+              </div>
+            ) : null}
+          </div>
+        </article>
       </section>
     </main>
   );

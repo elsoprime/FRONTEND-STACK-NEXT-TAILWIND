@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, Zap, Globe, Lock, Box, ChevronRight, Monitor, Command } from "lucide-react";
+import { ArrowRight, Zap, Globe, Lock, ChevronRight, Monitor, Command } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 
@@ -256,3 +256,4 @@ export function VibrantLanding() {
     </main>
   );
 }
+
