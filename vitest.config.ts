@@ -8,6 +8,21 @@ export default defineConfig({
     pool: "threads",
     setupFiles: ["./src/test/setup.ts"],
     include: ["src/**/*.test.{ts,tsx}"],
+    coverage: {
+      provider: "v8",
+      reporter: ["text", "html", "json-summary"],
+      reportsDirectory: "./coverage",
+      exclude: [
+        "src/**/*.test.{ts,tsx}",
+        "src/test/**",
+      ],
+      thresholds: {
+        lines: 70,
+        functions: 70,
+        branches: 60,
+        statements: 70,
+      },
+    },
   },
   resolve: {
     alias: {
