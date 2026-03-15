@@ -5,7 +5,7 @@
 Fecha de corte: 2026-03-10
 
 - OpenAPI frontend: sincronizado desde `API-REST-STACK-NODE/openapi`.
-- Documentacion `docs/10`, `docs/50` y `docs/80`: sincronizada con `API-REST-STACK-NODE/docs/frontend/*`.
+- Documentacion `docs/10`, `docs/50` y `docs/80`: alineada con snapshot local vigente y sincronizable con backend cuando este disponible.
 - Cobertura de implementacion validada sobre `src/features` (excluye `*.test.*`).
 
 ## 2. Cobertura real de endpoints (src/features)

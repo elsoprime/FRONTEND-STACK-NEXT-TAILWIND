@@ -53,6 +53,15 @@ npm run format
 npm run format:check
 ```
 
+## Instalacion rapida
+
+```bash
+npm install
+cp .env.example .env.local
+```
+
+Si trabajas sin backend disponible, deja `APP_URL` vacio en `.env.local` para evitar proxy hacia `localhost:4000`.
+
 ## Estructura relevante
 
 - `src/lib/api/client.ts`: cliente fetch con `credentials: "include"`, CSRF cookie/header y `X-Tenant-Id`.
@@ -67,7 +76,7 @@ npm run format:check
 
 ## Documentacion de integracion FE/API
 
-Documentacion sincronizada desde `API-REST-STACK-NODE/docs/frontend/*`:
+Documentacion vigente local (usar aunque backend no este disponible):
 
 - `docs/10_IMPLEMENTATION_GUIDE_V2.md`
 - `docs/20_ACCESS_MATRIX.md`
@@ -87,3 +96,8 @@ Validacion de acoplamiento:
 npm run openapi:sync
 npm run docs:coupling:check
 ```
+
+Si el backend esta cerrado o no accesible:
+
+- usar `docs/*.md` como fuente operativa local.
+- posponer `npm run openapi:sync` y `npm run docs:coupling:check` hasta reabrir acceso al backend.
