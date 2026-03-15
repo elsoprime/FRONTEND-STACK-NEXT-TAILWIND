@@ -28,12 +28,22 @@ function resolveTurbopackRoot(): string {
 }
 
 const turbopackRoot = resolveTurbopackRoot();
+const devPort = process.env.PORT ?? process.env.PLAYWRIGHT_PORT ?? "3000";
+const allowedDevOrigins = [
+  "127.0.0.1",
+  "localhost",
+  `127.0.0.1:${devPort}`,
+  `localhost:${devPort}`,
+  `http://127.0.0.1:${devPort}`,
+  `http://localhost:${devPort}`,
+];
 
 const nextConfig: NextConfig = {
   // Fix Turbopack root detection on some Windows setups (prevents "Next.js package not found").
   turbopack: {
     root: turbopackRoot,
   },
+  allowedDevOrigins,
   images: {
     formats: ["image/avif", "image/webp"],
   },

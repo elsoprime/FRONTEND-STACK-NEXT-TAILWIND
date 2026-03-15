@@ -16,6 +16,10 @@ export default defineConfig({
   },
   webServer: {
     command: `npm run dev -- --port ${playwrightPort}`,
+    env: {
+      ...process.env,
+      APP_URL: "",
+    },
     url: baseURL,
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,
