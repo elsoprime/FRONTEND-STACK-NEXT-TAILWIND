@@ -94,7 +94,7 @@ Criterio de aceptacion:
 - El singleton se actualiza sin perder contexto tenant y el runtime queda consistente en UI.
 - Ante `TENANT_SUBSCRIPTION_PAYMENT_REQUIRED`, la UI debe guiar a Billing con CTA explicito.
 
-### E2E-04D Billing provisioning + runtime efectivo
+Referencia operativa local: `docs/operaciones/BILLING_LOCAL_DEMO_RUNBOOK.md``r`n`r`n### E2E-04D Billing provisioning + runtime efectivo
 
 1. Abrir `/app/settings/billing`.
 2. Cargar `GET /api/v1/billing/plans`.
