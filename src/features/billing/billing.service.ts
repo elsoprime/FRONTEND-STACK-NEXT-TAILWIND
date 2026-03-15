@@ -1,4 +1,4 @@
-import { apiRequest } from "@/lib/api/client";
+﻿import { apiRequest, tenantApiRequest } from "@/lib/api/client";
 import { type ApiSuccessEnvelope } from "@/lib/api/contracts";
 import {
   assignTenantSubscriptionInputSchema,
@@ -30,7 +30,7 @@ export async function createCheckoutSession(
   tenantId: string,
   payload: CreateCheckoutSessionInput,
 ): Promise<ApiSuccessEnvelope<CheckoutSessionData>> {
-  return apiRequest(BILLING_ENDPOINTS.checkoutSession, {
+  return tenantApiRequest(BILLING_ENDPOINTS.checkoutSession, {
     method: "POST",
     tenantId,
     body: createCheckoutSessionInputSchema.parse(payload),
@@ -42,7 +42,7 @@ export async function assignTenantSubscription(
   tenantId: string,
   payload: AssignTenantSubscriptionInput,
 ): Promise<ApiSuccessEnvelope<TenantSubscriptionData>> {
-  return apiRequest(BILLING_ENDPOINTS.tenantSubscription, {
+  return tenantApiRequest(BILLING_ENDPOINTS.tenantSubscription, {
     method: "PATCH",
     tenantId,
     body: assignTenantSubscriptionInputSchema.parse(payload),
@@ -53,9 +53,10 @@ export async function assignTenantSubscription(
 export async function cancelTenantSubscription(
   tenantId: string,
 ): Promise<ApiSuccessEnvelope<TenantSubscriptionData>> {
-  return apiRequest(BILLING_ENDPOINTS.tenantSubscription, {
+  return tenantApiRequest(BILLING_ENDPOINTS.tenantSubscription, {
     method: "DELETE",
     tenantId,
     dataSchema: tenantSubscriptionDataSchema,
   });
 }
+

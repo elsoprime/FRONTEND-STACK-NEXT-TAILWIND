@@ -1,4 +1,4 @@
-﻿import { apiRequest } from "@/lib/api/client";
+﻿import { tenantApiRequest } from "@/lib/api/client";
 import {
   auditListDataSchema,
   auditListEnvelopeSchema,
@@ -54,7 +54,7 @@ export async function listTenantAuditLogs(
 ): Promise<AuditListEnvelope> {
   const validatedFilters = listAuditLogsInputSchema.parse(filters);
 
-  const response = await apiRequest(buildAuditListPath(validatedFilters), {
+  const response = await tenantApiRequest(buildAuditListPath(validatedFilters), {
     method: "GET",
     tenantId,
     dataSchema: auditListDataSchema,

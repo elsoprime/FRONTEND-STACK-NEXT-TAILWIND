@@ -1,4 +1,4 @@
-﻿import { apiRequest } from "@/lib/api/client";
+﻿import { tenantApiRequest } from "@/lib/api/client";
 import { type ApiSuccessEnvelope } from "@/lib/api/contracts";
 import {
   changeCrmOpportunityStageInputSchema,
@@ -94,7 +94,7 @@ export async function listCrmContacts(
 ): Promise<CrmContactListEnvelope> {
   const parsed = listCrmContactsInputSchema.parse(filters);
 
-  const response = await apiRequest(
+  const response = await tenantApiRequest(
     `${CRM_ENDPOINTS.contacts}${buildQueryString({
       page: parsed.page,
       limit: parsed.limit,
@@ -115,7 +115,7 @@ export async function createCrmContact(
   tenantId: string,
   payload: CreateCrmContactInput,
 ): Promise<ApiSuccessEnvelope<CrmContactData>> {
-  return apiRequest(CRM_ENDPOINTS.contacts, {
+  return tenantApiRequest(CRM_ENDPOINTS.contacts, {
     method: "POST",
     tenantId,
     body: createCrmContactInputSchema.parse(payload),
@@ -127,7 +127,7 @@ export async function getCrmContact(
   tenantId: string,
   contactId: string,
 ): Promise<ApiSuccessEnvelope<CrmContactData>> {
-  return apiRequest(contactByIdPath(contactId), {
+  return tenantApiRequest(contactByIdPath(contactId), {
     method: "GET",
     tenantId,
     dataSchema: crmContactDataSchema,
@@ -139,7 +139,7 @@ export async function updateCrmContact(
   contactId: string,
   payload: UpdateCrmContactInput,
 ): Promise<ApiSuccessEnvelope<CrmContactData>> {
-  return apiRequest(contactByIdPath(contactId), {
+  return tenantApiRequest(contactByIdPath(contactId), {
     method: "PATCH",
     tenantId,
     body: updateCrmContactInputSchema.parse(payload),
@@ -151,7 +151,7 @@ export async function deleteCrmContact(
   tenantId: string,
   contactId: string,
 ): Promise<ApiSuccessEnvelope<CrmContactData>> {
-  return apiRequest(contactByIdPath(contactId), {
+  return tenantApiRequest(contactByIdPath(contactId), {
     method: "DELETE",
     tenantId,
     dataSchema: crmContactDataSchema,
@@ -164,7 +164,7 @@ export async function listCrmOrganizations(
 ): Promise<CrmOrganizationListEnvelope> {
   const parsed = listCrmOrganizationsInputSchema.parse(filters);
 
-  const response = await apiRequest(
+  const response = await tenantApiRequest(
     `${CRM_ENDPOINTS.organizations}${buildQueryString({
       page: parsed.page,
       limit: parsed.limit,
@@ -184,7 +184,7 @@ export async function createCrmOrganization(
   tenantId: string,
   payload: CreateCrmOrganizationInput,
 ): Promise<ApiSuccessEnvelope<CrmOrganizationData>> {
-  return apiRequest(CRM_ENDPOINTS.organizations, {
+  return tenantApiRequest(CRM_ENDPOINTS.organizations, {
     method: "POST",
     tenantId,
     body: createCrmOrganizationInputSchema.parse(payload),
@@ -196,7 +196,7 @@ export async function getCrmOrganization(
   tenantId: string,
   organizationId: string,
 ): Promise<ApiSuccessEnvelope<CrmOrganizationData>> {
-  return apiRequest(organizationByIdPath(organizationId), {
+  return tenantApiRequest(organizationByIdPath(organizationId), {
     method: "GET",
     tenantId,
     dataSchema: crmOrganizationDataSchema,
@@ -208,7 +208,7 @@ export async function updateCrmOrganization(
   organizationId: string,
   payload: UpdateCrmOrganizationInput,
 ): Promise<ApiSuccessEnvelope<CrmOrganizationData>> {
-  return apiRequest(organizationByIdPath(organizationId), {
+  return tenantApiRequest(organizationByIdPath(organizationId), {
     method: "PATCH",
     tenantId,
     body: updateCrmOrganizationInputSchema.parse(payload),
@@ -220,7 +220,7 @@ export async function deleteCrmOrganization(
   tenantId: string,
   organizationId: string,
 ): Promise<ApiSuccessEnvelope<CrmOrganizationData>> {
-  return apiRequest(organizationByIdPath(organizationId), {
+  return tenantApiRequest(organizationByIdPath(organizationId), {
     method: "DELETE",
     tenantId,
     dataSchema: crmOrganizationDataSchema,
@@ -233,7 +233,7 @@ export async function listCrmOpportunities(
 ): Promise<CrmOpportunityListEnvelope> {
   const parsed = listCrmOpportunitiesInputSchema.parse(filters);
 
-  const response = await apiRequest(
+  const response = await tenantApiRequest(
     `${CRM_ENDPOINTS.opportunities}${buildQueryString({
       page: parsed.page,
       limit: parsed.limit,
@@ -256,7 +256,7 @@ export async function createCrmOpportunity(
   tenantId: string,
   payload: CreateCrmOpportunityInput,
 ): Promise<ApiSuccessEnvelope<CrmOpportunityData>> {
-  return apiRequest(CRM_ENDPOINTS.opportunities, {
+  return tenantApiRequest(CRM_ENDPOINTS.opportunities, {
     method: "POST",
     tenantId,
     body: createCrmOpportunityInputSchema.parse(payload),
@@ -268,7 +268,7 @@ export async function getCrmOpportunity(
   tenantId: string,
   opportunityId: string,
 ): Promise<ApiSuccessEnvelope<CrmOpportunityData>> {
-  return apiRequest(opportunityByIdPath(opportunityId), {
+  return tenantApiRequest(opportunityByIdPath(opportunityId), {
     method: "GET",
     tenantId,
     dataSchema: crmOpportunityDataSchema,
@@ -280,7 +280,7 @@ export async function updateCrmOpportunity(
   opportunityId: string,
   payload: UpdateCrmOpportunityInput,
 ): Promise<ApiSuccessEnvelope<CrmOpportunityData>> {
-  return apiRequest(opportunityByIdPath(opportunityId), {
+  return tenantApiRequest(opportunityByIdPath(opportunityId), {
     method: "PATCH",
     tenantId,
     body: updateCrmOpportunityInputSchema.parse(payload),
@@ -292,7 +292,7 @@ export async function deleteCrmOpportunity(
   tenantId: string,
   opportunityId: string,
 ): Promise<ApiSuccessEnvelope<CrmOpportunityData>> {
-  return apiRequest(opportunityByIdPath(opportunityId), {
+  return tenantApiRequest(opportunityByIdPath(opportunityId), {
     method: "DELETE",
     tenantId,
     dataSchema: crmOpportunityDataSchema,
@@ -304,7 +304,7 @@ export async function changeCrmOpportunityStage(
   opportunityId: string,
   payload: ChangeCrmOpportunityStageInput,
 ): Promise<ApiSuccessEnvelope<CrmOpportunityData>> {
-  return apiRequest(opportunityStagePath(opportunityId), {
+  return tenantApiRequest(opportunityStagePath(opportunityId), {
     method: "PATCH",
     tenantId,
     body: changeCrmOpportunityStageInputSchema.parse(payload),
@@ -318,7 +318,7 @@ export async function listCrmActivities(
 ): Promise<CrmActivityListEnvelope> {
   const parsed = listCrmActivitiesInputSchema.parse(filters);
 
-  const response = await apiRequest(
+  const response = await tenantApiRequest(
     `${CRM_ENDPOINTS.activities}${buildQueryString({
       page: parsed.page,
       limit: parsed.limit,
@@ -341,7 +341,7 @@ export async function createCrmActivity(
   tenantId: string,
   payload: CreateCrmActivityInput,
 ): Promise<ApiSuccessEnvelope<CrmActivityData>> {
-  return apiRequest(CRM_ENDPOINTS.activities, {
+  return tenantApiRequest(CRM_ENDPOINTS.activities, {
     method: "POST",
     tenantId,
     body: createCrmActivityInputSchema.parse(payload),
@@ -352,7 +352,7 @@ export async function createCrmActivity(
 export async function getCrmCounters(
   tenantId: string,
 ): Promise<ApiSuccessEnvelope<CrmCountersData>> {
-  return apiRequest(CRM_ENDPOINTS.counters, {
+  return tenantApiRequest(CRM_ENDPOINTS.counters, {
     method: "GET",
     tenantId,
     dataSchema: crmCountersDataSchema,

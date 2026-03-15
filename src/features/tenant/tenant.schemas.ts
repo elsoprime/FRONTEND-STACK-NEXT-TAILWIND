@@ -1,4 +1,4 @@
-﻿import { z } from "zod";
+import { z } from "zod";
 
 export const tenantViewSchema = z
   .object({
@@ -21,7 +21,7 @@ export const membershipViewSchema = z
     id: z.string(),
     tenantId: z.string(),
     userId: z.string(),
-    roleKey: z.enum(["tenant:owner", "tenant:member"]).or(z.string()),
+    roleKey: z.enum(["tenant:owner", "tenant:admin", "tenant:member"]).or(z.string()),
     status: z.enum(["active", "suspended"]).or(z.string()),
   })
   .passthrough();
@@ -33,7 +33,7 @@ export const tenantInvitationSchema = z
     id: z.string(),
     tenantId: z.string(),
     email: z.string().email(),
-    roleKey: z.enum(["tenant:owner", "tenant:member"]).or(z.string()),
+    roleKey: z.enum(["tenant:owner", "tenant:admin", "tenant:member"]).or(z.string()),
     status: z.enum(["pending", "accepted", "revoked", "expired"]).or(z.string()),
     expiresAt: z.string(),
   })
@@ -107,3 +107,4 @@ export type TransferTenantOwnershipData = z.infer<typeof transferTenantOwnership
 export function normalizeTenantMine(data: TenantMineData): TenantSummary[] {
   return data.items.map((item) => item.tenant);
 }
+

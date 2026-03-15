@@ -5,10 +5,14 @@ const TENANT_ERROR_COPY: Record<string, string> = {
   TENANT_MEMBERSHIP_REQUIRED: "Tu usuario no pertenece al tenant solicitado.",
   TENANT_MEMBERSHIP_INACTIVE: "Tu membresia en este tenant no esta activa.",
   TENANT_ACCESS_DENIED: "No tienes acceso al tenant solicitado.",
+  TENANT_MEMBER_LIMIT_REACHED:
+    "Se alcanzo el limite de miembros del plan. Actualiza el plan o libera cupos antes de invitar.",
   TENANT_SCOPE_MISMATCH: "Tu contexto tenant actual no coincide con el recurso solicitado.",
   TENANT_HEADER_REQUIRED: "Falta contexto tenant para completar la operacion.",
   GEN_VALIDATION_ERROR: "Revisa los datos ingresados e intenta nuevamente.",
   RBAC_PERMISSION_DENIED: "Tu usuario no tiene permisos suficientes para completar esta accion.",
+  RBAC_PLAN_DENIED: "El plan actual no habilita esta funcionalidad.",
+  RBAC_MODULE_DENIED: "El modulo no esta habilitado para este tenant.",
   AUTH_UNAUTHENTICATED: "Tu sesion no es valida o expiro. Inicia sesion nuevamente.",
 };
 

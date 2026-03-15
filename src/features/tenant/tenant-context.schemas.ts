@@ -1,4 +1,4 @@
-﻿import { z } from "zod";
+import { z } from "zod";
 import {
   membershipViewSchema,
   tenantMembershipSummarySchema,
@@ -6,7 +6,7 @@ import {
 } from "@/features/tenant/tenant.schemas";
 
 const objectIdRegex = /^[a-f0-9]{24}$/i;
-const tenantRoleKeySchema = z.enum(["tenant:owner", "tenant:member"]);
+const tenantRoleKeySchema = z.enum(["tenant:owner", "tenant:admin", "tenant:member"]);
 
 export const createTenantInputSchema = z.object({
   name: z.string().trim().min(1, "Ingresa un nombre para el tenant").max(120),
@@ -97,3 +97,4 @@ export type TenantShellBootstrapResult =
       switched: boolean;
       items: z.infer<typeof tenantMembershipSummarySchema>[];
     };
+

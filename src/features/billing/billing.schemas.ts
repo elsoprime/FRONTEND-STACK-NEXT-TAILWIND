@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+const objectIdRegex = /^[a-f0-9]{24}$/i;
+
 export const billingPlanSchema = z
   .object({
     key: z.string(),
@@ -86,6 +88,10 @@ export type TenantSubscriptionData = z.infer<typeof tenantSubscriptionDataSchema
 
 export const assignTenantSubscriptionInputSchema = z.object({
   planId: z.string().trim().min(1),
+  checkoutSessionId: z
+    .string()
+    .trim()
+    .regex(objectIdRegex, "Sesion de checkout invalida"),
 });
 
 export type AssignTenantSubscriptionInput = z.infer<typeof assignTenantSubscriptionInputSchema>;

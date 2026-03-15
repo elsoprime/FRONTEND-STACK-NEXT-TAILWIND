@@ -1,4 +1,4 @@
-﻿import { apiRequest } from "@/lib/api/client";
+﻿import { tenantApiRequest } from "@/lib/api/client";
 import { type ApiSuccessEnvelope } from "@/lib/api/contracts";
 import {
   createInventoryCategoryInputSchema,
@@ -75,7 +75,7 @@ export async function listInventoryCategories(
 ): Promise<InventoryCategoryListEnvelope> {
   const parsedFilters = listInventoryCategoriesInputSchema.parse(filters);
 
-  const response = await apiRequest(
+  const response = await tenantApiRequest(
     `${INVENTORY_ENDPOINTS.categories}${buildQueryString({
       page: parsedFilters.page,
       limit: parsedFilters.limit,
@@ -95,7 +95,7 @@ export async function createInventoryCategory(
   tenantId: string,
   payload: CreateInventoryCategoryInput,
 ): Promise<ApiSuccessEnvelope<InventoryCategoryData>> {
-  return apiRequest(INVENTORY_ENDPOINTS.categories, {
+  return tenantApiRequest(INVENTORY_ENDPOINTS.categories, {
     method: "POST",
     tenantId,
     body: createInventoryCategoryInputSchema.parse(payload),
@@ -108,7 +108,7 @@ export async function updateInventoryCategory(
   categoryId: string,
   payload: UpdateInventoryCategoryInput,
 ): Promise<ApiSuccessEnvelope<InventoryCategoryData>> {
-  return apiRequest(categoryByIdPath(categoryId), {
+  return tenantApiRequest(categoryByIdPath(categoryId), {
     method: "PATCH",
     tenantId,
     body: updateInventoryCategoryInputSchema.parse(payload),
@@ -120,7 +120,7 @@ export async function deleteInventoryCategory(
   tenantId: string,
   categoryId: string,
 ): Promise<ApiSuccessEnvelope<InventoryCategoryData>> {
-  return apiRequest(categoryByIdPath(categoryId), {
+  return tenantApiRequest(categoryByIdPath(categoryId), {
     method: "DELETE",
     tenantId,
     dataSchema: inventoryCategoryDataSchema,
@@ -133,7 +133,7 @@ export async function listInventoryItems(
 ): Promise<InventoryItemListEnvelope> {
   const parsedFilters = listInventoryItemsInputSchema.parse(filters);
 
-  const response = await apiRequest(
+  const response = await tenantApiRequest(
     `${INVENTORY_ENDPOINTS.items}${buildQueryString({
       page: parsedFilters.page,
       limit: parsedFilters.limit,
@@ -155,7 +155,7 @@ export async function createInventoryItem(
   tenantId: string,
   payload: CreateInventoryItemInput,
 ): Promise<ApiSuccessEnvelope<InventoryItemData>> {
-  return apiRequest(INVENTORY_ENDPOINTS.items, {
+  return tenantApiRequest(INVENTORY_ENDPOINTS.items, {
     method: "POST",
     tenantId,
     body: createInventoryItemInputSchema.parse(payload),
@@ -167,7 +167,7 @@ export async function getInventoryItem(
   tenantId: string,
   itemId: string,
 ): Promise<ApiSuccessEnvelope<InventoryItemData>> {
-  return apiRequest(itemByIdPath(itemId), {
+  return tenantApiRequest(itemByIdPath(itemId), {
     method: "GET",
     tenantId,
     dataSchema: inventoryItemDataSchema,
@@ -179,7 +179,7 @@ export async function updateInventoryItem(
   itemId: string,
   payload: UpdateInventoryItemInput,
 ): Promise<ApiSuccessEnvelope<InventoryItemData>> {
-  return apiRequest(itemByIdPath(itemId), {
+  return tenantApiRequest(itemByIdPath(itemId), {
     method: "PATCH",
     tenantId,
     body: updateInventoryItemInputSchema.parse(payload),
@@ -191,7 +191,7 @@ export async function deleteInventoryItem(
   tenantId: string,
   itemId: string,
 ): Promise<ApiSuccessEnvelope<InventoryItemData>> {
-  return apiRequest(itemByIdPath(itemId), {
+  return tenantApiRequest(itemByIdPath(itemId), {
     method: "DELETE",
     tenantId,
     dataSchema: inventoryItemDataSchema,
@@ -204,7 +204,7 @@ export async function listInventoryStockMovements(
 ): Promise<InventoryStockMovementListEnvelope> {
   const parsedFilters = listInventoryStockMovementsInputSchema.parse(filters);
 
-  const response = await apiRequest(
+  const response = await tenantApiRequest(
     `${INVENTORY_ENDPOINTS.stockMovements}${buildQueryString({
       page: parsedFilters.page,
       limit: parsedFilters.limit,
@@ -224,7 +224,7 @@ export async function createInventoryStockMovement(
   tenantId: string,
   payload: CreateInventoryStockMovementInput,
 ): Promise<ApiSuccessEnvelope<InventoryStockMovementData>> {
-  return apiRequest(INVENTORY_ENDPOINTS.stockMovements, {
+  return tenantApiRequest(INVENTORY_ENDPOINTS.stockMovements, {
     method: "POST",
     tenantId,
     body: createInventoryStockMovementInputSchema.parse(payload),
@@ -238,7 +238,7 @@ export async function listInventoryLowStockAlerts(
 ): Promise<InventoryLowStockAlertListEnvelope> {
   const parsedFilters = listInventoryLowStockAlertsInputSchema.parse(filters);
 
-  const response = await apiRequest(
+  const response = await tenantApiRequest(
     `${INVENTORY_ENDPOINTS.lowStockAlerts}${buildQueryString({
       page: parsedFilters.page,
       limit: parsedFilters.limit,

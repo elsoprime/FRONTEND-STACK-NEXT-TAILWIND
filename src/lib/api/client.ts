@@ -26,6 +26,8 @@ type TenantScopedPath =
   | "/api/v1/tenant/transfer-ownership"
   | "/api/v1/tenant/subscription"
   | "/api/v1/billing/checkout/session";
+type PlatformScopedPath = `/api/v1/platform/${string}`;
+type ApiRequestScope = "auto" | "tenant" | "platform";
 
 type ApiResponseFor<TDataSchema extends ZodTypeAny | undefined> = TDataSchema extends ZodTypeAny
   ? ApiSuccessEnvelope<z.infer<TDataSchema>>
@@ -40,6 +42,7 @@ export type ApiRequestOptions<TDataSchema extends ZodTypeAny | undefined = undef
   method?: HttpMethod;
   body?: unknown;
   headers?: HeadersInit;
+  bearerToken?: string;
   tenantId?: string | null;
   dataSchema?: TDataSchema;
   csrfCookieName?: string;
@@ -48,6 +51,7 @@ export type ApiRequestOptions<TDataSchema extends ZodTypeAny | undefined = undef
   browserMode?: boolean;
   allowRefreshRetry?: boolean;
   onAuthFailure?: () => void;
+  scope?: ApiRequestScope;
 };
 
 type ApiRequestErrorInput = {
@@ -118,6 +122,52 @@ function isTenantScopedPath(pathname: string): pathname is TenantScopedPath {
   );
 }
 
+function isPlatformScopedPath(pathname: string): pathname is PlatformScopedPath {
+  return pathname.startsWith("/api/v1/platform/");
+}
+
+function resolvePathScope(pathname: string): "tenant" | "platform" | "neutral" {
+  if (isTenantScopedPath(pathname)) {
+    return "tenant";
+  }
+
+  if (isPlatformScopedPath(pathname)) {
+    return "platform";
+  }
+
+  return "neutral";
+}
+
+function resolveRequestScope(pathname: string, requestedScope: ApiRequestScope): "tenant" | "platform" | "neutral" {
+  const pathScope = resolvePathScope(pathname);
+
+  if (requestedScope === "auto") {
+    return pathScope;
+  }
+
+  if (requestedScope === "tenant" && pathScope !== "tenant") {
+    throw new ApiRequestError({
+      status: 400,
+      code: "TENANT_SCOPE_MISMATCH",
+      message: `Tenant client cannot request non-tenant endpoint: ${pathname}`,
+      path: pathname,
+      retryable: false,
+    });
+  }
+
+  if (requestedScope === "platform" && pathScope === "tenant") {
+    throw new ApiRequestError({
+      status: 400,
+      code: "TENANT_SCOPE_MISMATCH",
+      message: `Platform client cannot request tenant endpoint: ${pathname}`,
+      path: pathname,
+      retryable: false,
+    });
+  }
+
+  return requestedScope;
+}
+
 function shouldAttachCsrf(
   method: HttpMethod,
   optionsWithDefaults: Required<Pick<ApiRequestOptions, "browserMode" | "withCsrf">>,
@@ -134,13 +184,14 @@ function buildHeaders<TDataSchema extends ZodTypeAny | undefined>(
   options: ApiRequestOptions<TDataSchema>,
 ): Headers {
   const headers = new Headers(options.headers);
+  const requestScope = resolveRequestScope(pathname, options.scope ?? "auto");
   const isFormDataBody = options.body instanceof FormData;
 
   if (options.body !== undefined && !isFormDataBody && !headers.has("Content-Type")) {
     headers.set("Content-Type", "application/json");
   }
 
-  if (isTenantScopedPath(pathname)) {
+  if (requestScope === "tenant") {
     if (!options.tenantId) {
       throw new ApiRequestError({
         status: 400,
@@ -150,6 +201,14 @@ function buildHeaders<TDataSchema extends ZodTypeAny | undefined>(
       });
     }
     headers.set(DEFAULT_TENANT_HEADER, options.tenantId);
+  } else if (requestScope === "platform" && options.tenantId) {
+    throw new ApiRequestError({
+      status: 400,
+      code: "TENANT_SCOPE_MISMATCH",
+      message: `Platform-scoped request must not include tenant context: ${pathname}`,
+      path: pathname,
+      retryable: false,
+    });
   }
 
   if (
@@ -177,6 +236,9 @@ function buildHeaders<TDataSchema extends ZodTypeAny | undefined>(
     }
   }
 
+  if (options.bearerToken && !headers.has("Authorization")) {
+    headers.set("Authorization", `Bearer ${options.bearerToken}`);
+  }
   return headers;
 }
 
@@ -396,7 +458,7 @@ export async function apiRequest<TDataSchema extends ZodTypeAny | undefined = un
   const response = await fetch(resolveUrl(path), {
     ...options,
     method,
-    credentials: "include",
+    credentials: options.browserMode === false ? "omit" : "include",
     headers: buildHeaders(pathname, method, options),
     body:
       options.body !== undefined && !(options.body instanceof FormData)
@@ -449,4 +511,33 @@ export async function apiRequest<TDataSchema extends ZodTypeAny | undefined = un
   }
 
   return parsedSuccess.data as ApiResponseFor<TDataSchema>;
+}
+
+
+
+
+
+type ScopedRequestOptions<TDataSchema extends ZodTypeAny | undefined> = Omit<
+  ApiRequestOptions<TDataSchema>,
+  "scope"
+>;
+
+export async function tenantApiRequest<TDataSchema extends ZodTypeAny | undefined = undefined>(
+  path: string,
+  options: ScopedRequestOptions<TDataSchema> = {},
+): Promise<ApiResponseFor<TDataSchema>> {
+  return apiRequest(path, {
+    ...options,
+    scope: "tenant",
+  });
+}
+
+export async function platformApiRequest<TDataSchema extends ZodTypeAny | undefined = undefined>(
+  path: string,
+  options: ScopedRequestOptions<TDataSchema> = {},
+): Promise<ApiResponseFor<TDataSchema>> {
+  return apiRequest(path, {
+    ...options,
+    scope: "platform",
+  });
 }

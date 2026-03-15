@@ -10,10 +10,31 @@ export const queryKeys = {
   tenantSubscription: (tenantId: string) => ["tenant", tenantId, "subscription"] as const,
   inventoryCategories: (tenantId: string) =>
     ["tenant", tenantId, "inventory", "categories"] as const,
+  inventoryCategory: (tenantId: string, categoryId: string) =>
+    ["tenant", tenantId, "inventory", "categories", categoryId] as const,
   inventoryItems: (tenantId: string) => ["tenant", tenantId, "inventory", "items"] as const,
+  inventoryItem: (tenantId: string, itemId: string) =>
+    ["tenant", tenantId, "inventory", "items", itemId] as const,
+  inventoryStockMovements: (tenantId: string) =>
+    ["tenant", tenantId, "inventory", "stock-movements"] as const,
   inventoryLowStockAlerts: (tenantId: string) =>
     ["tenant", tenantId, "inventory", "alerts", "low-stock"] as const,
   crmCounters: (tenantId: string) => ["tenant", tenantId, "crm", "counters"] as const,
+  crmContacts: (tenantId: string) => ["tenant", tenantId, "crm", "contacts"] as const,
+  crmContact: (tenantId: string, contactId: string) =>
+    ["tenant", tenantId, "crm", "contacts", contactId] as const,
+  crmOrganizations: (tenantId: string) => ["tenant", tenantId, "crm", "organizations"] as const,
+  crmOrganization: (tenantId: string, organizationId: string) =>
+    ["tenant", tenantId, "crm", "organizations", organizationId] as const,
   crmOpportunities: (tenantId: string) => ["tenant", tenantId, "crm", "opportunities"] as const,
+  crmOpportunity: (tenantId: string, opportunityId: string) =>
+    ["tenant", tenantId, "crm", "opportunities", opportunityId] as const,
+  crmActivities: (tenantId: string) => ["tenant", tenantId, "crm", "activities"] as const,
   hrEmployees: (tenantId: string) => ["tenant", tenantId, "hr", "employees"] as const,
+  hrEmployee: (tenantId: string, employeeId: string) =>
+    ["tenant", tenantId, "hr", "employees", employeeId] as const,
+  hrCompensation: (tenantId: string, employeeId: string) =>
+    ["tenant", tenantId, "hr", "employees", employeeId, "compensation"] as const,
+  tenantAuditLogs: (tenantId: string, scope: "recent" | "critical") =>
+    ["tenant", tenantId, "audit", scope] as const,
 };

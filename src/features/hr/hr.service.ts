@@ -1,4 +1,4 @@
-﻿import { apiRequest } from "@/lib/api/client";
+﻿import { tenantApiRequest } from "@/lib/api/client";
 import { type ApiSuccessEnvelope } from "@/lib/api/contracts";
 import {
   createHrEmployeeInputSchema,
@@ -51,7 +51,7 @@ export async function listHrEmployees(
 ): Promise<HrEmployeeListEnvelope> {
   const parsed = listHrEmployeesInputSchema.parse(filters);
 
-  const response = await apiRequest(
+  const response = await tenantApiRequest(
     `${HR_ENDPOINTS.employees}${buildQueryString({
       page: parsed.page,
       limit: parsed.limit,
@@ -73,7 +73,7 @@ export async function createHrEmployee(
   tenantId: string,
   payload: CreateHrEmployeeInput,
 ): Promise<ApiSuccessEnvelope<HrEmployeeData>> {
-  return apiRequest(HR_ENDPOINTS.employees, {
+  return tenantApiRequest(HR_ENDPOINTS.employees, {
     method: "POST",
     tenantId,
     body: createHrEmployeeInputSchema.parse(payload),
@@ -85,7 +85,7 @@ export async function getHrEmployee(
   tenantId: string,
   employeeId: string,
 ): Promise<ApiSuccessEnvelope<HrEmployeeData>> {
-  return apiRequest(employeeByIdPath(employeeId), {
+  return tenantApiRequest(employeeByIdPath(employeeId), {
     method: "GET",
     tenantId,
     dataSchema: hrEmployeeDataSchema,
@@ -97,7 +97,7 @@ export async function updateHrEmployee(
   employeeId: string,
   payload: UpdateHrEmployeeInput,
 ): Promise<ApiSuccessEnvelope<HrEmployeeData>> {
-  return apiRequest(employeeByIdPath(employeeId), {
+  return tenantApiRequest(employeeByIdPath(employeeId), {
     method: "PATCH",
     tenantId,
     body: updateHrEmployeeInputSchema.parse(payload),
@@ -109,7 +109,7 @@ export async function deleteHrEmployee(
   tenantId: string,
   employeeId: string,
 ): Promise<ApiSuccessEnvelope<HrEmployeeData>> {
-  return apiRequest(employeeByIdPath(employeeId), {
+  return tenantApiRequest(employeeByIdPath(employeeId), {
     method: "DELETE",
     tenantId,
     dataSchema: hrEmployeeDataSchema,
@@ -120,7 +120,7 @@ export async function getHrEmployeeCompensation(
   tenantId: string,
   employeeId: string,
 ): Promise<ApiSuccessEnvelope<HrCompensationData>> {
-  return apiRequest(compensationByEmployeePath(employeeId), {
+  return tenantApiRequest(compensationByEmployeePath(employeeId), {
     method: "GET",
     tenantId,
     dataSchema: hrCompensationDataSchema,
@@ -132,7 +132,7 @@ export async function updateHrEmployeeCompensation(
   employeeId: string,
   payload: UpdateHrCompensationInput,
 ): Promise<ApiSuccessEnvelope<HrCompensationData>> {
-  return apiRequest(compensationByEmployeePath(employeeId), {
+  return tenantApiRequest(compensationByEmployeePath(employeeId), {
     method: "PATCH",
     tenantId,
     body: updateHrCompensationInputSchema.parse(payload),

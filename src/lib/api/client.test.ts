@@ -3,7 +3,7 @@ import { z } from "zod";
 import { describe, expect, it } from "vitest";
 import { server } from "@/mocks/server";
 import { setGlobalAuthFailureHandler } from "@/lib/api/auth-failure-handler";
-import { ApiRequestError, apiRequest } from "@/lib/api/client";
+import { ApiRequestError, apiRequest, platformApiRequest, tenantApiRequest } from "@/lib/api/client";
 
 describe("apiRequest", () => {
   it("injects CSRF and tenant headers for tenant-scoped mutating routes", async () => {
@@ -47,6 +47,41 @@ describe("apiRequest", () => {
     ).rejects.toMatchObject({
       status: 400,
       code: "TENANT_HEADER_REQUIRED",
+    });
+  });
+
+  it("blocks tenant client from platform scoped paths", async () => {
+    await expect(
+      tenantApiRequest("/api/v1/platform/settings", {
+        method: "GET",
+        tenantId: "acme-tenant",
+      }),
+    ).rejects.toMatchObject({
+      status: 400,
+      code: "TENANT_SCOPE_MISMATCH",
+    });
+  });
+
+  it("blocks platform client from tenant scoped paths", async () => {
+    await expect(
+      platformApiRequest("/api/v1/modules/inventory/items", {
+        method: "GET",
+      }),
+    ).rejects.toMatchObject({
+      status: 400,
+      code: "TENANT_SCOPE_MISMATCH",
+    });
+  });
+
+  it("blocks platform scoped requests that include tenantId", async () => {
+    await expect(
+      platformApiRequest("/api/v1/platform/settings", {
+        method: "GET",
+        tenantId: "acme-tenant",
+      }),
+    ).rejects.toMatchObject({
+      status: 400,
+      code: "TENANT_SCOPE_MISMATCH",
     });
   });
 

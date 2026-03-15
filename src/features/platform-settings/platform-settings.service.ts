@@ -1,4 +1,4 @@
-﻿import { apiRequest } from "@/lib/api/client";
+﻿import { platformApiRequest } from "@/lib/api/client";
 import { type ApiSuccessEnvelope } from "@/lib/api/contracts";
 import {
   platformSettingsDataSchema,
@@ -10,7 +10,7 @@ import {
 const PLATFORM_SETTINGS_ENDPOINT = "/api/v1/platform/settings";
 
 export async function getPlatformSettings(): Promise<ApiSuccessEnvelope<PlatformSettingsData>> {
-  return apiRequest(PLATFORM_SETTINGS_ENDPOINT, {
+  return platformApiRequest(PLATFORM_SETTINGS_ENDPOINT, {
     method: "GET",
     dataSchema: platformSettingsDataSchema,
   });
@@ -19,7 +19,7 @@ export async function getPlatformSettings(): Promise<ApiSuccessEnvelope<Platform
 export async function updatePlatformSettings(
   payload: UpdatePlatformSettingsInput,
 ): Promise<ApiSuccessEnvelope<PlatformSettingsData>> {
-  return apiRequest(PLATFORM_SETTINGS_ENDPOINT, {
+  return platformApiRequest(PLATFORM_SETTINGS_ENDPOINT, {
     method: "PATCH",
     body: updatePlatformSettingsInputSchema.parse(payload),
     dataSchema: platformSettingsDataSchema,

@@ -1,4 +1,4 @@
-﻿import { z } from "zod";
+import { z } from "zod";
 
 export const apiErrorDetailsSchema = z.record(z.string(), z.array(z.string()));
 
@@ -11,7 +11,7 @@ export const apiErrorSchema = z.object({
 export const apiErrorEnvelopeSchema = z.object({
   success: z.literal(false),
   error: apiErrorSchema,
-  traceId: z.string().optional(),
+  traceId: z.string(),
 });
 
 export type ApiErrorEnvelope = z.infer<typeof apiErrorEnvelopeSchema>;
@@ -38,3 +38,4 @@ export function createApiSuccessEnvelopeSchema<TDataSchema extends z.ZodTypeAny>
     })
     .passthrough();
 }
+

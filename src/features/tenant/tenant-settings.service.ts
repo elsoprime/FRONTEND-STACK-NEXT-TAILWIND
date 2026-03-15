@@ -1,4 +1,4 @@
-import { apiRequest } from "@/lib/api/client";
+import { tenantApiRequest } from "@/lib/api/client";
 import { type ApiSuccessEnvelope } from "@/lib/api/contracts";
 import {
   tenantSettingsDataSchema,
@@ -17,7 +17,7 @@ const TENANT_SETTINGS_ENDPOINTS = {
 export async function getTenantSettings(
   tenantId: string,
 ): Promise<ApiSuccessEnvelope<TenantSettingsData>> {
-  return apiRequest(TENANT_SETTINGS_ENDPOINTS.singleton, {
+  return tenantApiRequest(TENANT_SETTINGS_ENDPOINTS.singleton, {
     method: "GET",
     tenantId,
     dataSchema: tenantSettingsDataSchema,
@@ -28,7 +28,7 @@ export async function updateTenantSettings(
   tenantId: string,
   payload: UpdateTenantSettingsInput,
 ): Promise<ApiSuccessEnvelope<TenantSettingsData>> {
-  return apiRequest(TENANT_SETTINGS_ENDPOINTS.singleton, {
+  return tenantApiRequest(TENANT_SETTINGS_ENDPOINTS.singleton, {
     method: "PATCH",
     tenantId,
     body: updateTenantSettingsRequestSchema.parse(payload),
@@ -39,7 +39,7 @@ export async function updateTenantSettings(
 export async function getTenantSettingsEffective(
   tenantId: string,
 ): Promise<ApiSuccessEnvelope<TenantSettingsEffectiveData>> {
-  return apiRequest(TENANT_SETTINGS_ENDPOINTS.effective, {
+  return tenantApiRequest(TENANT_SETTINGS_ENDPOINTS.effective, {
     method: "GET",
     tenantId,
     dataSchema: tenantSettingsEffectiveDataSchema,

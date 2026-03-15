@@ -1,4 +1,4 @@
-﻿import { HttpResponse, http } from "msw";
+import { HttpResponse, http } from "msw";
 import { describe, expect, it } from "vitest";
 import { server } from "@/mocks/server";
 import {
@@ -54,7 +54,7 @@ describe("billing.service", () => {
             success: true,
             data: {
               checkoutSession: {
-                id: "chk_01",
+                id: "507f191e810c19729de860aa",
                 tenantId: TENANT_ID,
                 planId: "plan:starter",
                 provider: "simulated",
@@ -119,9 +119,10 @@ describe("billing.service", () => {
 
     const response = await assignTenantSubscription(TENANT_ID, {
       planId: "plan:growth",
+      checkoutSessionId: "507f191e810c19729de860aa",
     });
 
-    expect(payload).toEqual({ planId: "plan:growth" });
+    expect(payload).toEqual({ planId: "plan:growth", checkoutSessionId: "507f191e810c19729de860aa" });
     expect(response.data.subscription.status).toBe("activated");
   });
 
@@ -160,3 +161,4 @@ describe("billing.service", () => {
     expect(response.data.tenant.planId).toBeNull();
   });
 });
+
