@@ -305,9 +305,9 @@ function DashboardMarketplaceContent({
   const runtimeError = runtimeQuery.error ? resolveUnknownError(runtimeQuery.error) : null;
 
   const supportEmail =
-    runtimeQuery.data?.branding.supportEmail ?? runtimeQuery.data?.contact.primaryEmail;
+    runtimeQuery.data?.branding?.supportEmail ?? runtimeQuery.data?.contact?.primaryEmail;
   const supportUrl =
-    runtimeQuery.data?.branding.supportUrl ?? runtimeQuery.data?.contact.websiteUrl;
+    runtimeQuery.data?.branding?.supportUrl ?? runtimeQuery.data?.contact?.websiteUrl;
 
   const dependencyCards = useMemo(
     () => [
@@ -324,12 +324,11 @@ function DashboardMarketplaceContent({
       {
         label: "Modulos activos",
         value:
-          tenant.activeModuleKeys.length > 0
-            ? tenant.activeModuleKeys.join(", ")
-            : "sin modulos",
-        hint: canManageInvites && canManageSettings
-          ? "Puede invitar y gestionar plan"
-          : "Acciones restringidas por permisos",
+          tenant.activeModuleKeys.length > 0 ? tenant.activeModuleKeys.join(", ") : "sin modulos",
+        hint:
+          canManageInvites && canManageSettings
+            ? "Puede invitar y gestionar plan"
+            : "Acciones restringidas por permisos",
       },
     ],
     [
@@ -394,8 +393,8 @@ function DashboardMarketplaceContent({
                   Dashboard tenant
                 </h1>
                 <p className="mt-2 max-w-3xl text-sm leading-relaxed text-muted-foreground sm:text-base">
-                  Vista concentrada y simetrica para controlar estado modular, alertas criticas y operaciones
-                  del tenant activo sin sobrecarga visual.
+                  Vista concentrada y simetrica para controlar estado modular, alertas criticas y
+                  operaciones del tenant activo sin sobrecarga visual.
                 </p>
               </div>
             </div>
@@ -454,7 +453,9 @@ function DashboardMarketplaceContent({
           <DashboardMetricCard
             title="Usuarios activos"
             value={hrState === "active" ? String(activeEmployees) : "N/A"}
-            hint={hrState === "active" ? "Empleados activos en HR" : "Habilita HR para ver actividad"}
+            hint={
+              hrState === "active" ? "Empleados activos en HR" : "Habilita HR para ver actividad"
+            }
             icon={Users2}
             tone="accent"
             isLoading={hrState === "active" && hrActiveEmployeesQuery.isLoading}
@@ -476,7 +477,9 @@ function DashboardMarketplaceContent({
           <DashboardMetricCard
             title="Alertas de stock"
             value={inventoryState === "active" ? String(lowStockAlerts) : "N/A"}
-            hint={inventoryState === "active" ? "Productos en riesgo de quiebre" : "Inventory no activo"}
+            hint={
+              inventoryState === "active" ? "Productos en riesgo de quiebre" : "Inventory no activo"
+            }
             icon={BellRing}
             tone={lowStockAlerts > 0 ? "warning" : "success"}
             isLoading={inventoryLowStockQuery.isLoading}
@@ -540,7 +543,9 @@ function DashboardMarketplaceContent({
                 >
                   <div className="flex flex-wrap items-start justify-between gap-2">
                     <div>
-                      <p className="text-sm font-semibold text-foreground">{formatAuditAction(event.action)}</p>
+                      <p className="text-sm font-semibold text-foreground">
+                        {formatAuditAction(event.action)}
+                      </p>
                       <p className="text-xs text-muted-foreground">
                         {event.resource.type}
                         {event.resource.label ? ` - ${event.resource.label}` : ""}
@@ -795,7 +800,9 @@ function DashboardMarketplaceContent({
             <div className="space-y-2">
               <article className="rounded-xl border border-border/80 bg-background/75 px-3 py-2.5">
                 <p className="text-xs text-muted-foreground">Plan vigente</p>
-                <p className="text-sm font-semibold text-foreground">{currentPlan?.name ?? "Sin plan"}</p>
+                <p className="text-sm font-semibold text-foreground">
+                  {currentPlan?.name ?? "Sin plan"}
+                </p>
               </article>
               <Link href="/app/settings/billing" className="block">
                 <Button type="button" className="w-full rounded-lg">
@@ -813,7 +820,9 @@ function DashboardMarketplaceContent({
             <div className="space-y-2">
               <article className="rounded-xl border border-border/80 bg-background/75 px-3 py-2.5">
                 <p className="text-xs text-muted-foreground">Ultimo traceId</p>
-                <p className="break-all font-mono text-xs text-foreground">{lastTraceId ?? "sin traza"}</p>
+                <p className="break-all font-mono text-xs text-foreground">
+                  {lastTraceId ?? "sin traza"}
+                </p>
               </article>
               <div className="grid grid-cols-2 gap-2">
                 <Button
@@ -896,36 +905,3 @@ export function TenantDashboardMarketplace() {
     </main>
   );
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

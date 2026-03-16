@@ -15,6 +15,13 @@ import { Button } from "@/components/ui/button";
 import { DecisionDialog } from "@/components/ui/decision-dialog";
 import { resolveBillingErrorMessage } from "@/features/billing/error-code-map";
 import {
+  CANONICAL_PLAN_KEYS,
+  resolvePlanAllowedModuleKeys,
+  resolvePlanDescription,
+  resolvePlanDisplayName,
+  resolvePlanRank,
+} from "@/features/billing/plan-catalog";
+import {
   assignTenantSubscription,
   cancelTenantSubscription,
   createCheckoutSession,
@@ -22,6 +29,7 @@ import {
 } from "@/features/billing/billing.service";
 import {
   type BillingCheckoutSession,
+  type BillingPlan,
   type TenantSubscriptionData,
 } from "@/features/billing/billing.schemas";
 import { getMyTenantMemberships } from "@/features/tenant/tenant.service";
@@ -47,6 +55,27 @@ function formatModules(values: string[]): string {
   return values.length > 0 ? values.join(", ") : "sin modulos";
 }
 
+function readSubscriptionStatus(tenant: unknown): string | null {
+  if (!tenant || typeof tenant !== "object") {
+    return null;
+  }
+
+  const value = (tenant as { subscriptionStatus?: unknown }).subscriptionStatus;
+  return typeof value === "string" ? value : null;
+}
+
+function buildMissingCatalogPlan(planKey: string): BillingPlan {
+  return {
+    key: planKey,
+    name: resolvePlanDisplayName(planKey),
+    description: resolvePlanDescription(planKey),
+    rank: resolvePlanRank(planKey),
+    allowedModuleKeys: [...resolvePlanAllowedModuleKeys(planKey)],
+    featureFlagKeys: [],
+    memberLimit: null,
+  };
+}
+
 export function TenantBillingProvisioningPanel({
   tenantId,
   tenantName,
@@ -64,6 +93,7 @@ export function TenantBillingProvisioningPanel({
     null,
   );
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
+  const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
   const [viewState, setViewState] = useState<ViewState>({ status: "idle" });
   const isDevSimulationMode =
     process.env.NEXT_PUBLIC_BILLING_SIMULATION_MODE === "true" ||
@@ -78,27 +108,58 @@ export function TenantBillingProvisioningPanel({
     },
   });
 
+  const visiblePlans = useMemo(() => {
+    const byKey = new Map<string, BillingPlan>();
+    for (const plan of plansQuery.data ?? []) {
+      byKey.set(plan.key, plan);
+    }
+
+    for (const planKey of CANONICAL_PLAN_KEYS) {
+      if (!byKey.has(planKey)) {
+        byKey.set(planKey, buildMissingCatalogPlan(planKey));
+      }
+    }
+
+    return Array.from(byKey.values()).sort((left, right) => {
+      const leftRank = left.rank ?? resolvePlanRank(left.key);
+      const rightRank = right.rank ?? resolvePlanRank(right.key);
+      if (leftRank !== rightRank) {
+        return leftRank - rightRank;
+      }
+      return left.key.localeCompare(right.key);
+    });
+  }, [plansQuery.data]);
+
   const currentPlanId = useMemo(
     () => effectiveRuntime?.planId ?? activeTenant?.planId ?? null,
     [activeTenant?.planId, effectiveRuntime?.planId],
   );
 
   const defaultSelectedPlanId = useMemo(() => {
-    if (!plansQuery.data || plansQuery.data.length === 0) {
+    if (visiblePlans.length === 0) {
       return null;
     }
 
     const matchedCurrentPlan = currentPlanId
-      ? plansQuery.data.find((plan) => plan.key === currentPlanId)
+      ? visiblePlans.find((plan) => plan.key === currentPlanId)
       : null;
 
-    return matchedCurrentPlan?.key ?? plansQuery.data[0]?.key ?? null;
-  }, [currentPlanId, plansQuery.data]);
+    return matchedCurrentPlan?.key ?? visiblePlans[0]?.key ?? null;
+  }, [currentPlanId, visiblePlans]);
 
   const selectedPlanId = selectedPlanIdOverride ?? defaultSelectedPlanId;
+  const selectedPlan = visiblePlans.find((plan) => plan.key === selectedPlanId) ?? null;
+  const selectedPlanLabel = resolvePlanDisplayName(selectedPlanId, selectedPlan?.name);
   const hasCheckoutSession = Boolean(latestCheckoutSession?.id);
   const isSelectedPlanActivated = Boolean(selectedPlanId && currentPlanId === selectedPlanId);
   const activationDetectedAfterCheckout = hasCheckoutSession && isSelectedPlanActivated;
+  const subscriptionStatus = readSubscriptionStatus(activeTenant);
+  const cancellationBlockedByStatus =
+    subscriptionStatus === "pending" ||
+    subscriptionStatus === "inactive" ||
+    subscriptionStatus === "canceled" ||
+    subscriptionStatus === "suspended";
+  const isSelectedPlanAlreadyActive = Boolean(selectedPlanId && currentPlanId === selectedPlanId);
 
   async function refreshTenantRuntime(): Promise<string | null> {
     await invalidateTenantRuntimeQueries(queryClient, tenantId);
@@ -200,7 +261,7 @@ export function TenantBillingProvisioningPanel({
       if (selectedPlanId && runtimePlanId === selectedPlanId) {
         setViewState({
           status: "success",
-          message: `Pago confirmado y plan ${selectedPlanId} activo en runtime.`,
+          message: `Pago confirmado y plan ${selectedPlanLabel} activo en runtime.`,
         });
         return;
       }
@@ -248,7 +309,7 @@ export function TenantBillingProvisioningPanel({
       await refreshTenantRuntime();
       setViewState({
         status: "success",
-        message: `Plan ${response.data.subscription.planId ?? "sin plan"} aplicado correctamente.`,
+        message: `Plan ${resolvePlanDisplayName(response.data.subscription.planId, response.data.subscription.planId ?? undefined)} aplicado correctamente.`,
       });
     },
     onError: (error: unknown) => {
@@ -270,12 +331,14 @@ export function TenantBillingProvisioningPanel({
       ]);
       await refreshTenantRuntime();
       setLatestCheckoutSession(null);
+      setCancelDialogOpen(false);
       setViewState({
         status: "success",
         message: "Suscripcion cancelada. El runtime efectivo se actualizo para este tenant.",
       });
     },
     onError: (error: unknown) => {
+      setCancelDialogOpen(false);
       setViewState({
         status: "error",
         message: resolveUnknownErrorMessage(error),
@@ -311,7 +374,6 @@ export function TenantBillingProvisioningPanel({
     },
   });
 
-  const selectedPlan = plansQuery.data?.find((plan) => plan.key === selectedPlanId) ?? null;
   const isWorking =
     assignMutation.isPending ||
     cancelMutation.isPending ||
@@ -320,12 +382,19 @@ export function TenantBillingProvisioningPanel({
   const canAssignSelectedPlan =
     Boolean(selectedPlanId) &&
     Boolean(latestCheckoutSession?.id) &&
-    latestCheckoutSession?.planId === selectedPlanId;
+    latestCheckoutSession?.planId === selectedPlanId &&
+    !isSelectedPlanAlreadyActive;
+  const canStartCheckout = !isWorking && Boolean(selectedPlanId) && !isSelectedPlanAlreadyActive;
+  const canVerifyActivation =
+    !isWorking && Boolean(latestCheckoutSession?.id) && !isSelectedPlanAlreadyActive;
+  const canCancelSubscription =
+    !isWorking && currentPlanId !== null && !cancellationBlockedByStatus;
+
   const stepSummaries = [
     {
       label: "1. Seleccionar plan",
       description: selectedPlanId
-        ? `Plan elegido: ${selectedPlanId}`
+        ? `Plan elegido: ${selectedPlanLabel}`
         : "Selecciona un plan disponible",
       done: Boolean(selectedPlanId),
     },
@@ -379,11 +448,14 @@ export function TenantBillingProvisioningPanel({
         </article>
       ) : null}
 
-      {plansQuery.data && plansQuery.data.length > 0 ? (
+      {visiblePlans.length > 0 ? (
         <div className="grid gap-4 lg:grid-cols-2">
-          {plansQuery.data.map((plan) => {
+          {visiblePlans.map((plan) => {
             const isCurrent = currentPlanId === plan.key;
             const isSelected = selectedPlanId === plan.key;
+            const isAvailableByApi = (plansQuery.data ?? []).some(
+              (apiPlan) => apiPlan.key === plan.key,
+            );
 
             return (
               <button
@@ -403,11 +475,17 @@ export function TenantBillingProvisioningPanel({
                 }}
               >
                 <div className="flex items-center justify-between gap-3">
-                  <h3 className="text-base font-bold text-foreground">{plan.name}</h3>
+                  <h3 className="text-base font-bold text-foreground">
+                    {resolvePlanDisplayName(plan.key, plan.name)}
+                  </h3>
                   {isCurrent ? (
                     <span className="inline-flex items-center gap-1 rounded-full border border-emerald-400/50 bg-emerald-500/14 px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-[0.1em] text-emerald-100">
                       <ShieldCheck className="size-3.5" />
                       Activo
+                    </span>
+                  ) : !isAvailableByApi ? (
+                    <span className="inline-flex items-center rounded-full border border-border/70 bg-muted/30 px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">
+                      No disponible
                     </span>
                   ) : null}
                 </div>
@@ -470,7 +548,7 @@ export function TenantBillingProvisioningPanel({
               type="button"
               variant="outline"
               className="h-11 rounded-xl"
-              disabled={isWorking || !selectedPlanId}
+              disabled={!canStartCheckout}
               onClick={() => {
                 setViewState({ status: "idle" });
                 checkoutMutation.mutate();
@@ -493,7 +571,7 @@ export function TenantBillingProvisioningPanel({
               type="button"
               variant="outline"
               className="h-11 rounded-xl"
-              disabled={isWorking}
+              disabled={!canVerifyActivation}
               onClick={() => {
                 setViewState({ status: "idle" });
                 verifyActivationMutation.mutate();
@@ -517,10 +595,10 @@ export function TenantBillingProvisioningPanel({
               type="button"
               variant="outline"
               className="h-11 rounded-xl text-destructive hover:bg-destructive/10 hover:text-destructive"
-              disabled={isWorking || currentPlanId === null}
+              disabled={!canCancelSubscription}
               onClick={() => {
                 setViewState({ status: "idle" });
-                cancelMutation.mutate();
+                setCancelDialogOpen(true);
               }}
             >
               {cancelMutation.isPending ? (
@@ -535,6 +613,11 @@ export function TenantBillingProvisioningPanel({
                 </span>
               )}
             </Button>
+            {!canCancelSubscription ? (
+              <p className="mt-2 text-xs text-muted-foreground">
+                No disponible mientras la suscripcion este pendiente o desactivada.
+              </p>
+            ) : null}
           </div>
         </article>
       ) : null}
@@ -605,6 +688,44 @@ export function TenantBillingProvisioningPanel({
       ) : null}
 
       <DecisionDialog
+        open={cancelDialogOpen}
+        onOpenChange={setCancelDialogOpen}
+        title="Confirmar cancelacion de suscripcion"
+        description="Esta accion desactiva el plan actual y limpia los modulos activos del tenant."
+        confirmLabel="Si, cancelar suscripcion"
+        busyLabel="Cancelando suscripcion..."
+        tone="danger"
+        loading={cancelMutation.isPending}
+        onConfirm={async () => {
+          if (!canCancelSubscription) {
+            return;
+          }
+
+          setViewState({ status: "idle" });
+          await cancelMutation.mutateAsync();
+        }}
+        onCancel={() => setViewState({ status: "idle" })}
+        onConfirmError={(error) => {
+          setViewState({
+            status: "error",
+            message: resolveUnknownErrorMessage(error),
+          });
+        }}
+      >
+        <div className="space-y-1 text-xs sm:text-sm">
+          <p>
+            Tenant: <span className="font-mono">{tenantId}</span>
+          </p>
+          <p>
+            Plan actual:{" "}
+            <span className="font-semibold">
+              {resolvePlanDisplayName(currentPlanId, currentPlanId ?? undefined)}
+            </span>
+          </p>
+        </div>
+      </DecisionDialog>
+
+      <DecisionDialog
         open={confirmDialogOpen}
         onOpenChange={setConfirmDialogOpen}
         title={isDevSimulationMode ? "Confirmar pago simulado" : "Confirmar activacion de pago"}
@@ -641,7 +762,7 @@ export function TenantBillingProvisioningPanel({
             Tenant: <span className="font-mono">{tenantId}</span>
           </p>
           <p>
-            Plan: <span className="font-semibold">{selectedPlanId ?? "no seleccionado"}</span>
+            Plan: <span className="font-semibold">{selectedPlanLabel ?? "no seleccionado"}</span>
           </p>
           <p>
             Checkout session:{" "}

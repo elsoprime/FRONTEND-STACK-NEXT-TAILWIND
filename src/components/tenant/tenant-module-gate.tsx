@@ -3,6 +3,10 @@
 import { useQuery } from "@tanstack/react-query";
 import { AccessDeniedPanel } from "@/components/tenant/access-denied-panel";
 import { LoadingScreen } from "@/components/ui/loading-screen";
+import {
+  resolvePlanAllowedModuleKeys,
+  resolvePlanDisplayName,
+} from "@/features/billing/plan-catalog";
 import { resolveTenantErrorMessage } from "@/features/tenant/error-code-map";
 import {
   hasAllTenantPermissions,
@@ -61,7 +65,7 @@ export function TenantModuleGate({
     },
   });
 
-  if (runtimeQuery.isLoading) {
+  if (runtimeQuery.isLoading || (runtimeQuery.isFetching && !runtimeQuery.data)) {
     return (
       <LoadingScreen
         variant="inline"
@@ -108,6 +112,35 @@ export function TenantModuleGate({
   }
 
   if (!config.skipModuleState && moduleState !== "active") {
+    const tenantHintsModuleActive = tenant.activeModuleKeys.includes(config.moduleKey);
+
+    if (runtimeQuery.isFetching && tenantHintsModuleActive) {
+      return (
+        <LoadingScreen
+          variant="inline"
+          className="mt-6"
+          label="Sincronizando estado del modulo..."
+          hint="Verificando runtime efectivo del tenant."
+        />
+      );
+    }
+
+    const expectedModules = resolvePlanAllowedModuleKeys(runtime?.planId);
+    const shouldBeEnabledByPlan = expectedModules.includes(config.moduleKey);
+
+    if (shouldBeEnabledByPlan) {
+      const planName = resolvePlanDisplayName(runtime?.planId, runtime?.planId ?? undefined);
+      return (
+        <AccessDeniedPanel
+          title="Runtime desincronizado"
+          message={`${moduleLabel} deberia estar habilitado para el plan ${planName}. Revalida la activacion en Billing.`}
+          code="TENANT_RUNTIME_INCONSISTENT"
+          actionLabel="Ir a Billing"
+          actionHref="/app/settings/billing"
+        />
+      );
+    }
+
     return (
       <AccessDeniedPanel
         message={resolveModuleErrorCopy(moduleState, moduleLabel)}

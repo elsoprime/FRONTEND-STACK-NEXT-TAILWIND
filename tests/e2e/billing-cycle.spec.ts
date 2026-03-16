@@ -311,6 +311,10 @@ test("billing cycle: activate -> cancel -> require new checkout -> reactivate", 
   await expect(checkoutButton).toBeVisible();
   await cancelButton.click();
   await expect(
+    page.getByRole("heading", { name: "Confirmar cancelacion de suscripcion" }),
+  ).toBeVisible();
+  await page.getByRole("button", { name: "Si, cancelar suscripcion" }).click();
+  await expect(
     page.getByText("Suscripcion cancelada. El runtime efectivo se actualizo para este tenant."),
   ).toBeVisible();
   await expect(activateButton).toBeDisabled();
@@ -326,11 +330,13 @@ test("billing cycle: activate -> cancel -> require new checkout -> reactivate", 
   await activateButton.click();
   await expect(page.getByRole("heading", { name: "Confirmar pago simulado" })).toBeVisible();
   await page.getByRole("button", { name: "Confirmar y activar" }).click();
-  await expect(
-    page.getByText(/Pago confirmado y plan plan:starter activo en runtime\./),
-  ).toBeVisible();
+  await expect(page.getByText(/Pago confirmado y plan Starter activo en runtime\./)).toBeVisible();
 
   await cancelButton.click();
+  await expect(
+    page.getByRole("heading", { name: "Confirmar cancelacion de suscripcion" }),
+  ).toBeVisible();
+  await page.getByRole("button", { name: "Si, cancelar suscripcion" }).click();
   await expect(activateButton).toBeDisabled();
 
   await checkoutButton.click();
@@ -338,9 +344,7 @@ test("billing cycle: activate -> cancel -> require new checkout -> reactivate", 
   await activateButton.click();
   await expect(page.getByRole("heading", { name: "Confirmar pago simulado" })).toBeVisible();
   await page.getByRole("button", { name: "Confirmar y activar" }).click();
-  await expect(
-    page.getByText(/Pago confirmado y plan plan:starter activo en runtime\./),
-  ).toBeVisible();
+  await expect(page.getByText(/Pago confirmado y plan Starter activo en runtime\./)).toBeVisible();
 });
 
 test("dashboard blocks module actions when subscription is not active", async ({ page }) => {
@@ -566,4 +570,246 @@ test("effective settings shows billing CTA when subscription payment is required
     "href",
     "/app/settings/billing",
   );
+});
+
+test("billing page disables cancel action when subscription is pending", async ({ page }) => {
+  await page.route("**/api/v1/auth/refresh/browser", async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        success: true,
+        data: {
+          user: {
+            id: "usr_owner_01",
+            email: "owner@acme.dev",
+            firstName: "Owner",
+            lastName: "Acme",
+            status: "active",
+            isEmailVerified: true,
+          },
+          session: {
+            id: "sess_01",
+            userId: "usr_owner_01",
+            expiresAt: "2026-12-31T23:59:59.000Z",
+          },
+        },
+        traceId: "trace-refresh-ok",
+      }),
+    });
+  });
+
+  await page.route("**/api/v1/tenant/mine", async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        success: true,
+        data: {
+          items: [
+            {
+              tenant: {
+                id: TENANT_ID,
+                name: "Acme",
+                slug: "acme",
+                status: "active",
+                ownerUserId: "usr_owner_01",
+                planId: "plan:starter",
+                activeModuleKeys: ["inventory"],
+                memberLimit: 50,
+                subscriptionStatus: "pending",
+              },
+              membership: {
+                id: "mem_01",
+                tenantId: TENANT_ID,
+                userId: "usr_owner_01",
+                roleKey: "tenant:owner",
+                status: "active",
+              },
+              isActive: true,
+            },
+          ],
+        },
+        traceId: "trace-tenant-mine",
+      }),
+    });
+  });
+
+  await page.route("**/api/v1/tenant/settings/effective", async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        success: true,
+        data: {
+          settings: {
+            tenantId: TENANT_ID,
+            branding: { displayName: "Acme", supportEmail: null, supportUrl: null },
+            localization: { defaultTimezone: "UTC", defaultCurrency: "USD", defaultLanguage: "es" },
+            contact: { primaryEmail: null, phone: null, websiteUrl: null },
+            billing: { billingEmail: null, legalName: null, taxId: null },
+            runtime: {
+              planId: "plan:starter",
+              activeModuleKeys: ["inventory"],
+              enabledModuleKeys: ["inventory"],
+              featureFlagKeys: ["inventory:base"],
+            },
+          },
+        },
+        traceId: "trace-runtime",
+      }),
+    });
+  });
+
+  await page.route("**/api/v1/billing/plans", async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        success: true,
+        data: { items: PLANS },
+        traceId: "trace-billing-plans",
+      }),
+    });
+  });
+
+  await page.goto("/app/settings/billing");
+
+  const cancelButton = page.getByRole("button", { name: "Cancelar suscripcion" });
+  await expect(cancelButton).toBeDisabled();
+  await expect(
+    page.getByText("No disponible mientras la suscripcion este pendiente o desactivada."),
+  ).toBeVisible();
+});
+
+test("billing page blocks checkout/verify when selected plan is already active and shows canonical plans", async ({
+  page,
+}) => {
+  await page.route("**/api/v1/auth/refresh/browser", async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        success: true,
+        data: {
+          user: {
+            id: "usr_owner_01",
+            email: "owner@acme.dev",
+            firstName: "Owner",
+            lastName: "Acme",
+            status: "active",
+            isEmailVerified: true,
+          },
+          session: {
+            id: "sess_01",
+            userId: "usr_owner_01",
+            expiresAt: "2026-12-31T23:59:59.000Z",
+          },
+        },
+        traceId: "trace-refresh-ok",
+      }),
+    });
+  });
+
+  await page.route("**/api/v1/tenant/mine", async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        success: true,
+        data: {
+          items: [
+            {
+              tenant: {
+                id: TENANT_ID,
+                name: "Acme",
+                slug: "acme",
+                status: "active",
+                ownerUserId: "usr_owner_01",
+                planId: "plan:starter",
+                activeModuleKeys: ["inventory"],
+                memberLimit: 50,
+                subscriptionStatus: "active",
+              },
+              membership: {
+                id: "mem_01",
+                tenantId: TENANT_ID,
+                userId: "usr_owner_01",
+                roleKey: "tenant:owner",
+                status: "active",
+              },
+              isActive: true,
+            },
+          ],
+        },
+        traceId: "trace-tenant-mine",
+      }),
+    });
+  });
+
+  await page.route("**/api/v1/tenant/settings/effective", async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        success: true,
+        data: {
+          settings: {
+            tenantId: TENANT_ID,
+            branding: { displayName: "Acme", supportEmail: null, supportUrl: null },
+            localization: { defaultTimezone: "UTC", defaultCurrency: "USD", defaultLanguage: "es" },
+            contact: { primaryEmail: null, phone: null, websiteUrl: null },
+            billing: { billingEmail: null, legalName: null, taxId: null },
+            runtime: {
+              planId: "plan:starter",
+              activeModuleKeys: ["inventory"],
+              enabledModuleKeys: ["inventory"],
+              featureFlagKeys: ["inventory:base"],
+            },
+          },
+        },
+        traceId: "trace-runtime",
+      }),
+    });
+  });
+
+  await page.route("**/api/v1/billing/plans", async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        success: true,
+        data: {
+          items: [
+            {
+              key: "plan:starter",
+              name: "Starter",
+              description: "Starter plan",
+              rank: 1,
+              allowedModuleKeys: ["inventory"],
+              featureFlagKeys: [],
+              memberLimit: 10,
+            },
+            {
+              key: "plan:growth",
+              name: "Growth",
+              description: "Growth plan",
+              rank: 2,
+              allowedModuleKeys: ["inventory", "crm", "hr"],
+              featureFlagKeys: ["crm:base", "hr:base"],
+              memberLimit: 50,
+            },
+          ],
+        },
+        traceId: "trace-billing-plans",
+      }),
+    });
+  });
+
+  await page.goto("/app/settings/billing");
+
+  await expect(page.getByRole("button", { name: "Iniciar checkout" })).toBeDisabled();
+  await expect(page.getByRole("button", { name: "Verificar activacion" })).toBeDisabled();
+  await expect(page.getByRole("heading", { name: "Enterprise" })).toBeVisible();
+  await expect(page.getByText("No disponible").first()).toBeVisible();
 });

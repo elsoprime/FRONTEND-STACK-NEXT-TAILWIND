@@ -12,6 +12,7 @@ function normalizeApiBaseUrl(): string {
     process.env.INTERNAL_API_BASE_URL ??
     process.env.API_BASE_URL ??
     process.env.NEXT_PUBLIC_API_BASE_URL ??
+    process.env.APP_URL ??
     "";
   return raw.replace(/\/$/, "");
 }
