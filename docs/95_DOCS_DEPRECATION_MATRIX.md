@@ -21,6 +21,7 @@ Clasificar la documentacion de `docs/frontend/*` para eliminar ruido, conservar 
 | `README.md` | Vigente | Indice oficial de `docs/frontend` | Mantener y actualizar referencia principal a V2 |
 | `10_IMPLEMENTATION_GUIDE_V2.md` | Vigente | Guia principal por fases y etapas, incluyendo billing/provisioning | Fuente principal para ejecucion FE |
 | `_deprecated/90_INTEGRATION_PLAN_V1.md` | Deprecado controlado | Referencias historicas y rol superado por V2 | Mantener en `_deprecated` con redireccion a V2 |
+| `15_INVENTORY_MODULO_IMPLEMENTATION_GUIDE_V2.md` | Vigente | Guia especifica para escalar Inventario frontend mas alla del piloto | Mantener sincronizada con releases backend de inventario |
 | `20_ACCESS_MATRIX.md` | Vigente | Matriz alineada con OpenAPI vigente, incluyendo billing/provisioning | Mantener sincronizada por cambios de contrato |
 | `30_API_CLIENT_STANDARD.md` | Vigente | Reglas de headers y clasificacion de rutas actualizadas | Mantener y validar contra cliente real |
 | `40_STATE_AND_CACHE_POLICY.md` | Vigente | Base de aislamiento tenant/cache actualizada con provisioning | Mantener |
@@ -76,4 +77,6 @@ Mantener como abiertas solo las dependencias con contrato/runtime aun faltante p
    1. `openapi/openapi.yaml` + `openapi/paths/*`
    2. `10_IMPLEMENTATION_GUIDE_V2.md`
    3. documentos especializados (`ACCESS_MATRIX`, `API_CLIENT_STANDARD`, `ERROR_CATALOG`, etc.)
+
+
 
