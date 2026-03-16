@@ -1,4 +1,4 @@
-﻿import { expect, test } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 import { setCsrfCookie } from "./helpers/csrf";
 
 const TENANT_ID = "507f191e810c19729de860ea";
@@ -198,6 +198,25 @@ test("billing cycle: activate -> cancel -> require new checkout -> reactivate", 
     });
   });
 
+  await page.route("**/api/dev/billing/simulate-paid", async (route) => {
+    runtimePlanId = latestCheckoutPlanId;
+
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        success: true,
+        data: {
+          traceId: "trace-simulated-paid",
+          upstreamStatus: 200,
+          upstreamBody: {
+            success: true,
+            traceId: "trace-webhook-paid",
+          },
+        },
+      }),
+    });
+  });
   await page.route("**/api/v1/tenant/subscription", async (route) => {
     if (route.request().method() === "DELETE") {
       runtimePlanId = null;
@@ -305,7 +324,11 @@ test("billing cycle: activate -> cancel -> require new checkout -> reactivate", 
   await expect(activateButton).toBeEnabled();
 
   await activateButton.click();
-  await expect(page.getByText(/Plan plan:starter aplicado correctamente\./)).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Confirmar pago simulado" })).toBeVisible();
+  await page.getByRole("button", { name: "Confirmar y activar" }).click();
+  await expect(
+    page.getByText(/Pago confirmado y plan plan:starter activo en runtime\./),
+  ).toBeVisible();
 
   await cancelButton.click();
   await expect(activateButton).toBeDisabled();
@@ -313,7 +336,11 @@ test("billing cycle: activate -> cancel -> require new checkout -> reactivate", 
   await checkoutButton.click();
   await expect(activateButton).toBeEnabled();
   await activateButton.click();
-  await expect(page.getByText(/Plan plan:starter aplicado correctamente\./)).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Confirmar pago simulado" })).toBeVisible();
+  await page.getByRole("button", { name: "Confirmar y activar" }).click();
+  await expect(
+    page.getByText(/Pago confirmado y plan plan:starter activo en runtime\./),
+  ).toBeVisible();
 });
 
 test("dashboard blocks module actions when subscription is not active", async ({ page }) => {
