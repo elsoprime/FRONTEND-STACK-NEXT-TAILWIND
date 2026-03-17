@@ -14,6 +14,7 @@ const DEFAULT_CSRF_COOKIE = process.env.NEXT_PUBLIC_CSRF_COOKIE_NAME ?? "csrf_to
 const DEFAULT_CSRF_HEADER = "X-CSRF-Token";
 const DEFAULT_TENANT_HEADER = "X-Tenant-Id";
 const REFRESH_BROWSER_PATH = "/api/v1/auth/refresh/browser";
+let browserRefreshInFlightPromise: Promise<void> | null = null;
 
 type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
 type ApiPath = "/health" | `/api/v1/${string}`;
@@ -138,7 +139,10 @@ function resolvePathScope(pathname: string): "tenant" | "platform" | "neutral" {
   return "neutral";
 }
 
-function resolveRequestScope(pathname: string, requestedScope: ApiRequestScope): "tenant" | "platform" | "neutral" {
+function resolveRequestScope(
+  pathname: string,
+  requestedScope: ApiRequestScope,
+): "tenant" | "platform" | "neutral" {
   const pathScope = resolvePathScope(pathname);
 
   if (requestedScope === "auto") {
@@ -270,6 +274,30 @@ function canAttemptRefresh(pathname: string, status: number, allowRefreshRetry: 
   return !pathname.startsWith(REFRESH_BROWSER_PATH);
 }
 
+type RefreshBrowserSessionOptions = Pick<ApiRequestOptions, "csrfCookieName" | "csrfHeaderName">;
+
+async function refreshBrowserSessionWithSingleFlight(
+  options: RefreshBrowserSessionOptions,
+): Promise<void> {
+  if (!browserRefreshInFlightPromise) {
+    browserRefreshInFlightPromise = (async () => {
+      await apiRequest(REFRESH_BROWSER_PATH, {
+        method: "POST",
+        allowRefreshRetry: false,
+        browserMode: true,
+        withCsrf: true,
+        csrfCookieName: options.csrfCookieName,
+        csrfHeaderName: options.csrfHeaderName,
+      });
+    })();
+  }
+
+  try {
+    await browserRefreshInFlightPromise;
+  } finally {
+    browserRefreshInFlightPromise = null;
+  }
+}
 function resolveFallbackCodeByStatus(status: number): ApiErrorCode {
   switch (status) {
     case 400:
@@ -475,14 +503,7 @@ export async function apiRequest<TDataSchema extends ZodTypeAny | undefined = un
 
     if (browserMode && canAttemptRefresh(pathname, response.status, allowRefreshRetry)) {
       try {
-        await apiRequest(REFRESH_BROWSER_PATH, {
-          method: "POST",
-          allowRefreshRetry: false,
-          browserMode: true,
-          withCsrf: true,
-          csrfCookieName: options.csrfCookieName,
-          csrfHeaderName: options.csrfHeaderName,
-        });
+        await refreshBrowserSessionWithSingleFlight(options);
       } catch {
         await handleAuthFailure(options.onAuthFailure);
         throw error;
@@ -512,10 +533,6 @@ export async function apiRequest<TDataSchema extends ZodTypeAny | undefined = un
 
   return parsedSuccess.data as ApiResponseFor<TDataSchema>;
 }
-
-
-
-
 
 type ScopedRequestOptions<TDataSchema extends ZodTypeAny | undefined> = Omit<
   ApiRequestOptions<TDataSchema>,
