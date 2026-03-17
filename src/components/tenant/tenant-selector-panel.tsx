@@ -3,17 +3,19 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { ArrowRightLeft, Building2, ShieldAlert, ShieldCheck } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
-import { LoadingScreen } from "@/components/ui/loading-screen";
+import { useCallback, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { type TenantMembershipSummary } from "@/features/tenant/tenant.schemas";
+import { LoadingScreen } from "@/components/ui/loading-screen";
 import { resolveTenantErrorMessage } from "@/features/tenant/error-code-map";
+import { getTenantSettingsEffective } from "@/features/tenant/tenant-settings.service";
+import { type TenantMembershipSummary } from "@/features/tenant/tenant.schemas";
 import {
   getMyTenantMembershipSummaries,
   switchActiveTenant,
 } from "@/features/tenant/tenant.service";
 import { ApiRequestError } from "@/lib/api/client";
 import { clearPreviousTenantScopedQueries } from "@/lib/query/tenant-cache";
+import { queryKeys } from "@/lib/query/query-keys";
 import { useSessionStore } from "@/store/session-store";
 import { useTenantStore } from "@/store/tenant-store";
 
@@ -35,9 +37,33 @@ export function TenantSelectorPanel({
   const queryClient = useQueryClient();
   const previousTenantId = useTenantStore((state) => state.tenantId);
   const setActiveTenantContext = useTenantStore((state) => state.setActiveTenantContext);
+  const setEffectiveRuntime = useTenantStore((state) => state.setEffectiveRuntime);
   const setLastTraceId = useSessionStore((state) => state.setLastTraceId);
   const [viewState, setViewState] = useState<TenantSelectorViewState>({ status: "loading" });
   const [switchingTenantId, setSwitchingTenantId] = useState<string | null>(null);
+
+  const syncEffectiveRuntime = useCallback(
+    async (tenantId: string): Promise<void> => {
+      try {
+        const response = await getTenantSettingsEffective(tenantId);
+        const effectiveRuntime = response.data.settings.runtime ?? null;
+
+        setLastTraceId(response.traceId);
+        setEffectiveRuntime(effectiveRuntime);
+        queryClient.setQueryData(
+          queryKeys.tenantSettingsEffective(tenantId),
+          response.data.settings,
+        );
+      } catch (error) {
+        if (error instanceof ApiRequestError) {
+          setLastTraceId(error.traceId ?? null);
+        }
+
+        setEffectiveRuntime(null);
+      }
+    },
+    [queryClient, setEffectiveRuntime, setLastTraceId],
+  );
 
   useEffect(() => {
     let isActive = true;
@@ -59,22 +85,26 @@ export function TenantSelectorPanel({
           const onlyItem = items[0];
 
           if (onlyItem.isActive) {
+            clearPreviousTenantScopedQueries(queryClient, previousTenantId);
             setActiveTenantContext({
               tenant: onlyItem.tenant,
               membership: onlyItem.membership,
             });
-            router.replace("/app");
+            void syncEffectiveRuntime(onlyItem.tenant.id).finally(() => {
+              router.replace("/app");
+            });
             return;
           }
 
           void switchActiveTenant({ tenantId: onlyItem.tenant.id })
-            .then((response) => {
+            .then(async (response) => {
               clearPreviousTenantScopedQueries(queryClient, previousTenantId);
               setActiveTenantContext({
                 tenant: response.data.tenant,
                 membership: response.data.membership,
               });
               setLastTraceId(response.traceId);
+              await syncEffectiveRuntime(response.data.tenant.id);
               router.replace("/app");
             })
             .catch((error: unknown) => {
@@ -111,7 +141,14 @@ export function TenantSelectorPanel({
     return () => {
       isActive = false;
     };
-  }, [queryClient, previousTenantId, router, setActiveTenantContext, setLastTraceId]);
+  }, [
+    queryClient,
+    previousTenantId,
+    router,
+    setActiveTenantContext,
+    setLastTraceId,
+    syncEffectiveRuntime,
+  ]);
 
   const activateTenant = async (tenantId: string) => {
     setSwitchingTenantId(tenantId);
@@ -124,6 +161,7 @@ export function TenantSelectorPanel({
         membership: response.data.membership,
       });
       setLastTraceId(response.traceId);
+      await syncEffectiveRuntime(response.data.tenant.id);
       void router.replace("/app");
     } catch (error) {
       if (error instanceof ApiRequestError) {
@@ -137,13 +175,29 @@ export function TenantSelectorPanel({
     }
   };
 
+  const continueWithActiveTenant = async (item: TenantMembershipSummary) => {
+    setSwitchingTenantId(item.tenant.id);
+
+    try {
+      clearPreviousTenantScopedQueries(queryClient, previousTenantId);
+      setActiveTenantContext({
+        tenant: item.tenant,
+        membership: item.membership,
+      });
+      await syncEffectiveRuntime(item.tenant.id);
+      void router.replace("/app");
+    } finally {
+      setSwitchingTenantId(null);
+    }
+  };
+
   if (viewState.status === "loading") {
     return (
       <LoadingScreen
         variant="inline"
         className="py-4"
         label="Cargando tenants disponibles..."
-        hint="Validando membresías y estado activo de sesión."
+        hint="Validando membresias y estado activo de sesion."
       />
     );
   }
@@ -234,13 +288,8 @@ export function TenantSelectorPanel({
                           variant="outline"
                           size="sm"
                           className="rounded-lg"
-                          onClick={() => {
-                            setActiveTenantContext({
-                              tenant: item.tenant,
-                              membership: item.membership,
-                            });
-                            router.replace("/app");
-                          }}
+                          onClick={() => void continueWithActiveTenant(item)}
+                          disabled={isSwitching}
                         >
                           <ShieldCheck className="mr-2 size-4" />
                           Continuar
@@ -309,13 +358,8 @@ export function TenantSelectorPanel({
                     type="button"
                     variant="outline"
                     className="w-full rounded-lg"
-                    onClick={() => {
-                      setActiveTenantContext({
-                        tenant: item.tenant,
-                        membership: item.membership,
-                      });
-                      router.replace("/app");
-                    }}
+                    onClick={() => void continueWithActiveTenant(item)}
+                    disabled={isSwitching}
                   >
                     <ShieldCheck className="mr-2 size-4" />
                     Continuar con este tenant

@@ -3,10 +3,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { AccessDeniedPanel } from "@/components/tenant/access-denied-panel";
 import { LoadingScreen } from "@/components/ui/loading-screen";
-import {
-  resolvePlanAllowedModuleKeys,
-  resolvePlanDisplayName,
-} from "@/features/billing/plan-catalog";
+import { resolvePlanAllowedModuleKeys } from "@/features/billing/plan-catalog";
 import { resolveTenantErrorMessage } from "@/features/tenant/error-code-map";
 import {
   hasAllTenantPermissions,
@@ -112,9 +109,7 @@ export function TenantModuleGate({
   }
 
   if (!config.skipModuleState && moduleState !== "active") {
-    const tenantHintsModuleActive = tenant.activeModuleKeys.includes(config.moduleKey);
-
-    if (runtimeQuery.isFetching && tenantHintsModuleActive) {
+    if (runtimeQuery.isFetching) {
       return (
         <LoadingScreen
           variant="inline"
@@ -125,22 +120,26 @@ export function TenantModuleGate({
       );
     }
 
-    const expectedModules = resolvePlanAllowedModuleKeys(runtime?.planId);
+    const effectivePlanId = runtime?.planId ?? tenant.planId ?? null;
+    const expectedModules = resolvePlanAllowedModuleKeys(effectivePlanId);
     const shouldBeEnabledByPlan = expectedModules.includes(config.moduleKey);
+    const tenantHintsModuleActive = tenant.activeModuleKeys.includes(config.moduleKey);
 
-    if (shouldBeEnabledByPlan) {
-      const planName = resolvePlanDisplayName(runtime?.planId, runtime?.planId ?? undefined);
+    if (!runtime && tenantHintsModuleActive) {
       return (
-        <AccessDeniedPanel
-          title="Runtime desincronizado"
-          message={`${moduleLabel} deberia estar habilitado para el plan ${planName}. Revalida la activacion en Billing.`}
-          code="TENANT_RUNTIME_INCONSISTENT"
-          actionLabel="Ir a Billing"
-          actionHref="/app/settings/billing"
+        <LoadingScreen
+          variant="inline"
+          className="mt-6"
+          label="Sincronizando estado del modulo..."
+          hint="Aplicando contexto efectivo del tenant seleccionado."
         />
       );
     }
 
+    if (shouldBeEnabledByPlan || tenantHintsModuleActive) {
+      // Runtime can lag behind tenant switch/refresh. Avoid false UI denial and let backend enforce.
+      return <>{children}</>;
+    }
     return (
       <AccessDeniedPanel
         message={resolveModuleErrorCopy(moduleState, moduleLabel)}

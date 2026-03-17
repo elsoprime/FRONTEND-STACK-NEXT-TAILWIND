@@ -8,9 +8,11 @@ import { LoadingScreen } from "@/components/ui/loading-screen";
 import { Button } from "@/components/ui/button";
 import { bootstrapTenantShell } from "@/features/tenant/tenant-context.service";
 import { resolveTenantErrorMessage } from "@/features/tenant/error-code-map";
+import { getTenantSettingsEffective } from "@/features/tenant/tenant-settings.service";
 import { type MembershipView, type TenantView } from "@/features/tenant/tenant.schemas";
 import { ApiRequestError } from "@/lib/api/client";
 import { clearPreviousTenantScopedQueries } from "@/lib/query/tenant-cache";
+import { queryKeys } from "@/lib/query/query-keys";
 import { useSessionStore } from "@/store/session-store";
 import { useTenantStore } from "@/store/tenant-store";
 
@@ -29,6 +31,7 @@ export function TenantContextGate({
   const activeTenant = useTenantStore((state) => state.activeTenant);
   const activeMembership = useTenantStore((state) => state.activeMembership);
   const setActiveTenantContext = useTenantStore((state) => state.setActiveTenantContext);
+  const setEffectiveRuntime = useTenantStore((state) => state.setEffectiveRuntime);
   const setLastTraceId = useSessionStore((state) => state.setLastTraceId);
   const activeContext = useMemo(
     () =>
@@ -47,7 +50,7 @@ export function TenantContextGate({
     let isActive = true;
 
     void bootstrapTenantShell()
-      .then((result) => {
+      .then(async (result) => {
         setLastTraceId(result.traceId);
 
         if (!isActive) {
@@ -68,9 +71,29 @@ export function TenantContextGate({
           clearPreviousTenantScopedQueries(queryClient, previousTenantId);
         }
 
+        let effectiveRuntime = null;
+
+        try {
+          const runtimeResponse = await getTenantSettingsEffective(result.tenant.id);
+          effectiveRuntime = runtimeResponse.data.settings.runtime ?? null;
+          setLastTraceId(runtimeResponse.traceId);
+          setEffectiveRuntime(effectiveRuntime);
+          queryClient.setQueryData(
+            queryKeys.tenantSettingsEffective(result.tenant.id),
+            runtimeResponse.data.settings,
+          );
+        } catch (runtimeError) {
+          if (runtimeError instanceof ApiRequestError) {
+            setLastTraceId(runtimeError.traceId ?? null);
+          }
+
+          setEffectiveRuntime(null);
+        }
+
         setActiveTenantContext({
           tenant: result.tenant,
           membership: result.membership,
+          effectiveRuntime,
         });
       })
       .catch((error: unknown) => {
@@ -92,6 +115,7 @@ export function TenantContextGate({
     queryClient,
     router,
     setActiveTenantContext,
+    setEffectiveRuntime,
     setLastTraceId,
   ]);
 
