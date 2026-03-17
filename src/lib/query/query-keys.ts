@@ -12,6 +12,13 @@ export const queryKeys = {
     ["tenant", tenantId, "inventory", "categories"] as const,
   inventoryCategory: (tenantId: string, categoryId: string) =>
     ["tenant", tenantId, "inventory", "categories", categoryId] as const,
+  inventoryWarehouses: (tenantId: string) =>
+    ["tenant", tenantId, "inventory", "warehouses"] as const,
+  inventoryLots: (tenantId: string) => ["tenant", tenantId, "inventory", "lots"] as const,
+  inventoryStocktakes: (tenantId: string) =>
+    ["tenant", tenantId, "inventory", "stocktakes"] as const,
+  inventoryStocktake: (tenantId: string, stocktakeId: string) =>
+    ["tenant", tenantId, "inventory", "stocktakes", stocktakeId] as const,
   inventoryItems: (tenantId: string) => ["tenant", tenantId, "inventory", "items"] as const,
   inventoryItem: (tenantId: string, itemId: string) =>
     ["tenant", tenantId, "inventory", "items", itemId] as const,
@@ -19,6 +26,11 @@ export const queryKeys = {
     ["tenant", tenantId, "inventory", "stock-movements"] as const,
   inventoryLowStockAlerts: (tenantId: string) =>
     ["tenant", tenantId, "inventory", "alerts", "low-stock"] as const,
+  inventoryExpiringLotAlerts: (tenantId: string) =>
+    ["tenant", tenantId, "inventory", "alerts", "expiring-lots"] as const,
+  inventorySettings: (tenantId: string) => ["tenant", tenantId, "inventory", "settings"] as const,
+  inventoryReconciliation: (tenantId: string) =>
+    ["tenant", tenantId, "inventory", "reconciliation"] as const,
   crmCounters: (tenantId: string) => ["tenant", tenantId, "crm", "counters"] as const,
   crmContacts: (tenantId: string) => ["tenant", tenantId, "crm", "contacts"] as const,
   crmContact: (tenantId: string, contactId: string) =>

@@ -12,8 +12,13 @@ import { cn } from "@/lib/utils";
 const ACTIONS: readonly TenantPageAction[] = [
   { label: "Items", href: "/app/inventory/items" },
   { label: "Categorias", href: "/app/inventory/categories" },
+  { label: "Bodegas", href: "/app/inventory/warehouses" },
+  { label: "Lotes", href: "/app/inventory/lots" },
+  { label: "Conteos", href: "/app/inventory/stocktakes" },
   { label: "Stock", href: "/app/inventory/stock" },
   { label: "Alertas", href: "/app/inventory/alerts" },
+  { label: "Reconciliacion", href: "/app/inventory/reconciliation" },
+  { label: "Settings", href: "/app/inventory/settings" },
 ];
 
 export default function InventoryIndexPage() {
@@ -59,6 +64,33 @@ export default function InventoryIndexPage() {
                         )}
                       >
                         Gestionar categorias
+                      </Link>
+                      <Link
+                        href="/app/inventory/warehouses"
+                        className={cn(
+                          buttonVariants({ size: "sm", variant: "outline" }),
+                          "rounded-lg",
+                        )}
+                      >
+                        Gestionar bodegas
+                      </Link>
+                      <Link
+                        href="/app/inventory/lots"
+                        className={cn(
+                          buttonVariants({ size: "sm", variant: "outline" }),
+                          "rounded-lg",
+                        )}
+                      >
+                        Gestionar lotes
+                      </Link>
+                      <Link
+                        href="/app/inventory/stocktakes"
+                        className={cn(
+                          buttonVariants({ size: "sm", variant: "outline" }),
+                          "rounded-lg",
+                        )}
+                      >
+                        Gestionar conteos
                       </Link>
                       <Link
                         href="/app/inventory/stock"

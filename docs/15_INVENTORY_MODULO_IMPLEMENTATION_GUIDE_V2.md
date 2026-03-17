@@ -160,10 +160,13 @@ Query keys sugeridas:
 Implementado en frontend actual:
 - Navegacion modular de inventory con submenu (`Panel principal`, `Items`, `Categorias`, `Stock`, `Alertas`).
 - Dashboard de inventory con tarjetas de contexto y ayuda operacional.
-- CRUD operativo de categorias/items y registro de movimientos de stock.
+- CRUD operativo de categorias/bodegas/lotes/items + stocktakes y registro de movimientos de stock.
 - Listados con paginacion y filtros para operacion diaria.
 - Alertas de low-stock integradas con endpoint backend.
 - Pruebas unitarias de primitives inventory y smoke e2e de modulo.
 
 Pendiente para version avanzada de esta guia:
-- `warehouses`, `lots`, `stocktakes`, `reconciliation` (cuando backend y UX final de esas capacidades se habiliten en roadmap del tenant).
+- `reconciliation` (cuando backend y UX final de esas capacidades se habiliten en roadmap del tenant).
+
+
+

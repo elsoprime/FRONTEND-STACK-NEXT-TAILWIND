@@ -91,3 +91,57 @@ Evidencia de validacion:
 - `npm run test` -> OK (99 tests)
 - `npm run build` -> OK
 - `npx playwright test tests/e2e/modules.spec.ts` -> OK (4 passed)
+
+## 5. Etapa 9 Frontend - Bodegas (2026-03-17)
+
+Estado: completado.
+
+Alcance:
+- OpenAPI frontend sincronizado con backend para contrato inventory extendido.
+- Ruta `/app/inventory/warehouses` implementada con listado, busqueda, paginacion y create/update.
+- Navegacion inventory actualizada en sidebar y subnav del modulo.
+- Tests agregados:
+  - unit/integration de servicio (`inventory.service.test.ts`)
+  - smoke e2e (`tests/e2e/modules.spec.ts`)
+
+Validacion:
+- `npm run lint` -> OK
+- `npm run typecheck` -> OK
+- `npm run test` -> OK (102)
+- `npm run build` -> OK
+- `npx playwright test tests/e2e/modules.spec.ts` -> OK (5 passed)
+
+## 6. Etapa 10 Frontend - Lotes (2026-03-17)
+
+Estado: completado.
+
+Alcance:
+- Ruta `/app/inventory/lots` implementada con listado, filtros (item/bodega), paginacion y create/update.
+- Navegacion inventory actualizada (sidebar + subnav + quick actions).
+- Capa de datos extendida con contratos `InventoryLot` (schemas + servicios + query keys).
+- Cobertura QA agregada para lotes en tests de servicio y smoke e2e.
+
+Validacion:
+- `npm run lint` -> OK
+- `npm run typecheck` -> OK
+- `npm run test` -> OK (105)
+- `npm run build` -> OK
+- `npx playwright test tests/e2e/modules.spec.ts` -> OK (6 passed)
+
+## 7. Etapa 11 Frontend - Stocktakes (2026-03-17)
+
+Estado: completado.
+
+Alcance:
+- Ruta `/app/inventory/stocktakes` implementada.
+- Flujo base operativo: list/create/apply/cancel de sesiones de conteo.
+- Contratos frontend extendidos para stocktakes (schemas + servicios + query keys).
+- Navegacion inventory actualizada con submenu `Conteos`.
+- Cobertura QA agregada en tests de servicio y smoke e2e.
+
+Validacion:
+- `npm run lint` -> OK
+- `npm run typecheck` -> OK
+- `npm run test` -> OK (110)
+- `npm run build` -> OK
+- `npx playwright test tests/e2e/modules.spec.ts` -> OK (7 passed)
