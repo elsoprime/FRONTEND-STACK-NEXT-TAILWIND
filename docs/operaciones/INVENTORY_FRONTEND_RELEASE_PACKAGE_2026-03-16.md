@@ -87,3 +87,10 @@ Variables requeridas:
 Keyword para reanudar etapa:
 
 - `CONTINUAR_ETAPA_9_INVENTARIO_E2E`
+
+## 8) Estado operativo actual (actualizacion 2026-03-17)
+
+- Estado oficial para esta ola: **Cerrado en desarrollo / Ready for Integration Validation**.
+- Go-live real (staging canary + produccion) queda **pospuesto** hasta nueva ventana operativa.
+- Esta decision no invalida el cierre tecnico frontend; solo posterga la activacion operativa por ambiente.
+- Prerrequisito para pasar a go-live: ejecutar `npm run qa:inventory:live` con credenciales reales y completar la evidencia de checklist por entorno.
