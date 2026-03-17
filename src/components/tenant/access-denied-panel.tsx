@@ -22,7 +22,7 @@ export function AccessDeniedPanel({
   return (
     <article
       className={cn(
-        "rounded-xl border border-destructive/40 bg-destructive/12 p-4 text-red-200",
+        "rounded-xl border border-red-300/80 bg-red-100/70 p-4 text-red-900 dark:border-destructive/45 dark:bg-destructive/14 dark:text-red-200",
         className,
       )}
     >
@@ -35,7 +35,10 @@ export function AccessDeniedPanel({
           {actionHref && actionLabel ? (
             <a
               href={actionHref}
-              className={cn(buttonVariants({ size: "sm", variant: "outline" }), "rounded-lg")}
+              className={cn(
+                buttonVariants({ size: "sm", variant: "outline" }),
+                "rounded-lg border-current/35",
+              )}
             >
               {actionLabel}
             </a>

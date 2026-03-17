@@ -49,6 +49,7 @@ import { createTenantInvitation } from "@/features/tenant/tenant.service";
 import { type MembershipView, type TenantView } from "@/features/tenant/tenant.schemas";
 import { ApiRequestError } from "@/lib/api/client";
 import { queryKeys } from "@/lib/query/query-keys";
+import { formatSpanishLongDate } from "@/lib/format-spanish-long-date";
 import { cn } from "@/lib/utils";
 import { useSessionStore } from "@/store/session-store";
 import { useTenantStore } from "@/store/tenant-store";
@@ -109,24 +110,15 @@ function formatAuditAction(action: string): string {
 }
 
 function formatAuditTimestamp(value: string): string {
-  const parsedDate = new Date(value);
-
-  if (Number.isNaN(parsedDate.getTime())) {
-    return "fecha no disponible";
-  }
-
-  return new Intl.DateTimeFormat("es-CL", {
-    dateStyle: "short",
-    timeStyle: "short",
-  }).format(parsedDate);
+  return formatSpanishLongDate(value);
 }
 
 function resolveSeverityClass(severity: string): string {
   switch (severity) {
     case "critical":
-      return "border-destructive/45 bg-destructive/14 text-red-200";
+      return "border-red-300/85 bg-red-100/65 text-red-900 dark:border-destructive/45 dark:bg-destructive/14 dark:text-red-200";
     case "warning":
-      return "border-amber-400/65 bg-amber-500/14 text-amber-100";
+      return "border-amber-300/85 bg-amber-100/65 text-amber-950 dark:border-amber-400/65 dark:bg-amber-500/14 dark:text-amber-100";
     default:
       return "border-accent/45 bg-accent/12 text-foreground";
   }
@@ -377,7 +369,7 @@ function DashboardMarketplaceContent({
   };
 
   return (
-    <section className="mx-auto w-full max-w-[1440px] space-y-5 px-4 pb-10 pt-6 sm:px-6 lg:px-8">
+    <section className="w-full space-y-6 px-4 pb-10 pt-6 sm:px-6 xl:px-8 2xl:px-10">
       <article className="surface-card reveal-up relative overflow-hidden p-6 sm:p-7 [--reveal-delay:40ms]">
         <div className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-gradient-to-r from-primary/18 via-accent/14 to-transparent" />
         <div className="pointer-events-none absolute -left-20 -top-16 size-64 rounded-full bg-primary/10 blur-3xl" />
@@ -392,7 +384,7 @@ function DashboardMarketplaceContent({
                 <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
                   Dashboard tenant
                 </h1>
-                <p className="mt-2 max-w-3xl text-sm leading-relaxed text-muted-foreground sm:text-base">
+                <p className="mt-2 max-w-3xl text-sm leading-relaxed dashboard-text-muted sm:text-base">
                   Vista concentrada y simetrica para controlar estado modular, alertas criticas y
                   operaciones del tenant activo sin sobrecarga visual.
                 </p>
@@ -430,13 +422,13 @@ function DashboardMarketplaceContent({
             {dependencyCards.map((dependency) => (
               <article
                 key={dependency.label}
-                className="rounded-xl border border-border/85 bg-background/72 px-4 py-3"
+                className="rounded-xl border border-border/85 bg-background/84 px-4 py-3"
               >
-                <p className="text-[10px] font-semibold uppercase tracking-[0.11em] text-muted-foreground">
+                <p className="text-[10px] font-semibold uppercase tracking-[0.11em] text-foreground/62">
                   {dependency.label}
                 </p>
                 <p className="mt-1 text-base font-semibold text-foreground">{dependency.value}</p>
-                <p className="text-xs text-muted-foreground">{dependency.hint}</p>
+                <p className="text-xs dashboard-text-muted">{dependency.hint}</p>
               </article>
             ))}
           </div>
@@ -449,7 +441,7 @@ function DashboardMarketplaceContent({
         description="Tarjetas concentradas y simetricas para lectura rapida en cualquier viewport."
         className="reveal-up [--reveal-delay:90ms]"
       >
-        <DashboardGridContainer columns={3}>
+        <DashboardGridContainer columns={4}>
           <DashboardMetricCard
             title="Usuarios activos"
             value={hrState === "active" ? String(activeEmployees) : "N/A"}
@@ -496,7 +488,7 @@ function DashboardMarketplaceContent({
         </DashboardGridContainer>
       </DashboardSection>
 
-      <div className="grid items-start gap-5 xl:grid-cols-2">
+      <div className="grid items-start gap-5 xl:auto-rows-fr xl:grid-cols-2">
         <DashboardSection
           eyebrow="Actividades Recientes"
           title="Eventos operativos"
@@ -529,7 +521,7 @@ function DashboardMarketplaceContent({
           ) : null}
 
           {!auditRecentQuery.isLoading && !auditError && auditEvents.length === 0 ? (
-            <div className="rounded-xl border border-border/80 bg-background/75 px-4 py-3 text-sm text-muted-foreground">
+            <div className="rounded-xl border border-border/80 bg-background/84 px-4 py-3 text-sm dashboard-text-muted">
               No hay eventos recientes para este tenant.
             </div>
           ) : null}
@@ -539,14 +531,14 @@ function DashboardMarketplaceContent({
               {auditEvents.map((event) => (
                 <li
                   key={event.id}
-                  className="rounded-xl border border-border/80 bg-background/75 px-3 py-2.5"
+                  className="rounded-xl border border-border/80 bg-background/84 px-3 py-2.5"
                 >
                   <div className="flex flex-wrap items-start justify-between gap-2">
                     <div>
                       <p className="text-sm font-semibold text-foreground">
                         {formatAuditAction(event.action)}
                       </p>
-                      <p className="text-xs text-muted-foreground">
+                      <p className="text-xs dashboard-text-muted">
                         {event.resource.type}
                         {event.resource.label ? ` - ${event.resource.label}` : ""}
                       </p>
@@ -560,7 +552,7 @@ function DashboardMarketplaceContent({
                       {event.severity}
                     </span>
                   </div>
-                  <div className="mt-1 flex items-center justify-between gap-2 text-xs text-muted-foreground">
+                  <div className="mt-1 flex items-center justify-between gap-2 text-xs dashboard-text-muted">
                     <span>{formatAuditTimestamp(event.createdAt)}</span>
                     <span className="font-mono">trace: {event.traceId}</span>
                   </div>
@@ -577,28 +569,28 @@ function DashboardMarketplaceContent({
           className="reveal-up min-h-[420px] [--reveal-delay:190ms]"
         >
           <div className="grid gap-3 sm:grid-cols-2">
-            <article className="rounded-xl border border-border/80 bg-background/75 p-4">
+            <article className="rounded-xl border border-border/80 bg-background/84 p-4">
               <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
                 Alertas de stock
               </p>
               <p className="mt-2 text-3xl font-bold text-foreground">
                 {inventoryState === "active" ? lowStockAlerts : "N/A"}
               </p>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-xs dashboard-text-muted">
                 {inventoryState === "active"
                   ? "Productos con bajo stock en inventario"
                   : "Inventory no esta activo para este tenant"}
               </p>
             </article>
 
-            <article className="rounded-xl border border-border/80 bg-background/75 p-4">
+            <article className="rounded-xl border border-border/80 bg-background/84 p-4">
               <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
                 Oportunidades abiertas
               </p>
               <p className="mt-2 text-3xl font-bold text-foreground">
                 {crmState === "active" ? openOpportunities : "N/A"}
               </p>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-xs dashboard-text-muted">
                 {crmState === "active"
                   ? "Pipeline comercial abierto en CRM"
                   : "CRM no esta activo para este tenant"}
@@ -798,8 +790,8 @@ function DashboardMarketplaceContent({
             icon={ReceiptText}
           >
             <div className="space-y-2">
-              <article className="rounded-xl border border-border/80 bg-background/75 px-3 py-2.5">
-                <p className="text-xs text-muted-foreground">Plan vigente</p>
+              <article className="rounded-xl border border-border/80 bg-background/84 px-3 py-2.5">
+                <p className="text-xs dashboard-text-muted">Plan vigente</p>
                 <p className="text-sm font-semibold text-foreground">
                   {currentPlan?.name ?? "Sin plan"}
                 </p>
@@ -818,8 +810,8 @@ function DashboardMarketplaceContent({
             icon={ScanSearch}
           >
             <div className="space-y-2">
-              <article className="rounded-xl border border-border/80 bg-background/75 px-3 py-2.5">
-                <p className="text-xs text-muted-foreground">Ultimo traceId</p>
+              <article className="rounded-xl border border-border/80 bg-background/84 px-3 py-2.5">
+                <p className="text-xs dashboard-text-muted">Ultimo traceId</p>
                 <p className="break-all font-mono text-xs text-foreground">
                   {lastTraceId ?? "sin traza"}
                 </p>
@@ -853,7 +845,7 @@ function DashboardMarketplaceContent({
                   </Button>
                 </a>
               ) : (
-                <p className="text-xs text-muted-foreground">
+                <p className="text-xs dashboard-text-muted">
                   {supportEmail
                     ? `Email soporte: ${supportEmail}`
                     : "Configura un canal de soporte en tenant settings."}

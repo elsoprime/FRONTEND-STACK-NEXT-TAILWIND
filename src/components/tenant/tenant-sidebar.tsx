@@ -7,8 +7,6 @@ import {
   Boxes,
   BriefcaseBusiness,
   Building2,
-  ChevronLeft,
-  ChevronRight,
   CreditCard,
   GemIcon,
   LayoutGrid,
@@ -166,7 +164,6 @@ type TenantSidebarProps = {
   isOpen: boolean;
   collapsed: boolean;
   onClose: () => void;
-  onToggleCollapse: () => void;
 };
 
 function isItemActive(pathname: string, item: NavItem): boolean {
@@ -194,12 +191,7 @@ function resolveModuleState(
   return tenantActiveModuleKeys.includes(moduleKey) ? "active" : "disabled";
 }
 
-export function TenantSidebar({
-  isOpen,
-  collapsed,
-  onClose,
-  onToggleCollapse,
-}: TenantSidebarProps) {
+export function TenantSidebar({ isOpen, collapsed, onClose }: TenantSidebarProps) {
   const pathname = usePathname();
   const activeTenant = useTenantStore((state) => state.activeTenant);
   const activeMembership = useTenantStore((state) => state.activeMembership);
@@ -208,7 +200,7 @@ export function TenantSidebar({
   return (
     <aside
       className={cn(
-        "fixed inset-y-0 left-0 z-40 -translate-x-full border-r border-sidebar-border/90 bg-sidebar/95 text-sidebar-foreground shadow-[0_22px_54px_-28px_oklch(0.16_0.03_58/0.78)] backdrop-blur-md transition-all duration-300 lg:translate-x-0",
+        "fixed inset-y-0 left-0 z-40 -translate-x-full border-r border-sidebar-border/90 bg-sidebar/96 text-sidebar-foreground shadow-[0_24px_52px_-30px_oklch(0.2_0.02_58/0.34)] backdrop-blur-md transition-all duration-300 lg:translate-x-0",
         collapsed ? "w-[5.5rem]" : "w-72",
         isOpen && "translate-x-0",
       )}
@@ -217,26 +209,17 @@ export function TenantSidebar({
       <div className="flex h-full flex-col">
         <div
           className={cn(
-            "flex items-center border-b border-sidebar-border/80 p-4",
+            "flex items-center border-b border-sidebar-border/85 p-4",
             collapsed ? "justify-center" : "justify-between",
           )}
         >
-          <button
-            type="button"
-            className="hidden h-9 w-9 items-center justify-center rounded-full border border-sidebar-border/80 bg-sidebar-accent/70 text-sidebar-foreground transition hover:border-sidebar-primary/60 hover:text-sidebar-primary lg:inline-flex"
-            onClick={onToggleCollapse}
-            aria-label={collapsed ? "Expandir sidebar" : "Colapsar sidebar"}
-          >
-            {collapsed ? <ChevronRight className="size-4" /> : <ChevronLeft className="size-4" />}
-          </button>
-
           {!collapsed ? (
             <>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-6">
                 <GemIcon className="size-6 text-sidebar-primary" />
                 <div className="space-y-1">
-                  <p className="text-base font-semibold tracking-tight">SaaS Module</p>
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-sidebar-foreground/62">
+                  <p className="text-base font-semibold tracking-tight">Modulo Saas</p>
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-sidebar-foreground/72">
                     Tenant Control
                   </p>
                 </div>
@@ -244,7 +227,7 @@ export function TenantSidebar({
               <button
                 type="button"
                 aria-label="Cerrar sidebar"
-                className="inline-flex size-9 items-center justify-center rounded-full border border-sidebar-border/80 bg-sidebar-accent/70 text-sidebar-foreground transition hover:border-sidebar-primary/60 hover:text-sidebar-primary lg:hidden"
+                className="inline-flex size-9 items-center justify-center rounded-full border border-sidebar-border/80 bg-sidebar-accent/82 text-sidebar-foreground transition hover:border-sidebar-primary/60 hover:bg-sidebar-accent hover:text-sidebar-primary lg:hidden"
                 onClick={onClose}
               >
                 <X className="size-4" />
@@ -259,7 +242,7 @@ export function TenantSidebar({
             {navSections.map((section) => (
               <div key={section.title} className="space-y-2">
                 {!collapsed ? (
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-sidebar-foreground/58">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-sidebar-foreground/68">
                     {section.title}
                   </p>
                 ) : null}
@@ -331,4 +314,3 @@ export function TenantSidebar({
     </aside>
   );
 }
-

@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import type { ElementType, ReactNode } from "react";
 import Link from "next/link";
@@ -28,12 +28,13 @@ type MetricTone = "default" | "success" | "warning" | "accent";
 type ModuleState = "active" | "enabled" | "disabled" | "restricted";
 
 const METRIC_TONE_CLASSNAMES: Record<MetricTone, string> = {
-  default: "border-border/85 bg-background/72",
+  default: "border-border/90 bg-background/80",
   success:
-    "border-emerald-400/70 bg-emerald-500/12 dark:border-emerald-500/35 dark:bg-emerald-500/14",
+    "border-emerald-300/80 bg-emerald-100/45 text-emerald-950 dark:border-emerald-500/35 dark:bg-emerald-500/14 dark:text-emerald-100",
   warning:
-    "border-amber-400/70 bg-amber-500/12 dark:border-amber-500/35 dark:bg-amber-500/14",
-  accent: "border-accent/45 bg-accent/12",
+    "border-amber-300/85 bg-amber-100/55 text-amber-950 dark:border-amber-500/35 dark:bg-amber-500/14 dark:text-amber-100",
+  accent:
+    "border-sky-300/85 bg-sky-100/55 text-sky-950 dark:border-accent/45 dark:bg-accent/12 dark:text-foreground",
 };
 
 const MODULE_STATE_COPY: Record<ModuleState, string> = {
@@ -45,22 +46,22 @@ const MODULE_STATE_COPY: Record<ModuleState, string> = {
 
 const MODULE_STATE_CLASSNAMES: Record<ModuleState, string> = {
   active:
-    "border-emerald-400/70 bg-emerald-500/14 text-emerald-200",
+    "border-emerald-300/80 bg-emerald-100/60 text-emerald-950 dark:border-emerald-500/35 dark:bg-emerald-500/14 dark:text-emerald-100",
   enabled:
-    "border-amber-400/70 bg-amber-500/14 text-amber-200",
-  disabled: "border-border/85 bg-card/82 text-muted-foreground",
+    "border-amber-300/80 bg-amber-100/60 text-amber-950 dark:border-amber-500/35 dark:bg-amber-500/14 dark:text-amber-100",
+  disabled: "border-border/90 bg-background/75 text-foreground/70",
   restricted:
-    "border-destructive/45 bg-destructive/14 text-red-300",
+    "border-red-300/80 bg-red-100/60 text-red-900 dark:border-destructive/45 dark:bg-destructive/14 dark:text-red-200",
 };
 
 const FEEDBACK_CLASSNAMES = {
   success:
-    "border-emerald-400/65 bg-emerald-500/14 text-emerald-100",
+    "border-emerald-300/80 bg-emerald-100/60 text-emerald-950 dark:border-emerald-500/35 dark:bg-emerald-500/14 dark:text-emerald-100",
   warning:
-    "border-amber-400/65 bg-amber-500/14 text-amber-100",
+    "border-amber-300/80 bg-amber-100/60 text-amber-950 dark:border-amber-500/35 dark:bg-amber-500/14 dark:text-amber-100",
   error:
-    "border-destructive/45 bg-destructive/14 text-red-200",
-  info: "border-accent/45 bg-accent/12 text-foreground",
+    "border-red-300/80 bg-red-100/60 text-red-900 dark:border-destructive/45 dark:bg-destructive/14 dark:text-red-200",
+  info: "border-accent/35 bg-accent/12 text-foreground",
 } as const;
 
 export function DashboardSection({
@@ -74,11 +75,11 @@ export function DashboardSection({
 }: SectionProps) {
   return (
     <section className={cn("surface-card overflow-hidden p-5 sm:p-6", className)}>
-      <header className="flex flex-col gap-4 border-b border-border/80 pb-4 sm:flex-row sm:items-end sm:justify-between">
+      <header className="flex flex-col gap-4 border-b border-border/85 pb-4 sm:flex-row sm:items-end sm:justify-between">
         <div className="space-y-2">
           <p className="label-kicker text-primary/90">{eyebrow}</p>
           <h2 className="text-2xl font-bold tracking-tight text-foreground">{title}</h2>
-          <p className="max-w-2xl text-sm leading-relaxed text-muted-foreground">{description}</p>
+          <p className="max-w-2xl text-sm leading-relaxed dashboard-text-muted">{description}</p>
         </div>
         {action ? <div className="flex shrink-0 flex-wrap gap-2">{action}</div> : null}
       </header>
@@ -125,20 +126,20 @@ export function DashboardMetricCard({
       )}
     >
       <div className="flex items-center justify-between gap-3">
-        <p className="text-[11px] font-semibold uppercase tracking-[0.15em] text-muted-foreground">
+        <p className="text-[11px] font-semibold uppercase tracking-[0.15em] text-foreground/70">
           {title}
         </p>
-        <div className="flex size-9 items-center justify-center rounded-xl border border-primary/30 bg-primary/16 text-primary">
+        <div className="flex size-9 items-center justify-center rounded-xl border border-primary/35 bg-primary/14 text-primary">
           <Icon className="size-4" />
         </div>
       </div>
-      <div className="space-y-1">
+      <div className="space-y-1.5">
         {isLoading ? (
           <div className="h-8 w-20 animate-pulse rounded bg-muted" />
         ) : (
           <p className="text-3xl font-bold tracking-tight text-foreground">{value}</p>
         )}
-        <p className="text-sm text-muted-foreground">{hint}</p>
+        <p className="text-sm dashboard-text-muted">{hint}</p>
       </div>
     </article>
   );
@@ -181,22 +182,22 @@ export function DashboardModuleCard({
       />
 
       <div className="flex items-start justify-between gap-3">
-        <div className="flex size-11 items-center justify-center rounded-xl border border-primary/25 bg-primary/10 text-primary">
+        <div className="flex size-11 items-center justify-center rounded-xl border border-primary/30 bg-primary/10 text-primary">
           <Icon className="size-5" />
         </div>
         <DashboardModuleStateBadge state={state} />
       </div>
 
       <h3 className="mt-4 text-xl font-semibold tracking-tight text-foreground">{title}</h3>
-      <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{description}</p>
+      <p className="mt-2 text-sm leading-relaxed dashboard-text-muted">{description}</p>
 
       <div className="mt-4 grid grid-cols-2 gap-2">
         {metrics.map((metric) => (
           <div
             key={metric.label}
-            className="rounded-lg border border-border/85 bg-background/72 px-3 py-2.5"
+            className="rounded-lg border border-border/85 bg-background/80 px-3 py-2.5"
           >
-            <p className="text-[10px] font-semibold uppercase tracking-[0.11em] text-muted-foreground">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.11em] text-foreground/65">
               {metric.label}
             </p>
             <p className="mt-1 text-lg font-bold text-foreground">{metric.value}</p>
@@ -205,7 +206,7 @@ export function DashboardModuleCard({
       </div>
 
       {note ? (
-        <p className="mt-4 rounded-lg border border-border/80 bg-background/68 px-3 py-2 text-xs text-muted-foreground">
+        <p className="mt-4 rounded-lg border border-border/80 bg-background/76 px-3 py-2 text-xs dashboard-text-muted">
           {note}
         </p>
       ) : null}
@@ -253,14 +254,14 @@ export function DashboardQuickActionCard({
   children,
 }: DashboardQuickActionCardProps) {
   return (
-    <article className="surface-card h-full rounded-2xl p-4 shadow-[0_20px_44px_-30px_oklch(0.16_0.03_58/0.72)]">
+    <article className="surface-card h-full rounded-2xl p-4 shadow-[0_18px_42px_-28px_oklch(0.24_0.02_55/0.26)]">
       <div className="flex items-start gap-3">
-        <div className="mt-0.5 flex size-9 items-center justify-center rounded-xl border border-primary/30 bg-primary/16 text-primary">
+        <div className="mt-0.5 flex size-9 items-center justify-center rounded-xl border border-primary/30 bg-primary/12 text-primary">
           <Icon className="size-4" />
         </div>
         <div className="space-y-1">
           <h3 className="text-base font-semibold tracking-tight text-foreground">{title}</h3>
-          <p className="text-sm leading-relaxed text-muted-foreground">{description}</p>
+          <p className="text-sm leading-relaxed dashboard-text-muted">{description}</p>
         </div>
       </div>
       <div className="mt-4">{children}</div>
@@ -316,4 +317,3 @@ function DashboardModuleStateBadge({ state }: { state: ModuleState }) {
     </span>
   );
 }
-

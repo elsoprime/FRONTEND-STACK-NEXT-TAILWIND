@@ -17,6 +17,7 @@ import {
 import { resolveInventoryErrorMessage } from "@/features/inventory/error-code-map";
 import { ApiRequestError } from "@/lib/api/client";
 import { queryKeys } from "@/lib/query/query-keys";
+import { formatSpanishLongDate } from "@/lib/format-spanish-long-date";
 import { useSessionStore } from "@/store/session-store";
 
 export default function InventoryStockPage() {
@@ -30,8 +31,7 @@ export default function InventoryStockPage() {
   });
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const resetForm = () =>
-    setFormState({ itemId: "", direction: "out", quantity: "", reason: "" });
+  const resetForm = () => setFormState({ itemId: "", direction: "out", quantity: "", reason: "" });
 
   return (
     <TenantPageShell
@@ -41,7 +41,12 @@ export default function InventoryStockPage() {
     >
       <TenantContextGate>
         {({ tenant, membership }) => (
-          <TenantModuleGate tenant={tenant} membership={membership} moduleLabel="Inventory" config={MODULE_GUARDS.inventory}>
+          <TenantModuleGate
+            tenant={tenant}
+            membership={membership}
+            moduleLabel="Inventory"
+            config={MODULE_GUARDS.inventory}
+          >
             <StockContent
               tenantId={tenant.id}
               setLastTraceId={setLastTraceId}
@@ -123,7 +128,9 @@ function StockContent({
         return;
       }
 
-      setErrorMessage(error instanceof Error ? error.message : resolveInventoryErrorMessage("GEN_INTERNAL_ERROR"));
+      setErrorMessage(
+        error instanceof Error ? error.message : resolveInventoryErrorMessage("GEN_INTERNAL_ERROR"),
+      );
     },
   });
 
@@ -163,7 +170,12 @@ function StockContent({
             <p className="text-sm font-semibold">Nuevo movimiento</p>
             <p className="text-xs text-muted-foreground">Registra entradas o salidas con motivo.</p>
           </div>
-          <Button size="sm" variant="outline" onClick={resetForm} disabled={!formState.itemId && !formState.reason}>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={resetForm}
+            disabled={!formState.itemId && !formState.reason}
+          >
             Limpiar
           </Button>
         </div>
@@ -230,7 +242,10 @@ function StockContent({
       <div className="space-y-3">
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-semibold">Movimientos recientes</h2>
-          <Link href="/app/inventory" className="text-sm text-primary underline-offset-2 hover:underline">
+          <Link
+            href="/app/inventory"
+            className="text-sm text-primary underline-offset-2 hover:underline"
+          >
             Volver al overview
           </Link>
         </div>
@@ -241,15 +256,18 @@ function StockContent({
         ) : (
           <div className="space-y-2">
             {movements.map((movement) => (
-              <div key={movement.id} className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-border/80 bg-background/70 p-3">
+              <div
+                key={movement.id}
+                className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-border/80 bg-background/70 p-3"
+              >
                 <div>
                   <p className="text-sm font-semibold text-foreground">
-                    {movement.direction === "in" ? "Entrada" : "Salida"} · {movement.quantity}
+                    {movement.direction === "in" ? "Entrada" : "Salida"} Ã‚Â· {movement.quantity}
                   </p>
                   <p className="text-xs text-muted-foreground">{movement.reason}</p>
                 </div>
                 <div className="text-xs text-muted-foreground">
-                  {new Date(movement.createdAt).toLocaleString("es-CL")}
+                  {formatSpanishLongDate(movement.createdAt)}
                 </div>
               </div>
             ))}

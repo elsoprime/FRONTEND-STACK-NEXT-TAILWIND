@@ -196,9 +196,9 @@ export function DashboardHeader({
   return (
     <header
       ref={headerRef}
-      className="sticky top-0 z-40 border-b border-border/70 bg-card/78 backdrop-blur-2xl"
+      className="sticky top-0 z-40 border-b border-border/85 bg-card/88 shadow-[0_12px_32px_-24px_oklch(0.2_0.02_58/0.34)] backdrop-blur-2xl"
     >
-      <div className="mx-auto  px-4 py-3 sm:px-6 lg:px-8">
+      <div className="w-full px-4 py-3 sm:px-6 xl:px-8 2xl:px-10">
         <div className="flex items-center justify-between gap-4">
           <div className="flex flex-1 items-center gap-3 lg:gap-4">
             <Button
@@ -224,26 +224,26 @@ export function DashboardHeader({
               )}
             </Button>
 
-            <div className="flex flex-wrap items-center gap-2 ">
+            <div className="hidden items-center gap-2 xl:flex">
               <Badge
                 variant="outline"
                 className="border-primary/35 bg-primary/12 font-bold text-primary"
               >
                 Contexto Activo
               </Badge>
-              <div className="flex items-center gap-2 rounded-full border border-border/75 bg-background/72 px-3 py-1.5">
+              <div className="flex items-center gap-2 rounded-full border border-border/85 bg-background/90 px-3 py-1.5">
                 <Building2 className="size-3.5 text-primary" />
                 <h2 className="text-xs font-bold text-foreground">
                   {activeTenant?.name ?? "Sin tenant"}
                 </h2>
-                <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/80">
+                <span className="text-[10px] font-semibold uppercase tracking-wider text-foreground/65">
                   {activeMembership?.roleKey ?? "Sin rol"}
                 </span>
               </div>
             </div>
 
             <div className="relative w-full max-w-xl">
-              <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+              <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-foreground/60" />
               <Input
                 value={searchValue}
                 onChange={(e) => {
@@ -251,7 +251,7 @@ export function DashboardHeader({
                   setSearchIndex(0);
                 }}
                 placeholder="Buscar modulos, recursos..."
-                className="h-10 rounded-xl border-border/75 bg-background/75 pl-10 pr-4 text-sm shadow-sm transition-all focus:ring-primary/20"
+                className="h-10 rounded-xl border-border/85 bg-background/92 pl-10 pr-4 text-sm text-foreground shadow-sm transition-all placeholder:text-foreground/45 focus:ring-primary/25"
                 role="combobox"
                 aria-expanded={filteredResults.length > 0}
                 aria-controls="dashboard-search-results"
@@ -301,7 +301,7 @@ export function DashboardHeader({
                 <div
                   id="dashboard-search-results"
                   role="listbox"
-                  className="absolute left-0 right-0 top-12 z-50 rounded-2xl border border-border/75 bg-card/95 p-2 shadow-2xl"
+                  className="dashboard-menu-surface absolute left-0 right-0 top-12 z-50 p-2"
                 >
                   {filteredResults.map((item, index) => (
                     <button
@@ -316,7 +316,7 @@ export function DashboardHeader({
                       onMouseDown={() => handleNavigate(item.href)}
                     >
                       <span>{item.label}</span>
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-foreground/55">
                         {item.group}
                       </span>
                     </button>
@@ -330,10 +330,10 @@ export function DashboardHeader({
             <Button
               variant="outline"
               size="icon"
-              className="relative rounded-full border-border/75 bg-card/80"
+              className="relative rounded-full border-border/85 bg-background/90"
               aria-label="Notificaciones"
             >
-              <Bell className="size-4 text-muted-foreground" />
+              <Bell className="size-4 text-foreground/60" />
               <span className="absolute right-1.5 top-1.5 flex size-2 rounded-full bg-primary" />
             </Button>
 
@@ -362,11 +362,8 @@ export function DashboardHeader({
               </Button>
 
               {tenantMenuOpen ? (
-                <div
-                  className="absolute right-0 mt-2 w-60 rounded-2xl border border-border/75 bg-card/95 p-2 shadow-2xl"
-                  role="menu"
-                >
-                  <p className="px-3 py-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                <div className="dashboard-menu-surface absolute right-0 mt-2 w-60 p-2" role="menu">
+                  <p className="px-3 py-2 text-[10px] font-bold uppercase tracking-widest text-foreground/55">
                     Gestion de Tenant
                   </p>
                   <button
@@ -402,7 +399,7 @@ export function DashboardHeader({
                     className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium hover:bg-muted/70"
                     onMouseDown={() => handleNavigate("/app/tenants/select")}
                   >
-                    <Building2 className="size-4 text-muted-foreground" />
+                    <Building2 className="size-4 text-foreground/60" />
                     Cambiar Tenant
                   </button>
                 </div>
@@ -428,15 +425,12 @@ export function DashboardHeader({
               </button>
 
               {userMenuOpen ? (
-                <div
-                  className="absolute right-0 mt-2 w-60 rounded-2xl border border-border/75 bg-card/95 p-2 shadow-2xl"
-                  role="menu"
-                >
+                <div className="dashboard-menu-surface absolute right-0 mt-2 w-60 p-2" role="menu">
                   <div className="mb-1 border-b border-border/50 px-3 py-2">
                     <p className="truncate text-sm font-bold text-foreground">
                       {user?.firstName} {user?.lastName}
                     </p>
-                    <p className="truncate text-[10px] text-muted-foreground">{user?.email}</p>
+                    <p className="truncate text-[10px] text-foreground/55">{user?.email}</p>
                   </div>
                   <button
                     className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium hover:bg-muted/70"
@@ -490,4 +484,3 @@ export function DashboardHeader({
     </header>
   );
 }
-

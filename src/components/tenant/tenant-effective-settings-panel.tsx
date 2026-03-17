@@ -19,6 +19,8 @@ type TenantEffectiveSettingsPanelProps = {
   tenantId: string;
   heading?: string;
   description?: string;
+  showDetails?: boolean;
+  compact?: boolean;
 };
 
 function renderNullableValue(value: string | null | undefined): string {
@@ -39,11 +41,13 @@ function SettingsBlock({ title, icon, rows }: SettingsBlockProps) {
         <h3 className="text-sm font-bold uppercase tracking-wider text-foreground">{title}</h3>
       </div>
 
-      <div className="mt-4 space-y-3">
+      <div className="mt-4 divide-y divide-border/70 rounded-xl border border-border/80 bg-background/72">
         {rows.map((row) => (
-          <div key={row.label} className="rounded-xl border border-border/85 bg-background/68 p-3">
-            <p className="field-label">{row.label}</p>
-            <p className="mt-1 text-sm font-medium text-foreground">{row.value}</p>
+          <div key={row.label} className="flex items-start justify-between gap-4 px-3 py-2.5">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-foreground/60">
+              {row.label}
+            </p>
+            <p className="text-right text-sm font-semibold text-foreground">{row.value}</p>
           </div>
         ))}
       </div>
@@ -55,6 +59,8 @@ export function TenantEffectiveSettingsPanel({
   tenantId,
   heading = "Vista efectiva del tenant",
   description = "Resolucion final de configuracion tenant + defaults de plataforma + runtime del tenant activo.",
+  showDetails = true,
+  compact = false,
 }: TenantEffectiveSettingsPanelProps) {
   const setLastTraceId = useSessionStore((state) => state.setLastTraceId);
   const setEffectiveRuntime = useTenantStore((state) => state.setEffectiveRuntime);
@@ -91,10 +97,26 @@ export function TenantEffectiveSettingsPanel({
   const isPaymentRequired = apiErrorCode === "TENANT_SUBSCRIPTION_PAYMENT_REQUIRED";
 
   return (
-    <div className="reveal-up space-y-6 [--reveal-delay:60ms]">
-      <div className="space-y-2">
-        <h2 className="text-2xl font-bold tracking-tight text-foreground">{heading}</h2>
-        <p className="text-sm leading-relaxed text-muted-foreground">{description}</p>
+    <div
+      className={
+        compact
+          ? "reveal-up space-y-2 [--reveal-delay:60ms]"
+          : "reveal-up space-y-6 [--reveal-delay:60ms]"
+      }
+    >
+      <div className={compact ? "space-y-0" : "space-y-1"}>
+        <h2
+          className={
+            compact
+              ? "text-base font-semibold tracking-tight text-foreground"
+              : "text-2xl font-bold tracking-tight text-foreground"
+          }
+        >
+          {heading}
+        </h2>
+        <p className={compact ? "hidden" : "text-sm leading-relaxed dashboard-text-muted"}>
+          {description}
+        </p>
       </div>
 
       {isPaymentRequired ? (
@@ -112,10 +134,17 @@ export function TenantEffectiveSettingsPanel({
           runtime={effectiveSettings?.runtime ?? null}
           isLoading={effectiveQuery.isLoading}
           errorMessage={errorMessage}
+          title={showDetails ? "Resumen de runtime" : "Runtime vigente"}
+          description={
+            showDetails
+              ? "Estado runtime final por plan, modulos y feature flags activos del tenant."
+              : "Estado runtime final para validacion rapida antes de guardar cambios."
+          }
+          compact={compact || !showDetails}
         />
       )}
 
-      {effectiveSettings ? (
+      {showDetails && effectiveSettings ? (
         <div className="grid gap-4 lg:grid-cols-2">
           <SettingsBlock
             title="Marca"

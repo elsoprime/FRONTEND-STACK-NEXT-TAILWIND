@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useQueryClient } from "@tanstack/react-query";
 import { ShieldAlert } from "lucide-react";
@@ -107,7 +107,7 @@ export function TenantContextGate({
   if (gateErrorCode) {
     return (
       <section className="flex min-h-[calc(100dvh-4.5rem)] items-center justify-center px-4 py-8 sm:px-6 lg:px-8">
-        <article className="surface-card w-full max-w-xl border-destructive/30 bg-destructive/10 p-5 text-destructive dark:border-destructive/45 dark:bg-destructive/15">
+        <article className="surface-card w-full max-w-xl border-red-300/80 bg-red-100/70 p-5 text-red-900 dark:border-destructive/45 dark:bg-destructive/15 dark:text-red-200">
           <div className="flex items-center gap-3">
             <ShieldAlert className="size-4" />
             <p className="text-sm font-semibold">{resolveTenantErrorMessage(gateErrorCode)}</p>

@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useQueryClient } from "@tanstack/react-query";
 import { ArrowRightLeft, Building2, ShieldAlert, ShieldCheck } from "lucide-react";
@@ -8,7 +8,10 @@ import { LoadingScreen } from "@/components/ui/loading-screen";
 import { Button } from "@/components/ui/button";
 import { type TenantMembershipSummary } from "@/features/tenant/tenant.schemas";
 import { resolveTenantErrorMessage } from "@/features/tenant/error-code-map";
-import { getMyTenantMembershipSummaries, switchActiveTenant } from "@/features/tenant/tenant.service";
+import {
+  getMyTenantMembershipSummaries,
+  switchActiveTenant,
+} from "@/features/tenant/tenant.service";
 import { ApiRequestError } from "@/lib/api/client";
 import { clearPreviousTenantScopedQueries } from "@/lib/query/tenant-cache";
 import { useSessionStore } from "@/store/session-store";
@@ -26,8 +29,7 @@ type TenantSelectorViewState =
 
 export function TenantSelectorPanel({
   title = "Selecciona un tenant activo",
-  description =
-    "Elige el tenant con el que deseas continuar y el frontend fijara el contexto activo de la sesion.",
+  description = "Elige el tenant con el que deseas continuar y el frontend fijara el contexto activo de la sesion.",
 }: TenantSelectorPanelProps) {
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -206,7 +208,9 @@ export function TenantSelectorPanel({
                         <span className="font-semibold text-foreground">{item.tenant.name}</span>
                       </div>
                     </td>
-                    <td className="px-4 py-3 font-mono text-xs text-muted-foreground">{item.tenant.slug}</td>
+                    <td className="px-4 py-3 font-mono text-xs text-muted-foreground">
+                      {item.tenant.slug}
+                    </td>
                     <td className="px-4 py-3">
                       <span className="rounded-md border border-border/80 bg-background/70 px-2 py-1 text-xs font-medium text-foreground">
                         {item.membership.roleKey}
@@ -214,7 +218,7 @@ export function TenantSelectorPanel({
                     </td>
                     <td className="px-4 py-3">
                       {item.isActive ? (
-                        <span className="inline-flex items-center rounded-full border border-emerald-400/50 bg-emerald-500/14 px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-[0.1em] text-emerald-100">
+                        <span className="inline-flex items-center rounded-full border border-emerald-300/80 bg-emerald-100/70 px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-[0.1em] text-emerald-950 dark:border-emerald-400/50 dark:bg-emerald-500/14 dark:text-emerald-100">
                           Activo
                         </span>
                       ) : (
@@ -273,7 +277,10 @@ export function TenantSelectorPanel({
           const isSwitching = switchingTenantId === item.tenant.id;
 
           return (
-            <article key={item.membership.id} className="surface-card border-border/85 bg-card/88 p-4">
+            <article
+              key={item.membership.id}
+              className="surface-card border-border/85 bg-card/88 p-4"
+            >
               <div className="space-y-3">
                 <div className="flex items-center justify-between gap-2">
                   <div className="flex items-center gap-2">
@@ -281,7 +288,7 @@ export function TenantSelectorPanel({
                     <p className="font-semibold text-foreground">{item.tenant.name}</p>
                   </div>
                   {item.isActive ? (
-                    <span className="rounded-full border border-emerald-400/50 bg-emerald-500/14 px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-[0.1em] text-emerald-100">
+                    <span className="rounded-full border border-emerald-300/80 bg-emerald-100/70 px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-[0.1em] text-emerald-950 dark:border-emerald-400/50 dark:bg-emerald-500/14 dark:text-emerald-100">
                       Activo
                     </span>
                   ) : null}
@@ -292,7 +299,8 @@ export function TenantSelectorPanel({
                     slug: <span className="font-mono text-foreground">{item.tenant.slug}</span>
                   </p>
                   <p className="rounded-lg border border-border/80 bg-background/68 px-3 py-2 text-xs text-muted-foreground">
-                    Rol: <span className="font-semibold text-foreground">{item.membership.roleKey}</span>
+                    Rol:{" "}
+                    <span className="font-semibold text-foreground">{item.membership.roleKey}</span>
                   </p>
                 </div>
 

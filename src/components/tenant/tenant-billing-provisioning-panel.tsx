@@ -440,7 +440,7 @@ export function TenantBillingProvisioningPanel({
       ) : null}
 
       {plansQuery.error ? (
-        <article className="rounded-xl border border-destructive/45 bg-destructive/14 p-4 text-red-200">
+        <article className="rounded-xl border border-red-300/80 bg-red-100/70 p-4 text-red-900 dark:border-destructive/45 dark:bg-destructive/14 dark:text-red-200">
           <div className="flex items-center gap-3">
             <ShieldAlert className="size-4" />
             <p className="text-sm font-semibold">{resolveUnknownErrorMessage(plansQuery.error)}</p>
@@ -479,7 +479,7 @@ export function TenantBillingProvisioningPanel({
                     {resolvePlanDisplayName(plan.key, plan.name)}
                   </h3>
                   {isCurrent ? (
-                    <span className="inline-flex items-center gap-1 rounded-full border border-emerald-400/50 bg-emerald-500/14 px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-[0.1em] text-emerald-100">
+                    <span className="inline-flex items-center gap-1 rounded-full border border-emerald-300/80 bg-emerald-100/70 px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-[0.1em] text-emerald-950 dark:border-emerald-400/50 dark:bg-emerald-500/14 dark:text-emerald-100">
                       <ShieldCheck className="size-3.5" />
                       Activo
                     </span>
@@ -659,7 +659,7 @@ export function TenantBillingProvisioningPanel({
       ) : null}
 
       {activationDetectedAfterCheckout ? (
-        <article className="rounded-xl border border-emerald-400/55 bg-emerald-500/14 p-4 text-emerald-100">
+        <article className="rounded-xl border border-emerald-300/80 bg-emerald-100/70 p-4 text-emerald-950 dark:border-emerald-400/55 dark:bg-emerald-500/14 dark:text-emerald-100">
           <div className="flex items-center gap-3">
             <ShieldCheck className="size-4" />
             <p className="text-sm font-semibold">
@@ -670,7 +670,7 @@ export function TenantBillingProvisioningPanel({
       ) : null}
 
       {viewState.status === "success" ? (
-        <article className="rounded-xl border border-emerald-400/55 bg-emerald-500/14 p-4 text-emerald-100">
+        <article className="rounded-xl border border-emerald-300/80 bg-emerald-100/70 p-4 text-emerald-950 dark:border-emerald-400/55 dark:bg-emerald-500/14 dark:text-emerald-100">
           <div className="flex items-center gap-3">
             <ShieldCheck className="size-4" />
             <p className="text-sm font-semibold">{viewState.message}</p>
@@ -679,7 +679,7 @@ export function TenantBillingProvisioningPanel({
       ) : null}
 
       {viewState.status === "error" ? (
-        <article className="rounded-xl border border-destructive/45 bg-destructive/14 p-4 text-red-200">
+        <article className="rounded-xl border border-red-300/80 bg-red-100/70 p-4 text-red-900 dark:border-destructive/45 dark:bg-destructive/14 dark:text-red-200">
           <div className="flex items-center gap-3">
             <ShieldAlert className="size-4" />
             <p className="text-sm font-semibold">{viewState.message}</p>

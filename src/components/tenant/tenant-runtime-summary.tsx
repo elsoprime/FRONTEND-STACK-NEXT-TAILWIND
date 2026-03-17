@@ -14,6 +14,7 @@ type TenantRuntimeSummaryProps = {
   errorMessage?: string | null;
   title?: string;
   description?: string;
+  compact?: boolean;
 };
 
 const RUNTIME_MODULE_LABELS: ReadonlyArray<{ key: string; label: string }> = [
@@ -58,6 +59,7 @@ export function TenantRuntimeSummary({
   errorMessage = null,
   title = "Runtime efectivo",
   description = "Estado runtime resuelto desde plan, modulos y feature flags del tenant activo.",
+  compact = false,
 }: TenantRuntimeSummaryProps) {
   if (isLoading) {
     return (
@@ -97,6 +99,50 @@ export function TenantRuntimeSummary({
   const featureFlagKeys = normalizeRuntimeList(runtime.featureFlagKeys);
   const planId =
     typeof runtime.planId === "string" && runtime.planId.trim().length > 0 ? runtime.planId : null;
+  const moduleStates = RUNTIME_MODULE_LABELS.map((module) => {
+    const state = resolveTenantModuleState(runtime, module.key);
+    return { ...module, state };
+  });
+  const activeFeatureCount = RUNTIME_FEATURE_LABELS.filter((feature) =>
+    hasTenantFeatureFlag(runtime, feature.key),
+  ).length;
+
+  if (compact) {
+    return (
+      <article className="reveal-up surface-card rounded-xl border-border/85 bg-card/88 p-3 [--reveal-delay:40ms]">
+        <div className="flex items-center gap-2">
+          <Settings2 className="size-4 text-primary" />
+          <h3 className="text-sm font-semibold tracking-tight text-foreground">{title}</h3>
+        </div>
+        <p className="mt-1 text-xs dashboard-text-muted">{description}</p>
+
+        <div className="mt-3 grid gap-2 sm:grid-cols-2">
+          <div className="rounded-lg border border-border/80 bg-background/58 px-2.5 py-1.5">
+            <p className="field-label">Plan</p>
+            <p className="mt-1 text-sm font-semibold text-foreground">
+              {planId ? resolvePlanDisplayName(planId, planId) : "sin plan"}
+            </p>
+          </div>
+          <div className="rounded-lg border border-border/80 bg-background/58 px-2.5 py-1.5">
+            <p className="field-label">Flags activas</p>
+            <p className="mt-1 text-sm font-semibold text-foreground">{activeFeatureCount}</p>
+          </div>
+        </div>
+
+        <div className="mt-2 flex flex-wrap gap-1.5">
+          {moduleStates.map((module) => (
+            <span
+              key={module.key}
+              className="inline-flex items-center gap-1 rounded-full border border-border/80 bg-background/58 px-2 py-0.5 text-[10px] font-semibold text-foreground"
+            >
+              {module.label}
+              <span className="text-foreground/65">{resolveModuleStateCopy(module.state)}</span>
+            </span>
+          ))}
+        </div>
+      </article>
+    );
+  }
 
   return (
     <article className="reveal-up surface-card rounded-xl border-border/85 bg-card/88 p-6 [--reveal-delay:40ms]">
@@ -127,18 +173,14 @@ export function TenantRuntimeSummary({
       <div className="mt-5 rounded-xl border border-border/80 bg-background/50 p-4">
         <p className="field-label">Estado por modulo</p>
         <div className="mt-4 grid gap-3 md:grid-cols-3">
-          {RUNTIME_MODULE_LABELS.map((module) => {
-            const state = resolveTenantModuleState(runtime, module.key);
-
-            return (
-              <div key={module.key} className="rounded-xl border border-border/80 bg-card/60 p-3">
-                <p className="text-sm font-semibold text-foreground">{module.label}</p>
-                <p className="mt-1 text-xs text-muted-foreground">
-                  {resolveModuleStateCopy(state)}
-                </p>
-              </div>
-            );
-          })}
+          {moduleStates.map((module) => (
+            <div key={module.key} className="rounded-xl border border-border/80 bg-card/60 p-3">
+              <p className="text-sm font-semibold text-foreground">{module.label}</p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                {resolveModuleStateCopy(module.state)}
+              </p>
+            </div>
+          ))}
         </div>
       </div>
 

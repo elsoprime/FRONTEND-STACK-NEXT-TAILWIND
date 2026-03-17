@@ -32,7 +32,6 @@ export function DashboardShell({ children }: DashboardShellProps) {
         isOpen={sidebarOpen}
         collapsed={sidebarCollapsed}
         onClose={() => setSidebarOpen(false)}
-        onToggleCollapse={handleToggleSidebarCollapse}
       />
 
       <div

@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useQuery } from "@tanstack/react-query";
 import { Activity, AlertTriangle } from "lucide-react";
@@ -7,6 +7,7 @@ import { listTenantAuditLogs } from "@/features/audit/audit.service";
 import { resolveTenantErrorMessage } from "@/features/tenant/error-code-map";
 import { ApiRequestError } from "@/lib/api/client";
 import { queryKeys } from "@/lib/query/query-keys";
+import { formatSpanishLongDate } from "@/lib/format-spanish-long-date";
 import { cn } from "@/lib/utils";
 
 type AuditOverviewPanelProps = {
@@ -39,15 +40,7 @@ function resolveSeverityClass(severity: string): string {
 }
 
 function formatDate(value: string): string {
-  const parsedDate = new Date(value);
-  if (Number.isNaN(parsedDate.getTime())) {
-    return "fecha no disponible";
-  }
-
-  return new Intl.DateTimeFormat("es-CL", {
-    dateStyle: "short",
-    timeStyle: "short",
-  }).format(parsedDate);
+  return formatSpanishLongDate(value);
 }
 
 function formatAction(action: string): string {

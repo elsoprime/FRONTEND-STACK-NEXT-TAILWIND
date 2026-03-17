@@ -1,5 +1,6 @@
-﻿"use client";
+"use client";
 
+import { Layers3 } from "lucide-react";
 import { TenantContextGate } from "@/components/tenant/tenant-context-gate";
 import { TenantEffectiveSettingsPanel } from "@/components/tenant/tenant-effective-settings-panel";
 import { TenantPageShell, type TenantPageAction } from "@/components/tenant/tenant-page-shell";
@@ -15,11 +16,30 @@ export default function TenantSettingsEffectivePage() {
     <TenantPageShell
       eyebrow="Runtime efectivo"
       title="Vista efectiva del tenant"
-      description="Resolucion final del tenant activo sobre branding, localizacion, contacto, billing y runtime."
+      description="Auditoria clara del estado final aplicado en runtime, con menos ruido y mejor jerarquia visual."
       actions={ACTIONS}
     >
       <TenantContextGate>
-        {({ tenant }) => <TenantEffectiveSettingsPanel tenantId={tenant.id} />}
+        {({ tenant }) => (
+          <div className="space-y-5">
+            <article className="surface-card rounded-xl border-border/90 bg-card/95 p-4">
+              <div className="flex items-center gap-2">
+                <Layers3 className="size-4 text-primary" />
+                <p className="text-sm font-medium text-foreground">
+                  Esta vista consolida configuracion final aplicada y estado runtime del tenant
+                  activo.
+                </p>
+              </div>
+            </article>
+
+            <TenantEffectiveSettingsPanel
+              tenantId={tenant.id}
+              heading="Configuracion efectiva aplicada"
+              description="Detalle final consolidado por bloques funcionales para revision operativa."
+              showDetails
+            />
+          </div>
+        )}
       </TenantContextGate>
     </TenantPageShell>
   );

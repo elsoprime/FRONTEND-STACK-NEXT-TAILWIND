@@ -39,10 +39,10 @@ const RULES: RuleItem[] = [
 
 const RULE_TONE_CLASSNAMES: Record<RuleItem["tone"], string> = {
   warning:
-    "border-amber-300/80 bg-amber-50/80 text-amber-900 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-100",
+    "border-amber-300/85 bg-amber-100/70 text-amber-950 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-100",
   danger:
-    "border-destructive/35 bg-destructive/10 text-destructive dark:border-destructive/45 dark:bg-destructive/15",
-  info: "border-accent/35 bg-accent/10 text-foreground",
+    "border-red-300/85 bg-red-100/70 text-red-900 dark:border-destructive/45 dark:bg-destructive/15 dark:text-red-200",
+  info: "border-accent/35 bg-accent/12 text-foreground",
 };
 
 function resolveIcon(tone: RuleItem["tone"]) {
@@ -68,7 +68,7 @@ export function TenantDashboardInteractionGuide({
         <h3 className="text-xl font-semibold tracking-tight text-foreground">
           Estados de error, alertas y validaciones
         </h3>
-        <p className="text-sm text-muted-foreground">
+        <p className="text-sm dashboard-text-muted">
           El dashboard comunica errores por `error.code` y preserva `traceId` para soporte.
         </p>
       </header>
@@ -95,13 +95,16 @@ export function TenantDashboardInteractionGuide({
         })}
       </div>
 
-      <div className="mt-4 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+      <div className="mt-4 flex flex-wrap items-center gap-2 text-xs dashboard-text-muted">
         <span>Ultimo codigo de dominio:</span>
-        <Badge variant="outline" className="border-border/80 bg-background/70 text-foreground">
+        <Badge variant="outline" className="border-border/80 bg-background/80 text-foreground">
           {lastDomainCode ?? "N/A"}
         </Badge>
         <span>TraceId soporte:</span>
-        <Badge variant="outline" className="border-border/80 bg-background/70 font-mono text-foreground">
+        <Badge
+          variant="outline"
+          className="border-border/80 bg-background/80 font-mono text-foreground"
+        >
           {lastTraceId ?? "sin traza"}
         </Badge>
       </div>

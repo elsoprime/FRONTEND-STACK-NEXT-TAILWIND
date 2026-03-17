@@ -103,10 +103,7 @@ export function TenantCreateForm() {
     <div className="reveal-up space-y-6 [--reveal-delay:60ms]">
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
         <div className="space-y-2">
-          <label
-            htmlFor="tenant-name"
-            className="field-label"
-          >
+          <label htmlFor="tenant-name" className="field-label">
             Nombre del tenant
           </label>
           <div className="relative group">
@@ -130,10 +127,7 @@ export function TenantCreateForm() {
         </div>
 
         <div className="space-y-2">
-          <label
-            htmlFor="tenant-slug"
-            className="field-label"
-          >
+          <label htmlFor="tenant-slug" className="field-label">
             Slug publico
           </label>
           <div className="relative group">
@@ -180,14 +174,15 @@ export function TenantCreateForm() {
         <div className="flex gap-3">
           <Info className="mt-0.5 size-4 shrink-0" />
           <p className="text-sm">
-            Esta pantalla ejecuta <code className="font-mono font-bold">create tenant</code> y luego <code className="font-mono font-bold">tenant/switch</code> para dejar la sesion con
+            Esta pantalla ejecuta <code className="font-mono font-bold">create tenant</code> y luego{" "}
+            <code className="font-mono font-bold">tenant/switch</code> para dejar la sesion con
             contexto activo real antes de volver al shell.
           </p>
         </div>
       </div>
 
       {viewState.status === "error" ? (
-        <article className="rounded-xl border border-destructive/45 bg-destructive/14 p-4 text-red-200">
+        <article className="rounded-xl border border-red-300/80 bg-red-100/70 p-4 text-red-900 dark:border-destructive/45 dark:bg-destructive/14 dark:text-red-200">
           <div className="flex items-center gap-3">
             <ShieldAlert className="size-4" />
             <p className="text-sm font-semibold">{errorMessage}</p>
@@ -196,7 +191,7 @@ export function TenantCreateForm() {
       ) : null}
 
       {viewState.status === "success" ? (
-        <article className="rounded-xl border border-emerald-400/55 bg-emerald-500/14 p-4 text-emerald-100">
+        <article className="rounded-xl border border-emerald-300/80 bg-emerald-100/70 p-4 text-emerald-950 dark:border-emerald-400/55 dark:bg-emerald-500/14 dark:text-emerald-100">
           <div className="flex items-center gap-3">
             <ShieldCheck className="size-4" />
             <p className="text-sm font-semibold">
