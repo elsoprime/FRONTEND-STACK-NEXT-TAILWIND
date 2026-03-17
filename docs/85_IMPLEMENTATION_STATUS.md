@@ -145,3 +145,46 @@ Validacion:
 - `npm run test` -> OK (110)
 - `npm run build` -> OK
 - `npx playwright test tests/e2e/modules.spec.ts` -> OK (7 passed)
+
+## 8. Etapa 12 Frontend - Reconciliacion, Settings y Alertas Avanzadas (2026-03-17)
+
+Estado: completado.
+
+Alcance:
+- Rutas implementadas:
+  - `/app/inventory/reconciliation`
+  - `/app/inventory/settings`
+- Alertas inventory ampliadas con lotes proximos a vencer (`expiring-lots`).
+- Contratos frontend extendidos (schemas + services + query keys) para:
+  - reconciliation
+  - settings
+  - expiring-lot alerts
+- Navegacion inventory actualizada con submenu `Reconciliacion` y `Settings`.
+- Cobertura QA ampliada en tests de servicio y smoke e2e de modulos.
+
+Validacion:
+- `npm run lint` -> OK
+- `npm run typecheck` -> OK
+- `npm run test` -> OK (113)
+- `npm run build` -> OK
+- `npx playwright test tests/e2e/modules.spec.ts` -> OK (9 passed)
+
+## 9. Etapa 13 Frontend - Integracion E2E Live Ready (2026-03-17)
+
+Estado: completado (ready-to-resume operativo).
+
+Alcance:
+- Script ejecutable agregado para smoke live de inventario contra backend real:
+  - `scripts/live-inventory-smoke.mjs`
+  - comando `npm run qa:inventory:live`
+- Guia de integracion live para frontend agregada:
+  - `docs/frontend/inventory-live-integration-guide.md`
+- Incluye modo read-only por defecto y probe opcional de mutacion controlada.
+- Keyword de continuidad mantenida: `CONTINUAR_ETAPA_9_INVENTARIO_E2E`.
+
+Validacion:
+- `npm run lint` -> OK
+- `npm run typecheck` -> OK
+- `npm run test` -> OK
+- `npm run build` -> OK
+- Script live preparado; ejecucion depende de variables reales de entorno (`API_BASE_URL`, `QA_TENANT_ID`, `QA_BEARER_TOKEN`).

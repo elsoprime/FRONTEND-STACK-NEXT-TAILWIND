@@ -165,8 +165,11 @@ Implementado en frontend actual:
 - Alertas de low-stock integradas con endpoint backend.
 - Pruebas unitarias de primitives inventory y smoke e2e de modulo.
 
-Pendiente para version avanzada de esta guia:
-- `reconciliation` (cuando backend y UX final de esas capacidades se habiliten en roadmap del tenant).
+Estado actual de version avanzada:
+- `reconciliation` y `settings` implementados en frontend con rutas dedicadas.
+- Alertas extendidas con lotes proximos a vencer (`expiring-lots`).
+- Integracion live ready documentada en `docs/frontend/inventory-live-integration-guide.md`.
+
 
 
 

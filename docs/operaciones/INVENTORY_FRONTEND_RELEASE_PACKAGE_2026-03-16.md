@@ -67,3 +67,23 @@ Incluye:
 
 - Esta version no incluye aun capacidades avanzadas (`warehouses`, `lots`, `stocktakes`, `reconciliation`).
 - El roadmap de esas capacidades debe coordinarse con releases backend y diseno UX final.
+
+## 7) Continuidad E2E real (actualizacion 2026-03-17)
+
+Adiciones para continuar integracion contra backend real:
+
+- Script live smoke inventory:
+  - `npm run qa:inventory:live`
+  - archivo: `scripts/live-inventory-smoke.mjs`
+- Guia frontend live:
+  - `docs/frontend/inventory-live-integration-guide.md`
+
+Variables requeridas:
+
+- `API_BASE_URL` o `NEXT_PUBLIC_API_BASE_URL`
+- `QA_TENANT_ID`
+- `QA_BEARER_TOKEN`
+
+Keyword para reanudar etapa:
+
+- `CONTINUAR_ETAPA_9_INVENTARIO_E2E`
