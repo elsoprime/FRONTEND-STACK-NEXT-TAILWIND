@@ -6,6 +6,9 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { LoadingScreen } from "@/components/ui/loading-screen";
+import { InventoryHelpPanel } from "@/components/modules/inventory/inventory-help-panel";
+import { InventoryModuleNav } from "@/components/modules/inventory/inventory-module-nav";
+import { InventoryPaginationControls } from "@/components/modules/inventory/inventory-pagination-controls";
 import { TenantContextGate } from "@/components/tenant/tenant-context-gate";
 import { TenantModuleGate, MODULE_GUARDS } from "@/components/tenant/tenant-module-gate";
 import { TenantPageShell } from "@/components/tenant/tenant-page-shell";
@@ -85,14 +88,30 @@ function StockContent({
   errorMessage,
   setErrorMessage,
 }: StockContentProps) {
+  const [page, setPage] = useState(1);
+  const [movementItemFilter, setMovementItemFilter] = useState("");
+  const limit = 20;
+  const normalizedMovementItemFilter = movementItemFilter.trim();
+
   const itemsQuery = useQuery({
-    queryKey: queryKeys.inventoryItems(tenantId),
+    queryKey: [...queryKeys.inventoryItems(tenantId), "for-stock-form"],
     queryFn: async () => listInventoryItems(tenantId, { page: 1, limit: 100 }),
   });
 
   const movementsQuery = useQuery({
-    queryKey: queryKeys.inventoryStockMovements(tenantId),
-    queryFn: async () => listInventoryStockMovements(tenantId, { page: 1, limit: 50 }),
+    queryKey: [
+      ...queryKeys.inventoryStockMovements(tenantId),
+      "list",
+      page,
+      limit,
+      normalizedMovementItemFilter,
+    ],
+    queryFn: async () =>
+      listInventoryStockMovements(tenantId, {
+        page,
+        limit,
+        itemId: normalizedMovementItemFilter.length > 0 ? normalizedMovementItemFilter : undefined,
+      }),
   });
 
   const mutation = useMutation({
@@ -161,118 +180,179 @@ function StockContent({
 
   const items = itemsQuery.data?.data.items ?? [];
   const movements = movementsQuery.data?.data.items ?? [];
+  const pagination = movementsQuery.data?.pagination;
 
   return (
     <div className="space-y-6">
-      <div className="rounded-xl border border-border/80 bg-card/80 p-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-sm font-semibold">Nuevo movimiento</p>
-            <p className="text-xs text-muted-foreground">Registra entradas o salidas con motivo.</p>
-          </div>
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={resetForm}
-            disabled={!formState.itemId && !formState.reason}
-          >
-            Limpiar
-          </Button>
-        </div>
+      <InventoryModuleNav />
 
-        <div className="mt-4 grid gap-3 md:grid-cols-2">
-          <div className="space-y-2">
-            <label className="field-label">Item</label>
-            <select
-              className="h-11 w-full rounded-md border border-border/80 bg-background/70 px-3 text-sm text-foreground"
-              value={formState.itemId}
-              onChange={(event) => setFormState({ ...formState, itemId: event.target.value })}
-            >
-              <option value="">Selecciona un item</option>
-              {items.map((item) => (
-                <option key={item.id} value={item.id}>
-                  {item.name} ({item.sku})
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="space-y-2">
-            <label className="field-label">Direccion</label>
-            <select
-              className="h-11 w-full rounded-md border border-border/80 bg-background/70 px-3 text-sm text-foreground"
-              value={formState.direction}
-              onChange={(event) => setFormState({ ...formState, direction: event.target.value })}
-            >
-              <option value="out">Salida</option>
-              <option value="in">Entrada</option>
-            </select>
-          </div>
-          <div className="space-y-2">
-            <label className="field-label">Cantidad</label>
-            <Input
-              type="number"
-              value={formState.quantity}
-              onChange={(event) => setFormState({ ...formState, quantity: event.target.value })}
-              placeholder="1"
-            />
-          </div>
-          <div className="space-y-2">
-            <label className="field-label">Motivo</label>
-            <Input
-              value={formState.reason}
-              onChange={(event) => setFormState({ ...formState, reason: event.target.value })}
-              placeholder="Venta, ajuste, compra"
-            />
-          </div>
-        </div>
-
-        <div className="mt-4 flex flex-wrap gap-2">
-          <Button size="sm" onClick={() => mutation.mutate()} disabled={mutation.isPending}>
-            Registrar movimiento
-          </Button>
-        </div>
-
-        {errorMessage ? (
-          <div className="mt-3 rounded-md border border-destructive/40 bg-destructive/10 p-3 text-sm text-red-200">
-            {errorMessage}
-          </div>
-        ) : null}
-      </div>
-
-      <div className="space-y-3">
-        <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold">Movimientos recientes</h2>
-          <Link
-            href="/app/inventory"
-            className="text-sm text-primary underline-offset-2 hover:underline"
-          >
-            Volver al overview
-          </Link>
-        </div>
-        {movements.length === 0 ? (
-          <div className="rounded-xl border border-border/80 bg-card/80 p-4 text-sm text-muted-foreground">
-            Sin movimientos registrados.
-          </div>
-        ) : (
-          <div className="space-y-2">
-            {movements.map((movement) => (
-              <div
-                key={movement.id}
-                className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-border/80 bg-background/70 p-3"
-              >
-                <div>
-                  <p className="text-sm font-semibold text-foreground">
-                    {movement.direction === "in" ? "Entrada" : "Salida"} Ã‚Â· {movement.quantity}
-                  </p>
-                  <p className="text-xs text-muted-foreground">{movement.reason}</p>
-                </div>
-                <div className="text-xs text-muted-foreground">
-                  {formatSpanishLongDate(movement.createdAt)}
-                </div>
+      <div className="grid items-start gap-5 xl:grid-cols-[minmax(0,1fr)_320px]">
+        <div className="space-y-6">
+          <div className="rounded-xl border border-border/80 bg-card/80 p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-semibold">Nuevo movimiento</p>
+                <p className="text-xs text-muted-foreground">
+                  Registra entradas o salidas con motivo.
+                </p>
               </div>
-            ))}
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={resetForm}
+                disabled={!formState.itemId && !formState.reason}
+              >
+                Limpiar
+              </Button>
+            </div>
+
+            <div className="mt-4 grid gap-3 md:grid-cols-2">
+              <div className="space-y-2">
+                <label className="field-label">Item</label>
+                <select
+                  className="h-11 w-full rounded-md border border-border/80 bg-background/70 px-3 text-sm text-foreground"
+                  value={formState.itemId}
+                  onChange={(event) => setFormState({ ...formState, itemId: event.target.value })}
+                >
+                  <option value="">Selecciona un item</option>
+                  {items.map((item) => (
+                    <option key={item.id} value={item.id}>
+                      {item.name} ({item.sku})
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="space-y-2">
+                <label className="field-label">Direccion</label>
+                <select
+                  className="h-11 w-full rounded-md border border-border/80 bg-background/70 px-3 text-sm text-foreground"
+                  value={formState.direction}
+                  onChange={(event) =>
+                    setFormState({ ...formState, direction: event.target.value })
+                  }
+                >
+                  <option value="out">Salida</option>
+                  <option value="in">Entrada</option>
+                </select>
+              </div>
+              <div className="space-y-2">
+                <label className="field-label">Cantidad</label>
+                <Input
+                  type="number"
+                  value={formState.quantity}
+                  onChange={(event) => setFormState({ ...formState, quantity: event.target.value })}
+                  placeholder="1"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="field-label">Motivo</label>
+                <Input
+                  value={formState.reason}
+                  onChange={(event) => setFormState({ ...formState, reason: event.target.value })}
+                  placeholder="Venta, ajuste, compra"
+                />
+              </div>
+            </div>
+
+            <div className="mt-4 flex flex-wrap gap-2">
+              <Button size="sm" onClick={() => mutation.mutate()} disabled={mutation.isPending}>
+                Registrar movimiento
+              </Button>
+            </div>
+
+            {errorMessage ? (
+              <div className="mt-3 rounded-md border border-destructive/40 bg-destructive/10 p-3 text-sm text-red-200">
+                {errorMessage}
+              </div>
+            ) : null}
           </div>
-        )}
+
+          <div className="space-y-3">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <h2 className="text-lg font-semibold">Movimientos recientes</h2>
+              <div className="flex w-full flex-wrap gap-2 sm:w-auto">
+                <select
+                  className="h-9 rounded-md border border-border/80 bg-background/70 px-3 text-sm text-foreground"
+                  value={movementItemFilter}
+                  onChange={(event) => {
+                    setMovementItemFilter(event.target.value);
+                    setPage(1);
+                  }}
+                >
+                  <option value="">Todos los items</option>
+                  {items.map((item) => (
+                    <option key={item.id} value={item.id}>
+                      {item.name} ({item.sku})
+                    </option>
+                  ))}
+                </select>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => {
+                    setMovementItemFilter("");
+                    setPage(1);
+                  }}
+                  disabled={!normalizedMovementItemFilter}
+                >
+                  Limpiar
+                </Button>
+                <Link
+                  href="/app/inventory"
+                  className="inline-flex h-9 items-center text-sm text-primary underline-offset-2 hover:underline"
+                >
+                  Volver al overview
+                </Link>
+              </div>
+            </div>
+            {movements.length === 0 ? (
+              <div className="rounded-xl border border-border/80 bg-card/80 p-4 text-sm text-muted-foreground">
+                {normalizedMovementItemFilter
+                  ? "Sin movimientos para el item seleccionado."
+                  : "Sin movimientos registrados."}
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {movements.map((movement) => (
+                  <div
+                    key={movement.id}
+                    className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-border/80 bg-background/70 p-3"
+                  >
+                    <div>
+                      <p className="text-sm font-semibold text-foreground">
+                        {movement.direction === "in" ? "Entrada" : "Salida"} - {movement.quantity}
+                      </p>
+                      <p className="text-xs text-muted-foreground">{movement.reason}</p>
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      {formatSpanishLongDate(movement.createdAt)}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {pagination ? (
+              <InventoryPaginationControls
+                page={pagination.page}
+                totalPages={pagination.totalPages}
+                total={pagination.total}
+                onPageChange={setPage}
+              />
+            ) : null}
+          </div>
+        </div>
+
+        <aside className="space-y-4 xl:sticky xl:top-24">
+          <InventoryHelpPanel
+            title="Ayuda stock"
+            items={[
+              "Usa motivos claros para cada movimiento.",
+              "Valida item y cantidad antes de confirmar salida.",
+              "Ante conflicto, revisa auditoria con traceId.",
+            ]}
+          />
+        </aside>
       </div>
     </div>
   );

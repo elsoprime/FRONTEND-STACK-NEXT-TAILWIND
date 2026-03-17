@@ -132,3 +132,15 @@ Rechazar PR frontend si:
 - [x] Dashboard bloquea acciones de modulos cuando no estan activos por runtime/suscripcion.
 - [x] Sidebar no expone audit como siempre activo sin plan.
 - [x] E2E del ciclo completo en verde (`tests/e2e/billing-cycle.spec.ts`).
+
+## 12. DoD Cierre Inventory UI (2026-03-16)
+
+- [x] Sidebar modular inventory con subitems y estado activo correcto.
+- [x] Panel principal inventory implementado y visible por guardas runtime/permiso.
+- [x] Vistas inventory con estados loading/empty/error/success.
+- [x] Paginacion backend-driven en categorias/items/stock/alerts.
+- [x] Filtros operativos en categorias, items y stock.
+- [x] Ayuda contextual reutilizable en vistas inventory.
+- [x] Pruebas unitarias de componentes inventory agregadas.
+- [x] Smoke e2e de inventory stock agregado y en verde.
+- [x] Validacion DoD tecnica: lint/typecheck/test/build en verde.

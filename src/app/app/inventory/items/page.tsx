@@ -6,6 +6,9 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { LoadingScreen } from "@/components/ui/loading-screen";
+import { InventoryHelpPanel } from "@/components/modules/inventory/inventory-help-panel";
+import { InventoryModuleNav } from "@/components/modules/inventory/inventory-module-nav";
+import { InventoryPaginationControls } from "@/components/modules/inventory/inventory-pagination-controls";
 import { TenantContextGate } from "@/components/tenant/tenant-context-gate";
 import { TenantModuleGate, MODULE_GUARDS } from "@/components/tenant/tenant-module-gate";
 import { TenantPageShell } from "@/components/tenant/tenant-page-shell";
@@ -55,7 +58,12 @@ export default function InventoryItemsPage() {
     >
       <TenantContextGate>
         {({ tenant, membership }) => (
-          <TenantModuleGate tenant={tenant} membership={membership} moduleLabel="Inventory" config={MODULE_GUARDS.inventory}>
+          <TenantModuleGate
+            tenant={tenant}
+            membership={membership}
+            moduleLabel="Inventory"
+            config={MODULE_GUARDS.inventory}
+          >
             <InventoryItemsContent
               tenantId={tenant.id}
               setLastTraceId={setLastTraceId}
@@ -107,18 +115,43 @@ function InventoryItemsContent({
   errorMessage,
   setErrorMessage,
 }: ItemsContentProps) {
+  const [page, setPage] = useState(1);
+  const [search, setSearch] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState("");
+  const [lowStockOnly, setLowStockOnly] = useState(false);
+  const limit = 20;
+
+  const normalizedSearch = search.trim();
+  const normalizedCategoryFilter = categoryFilter.trim();
+
   const categoriesQuery = useQuery({
-    queryKey: queryKeys.inventoryCategories(tenantId),
+    queryKey: [...queryKeys.inventoryCategories(tenantId), "for-form"],
     queryFn: async () => listInventoryCategories(tenantId, { page: 1, limit: 100 }),
   });
 
   const itemsQuery = useQuery({
-    queryKey: queryKeys.inventoryItems(tenantId),
-    queryFn: async () => listInventoryItems(tenantId, { page: 1, limit: 50 }),
+    queryKey: [
+      ...queryKeys.inventoryItems(tenantId),
+      "list",
+      page,
+      limit,
+      normalizedSearch,
+      normalizedCategoryFilter,
+      lowStockOnly,
+    ],
+    queryFn: async () =>
+      listInventoryItems(tenantId, {
+        page,
+        limit,
+        search: normalizedSearch.length > 0 ? normalizedSearch : undefined,
+        categoryId: normalizedCategoryFilter.length > 0 ? normalizedCategoryFilter : undefined,
+        lowStockOnly: lowStockOnly || undefined,
+      }),
   });
 
   const categories = categoriesQuery.data?.data.items ?? [];
   const items = itemsQuery.data?.data.items ?? [];
+  const pagination = itemsQuery.data?.pagination;
 
   const mutation = useMutation({
     mutationFn: async () => {
@@ -163,7 +196,9 @@ function InventoryItemsContent({
         return;
       }
 
-      setErrorMessage(error instanceof Error ? error.message : resolveInventoryErrorMessage("GEN_INTERNAL_ERROR"));
+      setErrorMessage(
+        error instanceof Error ? error.message : resolveInventoryErrorMessage("GEN_INTERNAL_ERROR"),
+      );
     },
   });
 
@@ -210,147 +245,242 @@ function InventoryItemsContent({
 
   return (
     <div className="space-y-6">
-      <div className="rounded-xl border border-border/80 bg-card/80 p-4">
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <div>
-            <p className="text-sm font-semibold">{editingId ? "Editar item" : "Nuevo item"}</p>
-            <p className="text-xs text-muted-foreground">SKU unico y configuracion de stock.</p>
-          </div>
-          <Button size="sm" variant="outline" onClick={resetForm} disabled={!editingId && !formState.sku}>
-            Limpiar
-          </Button>
-        </div>
+      <InventoryModuleNav />
 
-        <div className="mt-4 grid gap-3 md:grid-cols-2">
-          <div className="space-y-2">
-            <label className="field-label">Categoria</label>
-            <select
-              className="h-11 w-full rounded-md border border-border/80 bg-background/70 px-3 text-sm text-foreground"
-              value={formState.categoryId}
-              onChange={(event) => setFormState({ ...formState, categoryId: event.target.value })}
-            >
-              <option value="">Selecciona una categoria</option>
-              {categories.map((category) => (
-                <option key={category.id} value={category.id}>
-                  {category.name}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="space-y-2">
-            <label className="field-label">SKU</label>
-            <Input
-              value={formState.sku}
-              onChange={(event) => setFormState({ ...formState, sku: event.target.value })}
-              placeholder="SKU-001"
-            />
-          </div>
-          <div className="space-y-2">
-            <label className="field-label">Nombre</label>
-            <Input
-              value={formState.name}
-              onChange={(event) => setFormState({ ...formState, name: event.target.value })}
-              placeholder="Nombre del item"
-            />
-          </div>
-          <div className="space-y-2">
-            <label className="field-label">Descripcion (opcional)</label>
-            <Input
-              value={formState.description}
-              onChange={(event) => setFormState({ ...formState, description: event.target.value })}
-              placeholder="Descripcion"
-            />
-          </div>
-          <div className="space-y-2">
-            <label className="field-label">Stock inicial</label>
-            <Input
-              type="number"
-              value={formState.initialStock}
-              onChange={(event) => setFormState({ ...formState, initialStock: event.target.value })}
-              placeholder="0"
-            />
-          </div>
-          <div className="space-y-2">
-            <label className="field-label">Stock minimo</label>
-            <Input
-              type="number"
-              value={formState.minStock}
-              onChange={(event) => setFormState({ ...formState, minStock: event.target.value })}
-              placeholder="0"
-            />
-          </div>
-        </div>
-
-        <div className="mt-4 flex flex-wrap gap-2">
-          <Button size="sm" onClick={() => mutation.mutate()} disabled={submitting}>
-            {editingId ? "Actualizar item" : "Crear item"}
-          </Button>
-          {editingId ? (
-            <Button size="sm" variant="outline" onClick={resetForm} disabled={submitting}>
-              Cancelar edicion
-            </Button>
-          ) : null}
-        </div>
-
-        {errorMessage ? (
-          <div className="mt-3 rounded-md border border-destructive/40 bg-destructive/10 p-3 text-sm text-red-200">
-            {errorMessage}
-          </div>
-        ) : null}
-      </div>
-
-      <div className="space-y-3">
-        <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold">Items registrados</h2>
-          <Link href="/app/inventory" className="text-sm text-primary underline-offset-2 hover:underline">
-            Volver al overview
-          </Link>
-        </div>
-        {items.length === 0 ? (
-          <div className="rounded-xl border border-border/80 bg-card/80 p-4 text-sm text-muted-foreground">
-            Sin items registrados.
-          </div>
-        ) : (
-          <div className="space-y-2">
-            {items.map((item) => (
-              <div key={item.id} className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-border/80 bg-background/70 p-3">
-                <div>
-                  <p className="text-sm font-semibold text-foreground">{item.name}</p>
-                  <p className="text-xs text-muted-foreground">SKU: {item.sku} · Stock: {item.currentStock}</p>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  <Link href={`/app/inventory/items/${item.id}`} className="text-sm text-primary underline-offset-2 hover:underline">
-                    Ver detalle
-                  </Link>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => {
-                      setEditingId(item.id);
-                      setFormState({
-                        categoryId: item.categoryId,
-                        sku: item.sku,
-                        name: item.name,
-                        description: item.description ?? "",
-                        initialStock: "",
-                        minStock: String(item.minStock ?? ""),
-                      });
-                    }}
-                  >
-                    Editar
-                  </Button>
-                  <Button size="sm" variant="destructive" onClick={() => deleteMutation.mutate(item.id)}>
-                    Eliminar
-                  </Button>
-                </div>
+      <div className="grid items-start gap-5 xl:grid-cols-[minmax(0,1fr)_320px]">
+        <div className="space-y-6">
+          <div className="rounded-xl border border-border/80 bg-card/80 p-4">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div>
+                <p className="text-sm font-semibold">{editingId ? "Editar item" : "Nuevo item"}</p>
+                <p className="text-xs text-muted-foreground">SKU unico y configuracion de stock.</p>
               </div>
-            ))}
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={resetForm}
+                disabled={!editingId && !formState.sku}
+              >
+                Limpiar
+              </Button>
+            </div>
+
+            <div className="mt-4 grid gap-3 md:grid-cols-2">
+              <div className="space-y-2">
+                <label className="field-label">Categoria</label>
+                <select
+                  className="h-11 w-full rounded-md border border-border/80 bg-background/70 px-3 text-sm text-foreground"
+                  value={formState.categoryId}
+                  onChange={(event) =>
+                    setFormState({ ...formState, categoryId: event.target.value })
+                  }
+                >
+                  <option value="">Selecciona una categoria</option>
+                  {categories.map((category) => (
+                    <option key={category.id} value={category.id}>
+                      {category.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="space-y-2">
+                <label className="field-label">SKU</label>
+                <Input
+                  value={formState.sku}
+                  onChange={(event) => setFormState({ ...formState, sku: event.target.value })}
+                  placeholder="SKU-001"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="field-label">Nombre</label>
+                <Input
+                  value={formState.name}
+                  onChange={(event) => setFormState({ ...formState, name: event.target.value })}
+                  placeholder="Nombre del item"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="field-label">Descripcion (opcional)</label>
+                <Input
+                  value={formState.description}
+                  onChange={(event) =>
+                    setFormState({ ...formState, description: event.target.value })
+                  }
+                  placeholder="Descripcion"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="field-label">Stock inicial</label>
+                <Input
+                  type="number"
+                  value={formState.initialStock}
+                  onChange={(event) =>
+                    setFormState({ ...formState, initialStock: event.target.value })
+                  }
+                  placeholder="0"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="field-label">Stock minimo</label>
+                <Input
+                  type="number"
+                  value={formState.minStock}
+                  onChange={(event) => setFormState({ ...formState, minStock: event.target.value })}
+                  placeholder="0"
+                />
+              </div>
+            </div>
+
+            <div className="mt-4 flex flex-wrap gap-2">
+              <Button size="sm" onClick={() => mutation.mutate()} disabled={submitting}>
+                {editingId ? "Actualizar item" : "Crear item"}
+              </Button>
+              {editingId ? (
+                <Button size="sm" variant="outline" onClick={resetForm} disabled={submitting}>
+                  Cancelar edicion
+                </Button>
+              ) : null}
+            </div>
+
+            {errorMessage ? (
+              <div className="mt-3 rounded-md border border-destructive/40 bg-destructive/10 p-3 text-sm text-red-200">
+                {errorMessage}
+              </div>
+            ) : null}
           </div>
-        )}
+
+          <div className="space-y-3">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <h2 className="text-lg font-semibold">Items registrados</h2>
+              <div className="flex w-full flex-wrap gap-2 sm:w-auto">
+                <Input
+                  value={search}
+                  onChange={(event) => {
+                    setSearch(event.target.value);
+                    setPage(1);
+                  }}
+                  placeholder="Buscar item o SKU..."
+                  className="h-9 w-full sm:w-52"
+                />
+                <select
+                  className="h-9 rounded-md border border-border/80 bg-background/70 px-3 text-sm text-foreground"
+                  value={categoryFilter}
+                  onChange={(event) => {
+                    setCategoryFilter(event.target.value);
+                    setPage(1);
+                  }}
+                >
+                  <option value="">Todas las categorias</option>
+                  {categories.map((category) => (
+                    <option key={category.id} value={category.id}>
+                      {category.name}
+                    </option>
+                  ))}
+                </select>
+                <Button
+                  size="sm"
+                  variant={lowStockOnly ? "default" : "outline"}
+                  onClick={() => {
+                    setLowStockOnly((current) => !current);
+                    setPage(1);
+                  }}
+                >
+                  Solo low stock
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => {
+                    setSearch("");
+                    setCategoryFilter("");
+                    setLowStockOnly(false);
+                    setPage(1);
+                  }}
+                  disabled={!normalizedSearch && !normalizedCategoryFilter && !lowStockOnly}
+                >
+                  Limpiar filtros
+                </Button>
+              </div>
+            </div>
+
+            {items.length === 0 ? (
+              <div className="rounded-xl border border-border/80 bg-card/80 p-4 text-sm text-muted-foreground">
+                {normalizedSearch || normalizedCategoryFilter || lowStockOnly
+                  ? "Sin resultados para los filtros aplicados."
+                  : "Sin items registrados."}
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {items.map((item) => (
+                  <div
+                    key={item.id}
+                    className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-border/80 bg-background/70 p-3"
+                  >
+                    <div>
+                      <p className="text-sm font-semibold text-foreground">{item.name}</p>
+                      <p className="text-xs text-muted-foreground">
+                        SKU: {item.sku} - Stock: {item.currentStock}
+                      </p>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      <Link
+                        href={`/app/inventory/items/${item.id}`}
+                        className="text-sm text-primary underline-offset-2 hover:underline"
+                      >
+                        Ver detalle
+                      </Link>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => {
+                          setEditingId(item.id);
+                          setFormState({
+                            categoryId: item.categoryId,
+                            sku: item.sku,
+                            name: item.name,
+                            description: item.description ?? "",
+                            initialStock: "",
+                            minStock: String(item.minStock ?? ""),
+                          });
+                        }}
+                      >
+                        Editar
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="destructive"
+                        onClick={() => deleteMutation.mutate(item.id)}
+                      >
+                        Eliminar
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {pagination ? (
+              <InventoryPaginationControls
+                page={pagination.page}
+                totalPages={pagination.totalPages}
+                total={pagination.total}
+                onPageChange={setPage}
+              />
+            ) : null}
+          </div>
+        </div>
+
+        <aside className="space-y-4 xl:sticky xl:top-24">
+          <InventoryHelpPanel
+            title="Ayuda items"
+            items={[
+              "Usa SKU unico para evitar colisiones en operaciones.",
+              "Define stock minimo por item critico.",
+              "Mantiene descripciones cortas y accionables.",
+            ]}
+          />
+        </aside>
       </div>
     </div>
   );
 }
-
-
-

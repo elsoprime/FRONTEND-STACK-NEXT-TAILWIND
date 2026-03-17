@@ -72,3 +72,22 @@ Resumen de auditoria (`OpenAPI /api/v1/*` vs `src/features`, excluyendo `*.test.
 
 - Este estado solo considera implementacion en `src/features`.
 - Referencias fuera de `src/features` (por ejemplo `src/lib`) no alteran el conteo de cobertura de este documento.
+
+## 4. Cierre Inventory Frontend (2026-03-16)
+
+Estado: completado (etapa de hardening UI + QA).
+
+Cambios relevantes ejecutados:
+- Sidebar modular con subitems de Inventory y estado activo consistente.
+- Dashboard inventory operativo con metricas base y paneles de ayuda.
+- Vistas `categories`, `items`, `stock`, `alerts` unificadas en layout y navegacion de modulo.
+- Filtros backend-driven y paginacion en listados principales.
+- Estados UX completos (loading/empty/error/success) en vistas inventory.
+- Formateo legible de fechas en vistas de movimientos.
+
+Evidencia de validacion:
+- `npm run lint` -> OK
+- `npm run typecheck` -> OK
+- `npm run test` -> OK (99 tests)
+- `npm run build` -> OK
+- `npx playwright test tests/e2e/modules.spec.ts` -> OK (4 passed)

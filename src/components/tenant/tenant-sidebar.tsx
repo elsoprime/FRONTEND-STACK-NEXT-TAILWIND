@@ -1,32 +1,42 @@
 "use client";
 
 import type { ComponentType } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
+  ArrowRightLeft,
+  BellRing,
   Boxes,
   BriefcaseBusiness,
   Building2,
+  ChevronDown,
   CreditCard,
   GemIcon,
   LayoutGrid,
+  Package,
   ScrollText,
   Settings,
   ShieldAlert,
+  Tags,
   UserRound,
   Users,
   X,
 } from "lucide-react";
+import { hasTenantPermission, TENANT_PERMISSION_KEYS } from "@/features/tenant/tenant-permissions";
+import { resolveTenantModuleState } from "@/features/tenant/tenant-runtime-guards";
+import { type TenantRuntime } from "@/features/tenant/tenant-settings.schemas";
 import { cn } from "@/lib/utils";
 import { useTenantStore } from "@/store/tenant-store";
-import { resolveTenantModuleState } from "@/features/tenant/tenant-runtime-guards";
-import { hasTenantPermission, TENANT_PERMISSION_KEYS } from "@/features/tenant/tenant-permissions";
-import { type TenantRuntime } from "@/features/tenant/tenant-settings.schemas";
 
 type AppRoute =
   | "/app"
   | "/app/tenants/select"
   | "/app/inventory"
+  | "/app/inventory/items"
+  | "/app/inventory/categories"
+  | "/app/inventory/stock"
+  | "/app/inventory/alerts"
   | "/app/crm"
   | "/app/hr"
   | "/app/audit"
@@ -39,6 +49,12 @@ type AppRoute =
 
 type ModuleKey = "inventory" | "crm" | "hr" | "audit";
 
+type NavChildItem = {
+  label: string;
+  href: AppRoute;
+  icon: ComponentType<{ className?: string }>;
+};
+
 type NavItem = {
   label: string;
   href: AppRoute;
@@ -46,6 +62,7 @@ type NavItem = {
   match: "exact" | "prefix";
   moduleKey?: ModuleKey;
   permissionKey?: string;
+  children?: readonly NavChildItem[];
 };
 
 type NavSection = {
@@ -88,21 +105,23 @@ const navSections: readonly NavSection[] = [
     ],
   },
   {
-    title: "Inventory",
+    title: "Modulos",
     items: [
       {
-        label: "Inventory",
+        label: "Inventario",
         href: "/app/inventory",
         icon: Boxes,
         match: "prefix",
         moduleKey: "inventory",
         permissionKey: TENANT_PERMISSION_KEYS.MODULE_INVENTORY_USE,
+        children: [
+          { label: "Panel principal", href: "/app/inventory", icon: LayoutGrid },
+          { label: "Items", href: "/app/inventory/items", icon: Package },
+          { label: "Categorias", href: "/app/inventory/categories", icon: Tags },
+          { label: "Stock", href: "/app/inventory/stock", icon: ArrowRightLeft },
+          { label: "Alertas", href: "/app/inventory/alerts", icon: BellRing },
+        ],
       },
-    ],
-  },
-  {
-    title: "CRM",
-    items: [
       {
         label: "CRM",
         href: "/app/crm",
@@ -111,11 +130,6 @@ const navSections: readonly NavSection[] = [
         moduleKey: "crm",
         permissionKey: TENANT_PERMISSION_KEYS.MODULE_CRM_USE,
       },
-    ],
-  },
-  {
-    title: "HR",
-    items: [
       {
         label: "HR",
         href: "/app/hr",
@@ -124,11 +138,6 @@ const navSections: readonly NavSection[] = [
         moduleKey: "hr",
         permissionKey: TENANT_PERMISSION_KEYS.MODULE_HR_USE,
       },
-    ],
-  },
-  {
-    title: "Audit",
-    items: [
       {
         label: "Audit",
         href: "/app/audit",
@@ -166,12 +175,23 @@ type TenantSidebarProps = {
   onClose: () => void;
 };
 
-function isItemActive(pathname: string, item: NavItem): boolean {
+function isItemActive(
+  pathname: string,
+  item: { href: string; match: "exact" | "prefix" },
+): boolean {
   if (item.match === "exact") {
     return pathname === item.href;
   }
 
   return pathname === item.href || pathname.startsWith(`${item.href}/`);
+}
+
+function isChildActive(pathname: string, href: string): boolean {
+  if (href === "/app/inventory") {
+    return pathname === href;
+  }
+
+  return pathname === href || pathname.startsWith(`${href}/`);
 }
 
 function resolveModuleState(
@@ -196,7 +216,7 @@ export function TenantSidebar({ isOpen, collapsed, onClose }: TenantSidebarProps
   const activeTenant = useTenantStore((state) => state.activeTenant);
   const activeMembership = useTenantStore((state) => state.activeMembership);
   const effectiveRuntime = useTenantStore((state) => state.effectiveRuntime);
-
+  const [expandedItems, setExpandedItems] = useState<Record<string, boolean>>({});
   return (
     <aside
       className={cn(
@@ -237,6 +257,7 @@ export function TenantSidebar({ isOpen, collapsed, onClose }: TenantSidebarProps
             <GemIcon className="hidden size-6 text-sidebar-primary lg:block" />
           )}
         </div>
+
         <nav className={cn("mt-4 flex-1 overflow-y-auto pb-6", collapsed ? "px-3" : "px-5")}>
           <div className="space-y-6">
             {navSections.map((section) => (
@@ -246,6 +267,7 @@ export function TenantSidebar({ isOpen, collapsed, onClose }: TenantSidebarProps
                     {section.title}
                   </p>
                 ) : null}
+
                 <div className="space-y-1">
                   {section.items.map((item) => {
                     const isActive = isItemActive(pathname, item);
@@ -258,15 +280,25 @@ export function TenantSidebar({ isOpen, collapsed, onClose }: TenantSidebarProps
                             effectiveRuntime?.planId ?? activeTenant.planId,
                           )
                         : "active";
+
                     const hasPermission = item.permissionKey
                       ? hasTenantPermission(
                           activeMembership?.roleKey ?? "tenant:member",
                           item.permissionKey,
                         )
                       : true;
+
                     const isDisabled =
                       (item.moduleKey && moduleState !== "active") ||
                       (item.permissionKey && !hasPermission);
+
+                    const hasChildren = Boolean(item.children && item.children.length > 0);
+                    const childRouteActive = hasChildren
+                      ? Boolean(item.children?.some((child) => isChildActive(pathname, child.href)))
+                      : false;
+                    const isExpanded = hasChildren
+                      ? (expandedItems[item.href] ?? childRouteActive)
+                      : false;
 
                     const baseClass = cn(
                       "group flex items-center rounded-xl border text-sm font-medium transition-all duration-200",
@@ -279,30 +311,89 @@ export function TenantSidebar({ isOpen, collapsed, onClose }: TenantSidebarProps
 
                     if (isDisabled) {
                       return (
-                        <div
-                          key={item.href}
-                          aria-disabled="true"
-                          className={baseClass}
-                          title={item.label}
-                        >
-                          <item.icon className="size-4" />
-                          {!collapsed ? <span>{item.label}</span> : null}
+                        <div key={item.href} className="space-y-1" title={item.label}>
+                          <div aria-disabled="true" className={baseClass}>
+                            <item.icon className="size-4" />
+                            {!collapsed ? <span>{item.label}</span> : null}
+                          </div>
                         </div>
                       );
                     }
 
                     return (
-                      <Link
-                        key={item.href}
-                        href={item.href}
-                        onClick={onClose}
-                        aria-current={isActive ? "page" : undefined}
-                        className={baseClass}
-                        title={item.label}
-                      >
-                        <item.icon className="size-4" />
-                        {!collapsed ? <span>{item.label}</span> : null}
-                      </Link>
+                      <div key={item.href} className="space-y-1">
+                        {!collapsed && hasChildren ? (
+                          <div className="flex items-center gap-1">
+                            <Link
+                              href={item.href}
+                              onClick={onClose}
+                              aria-current={isActive ? "page" : undefined}
+                              className={cn(baseClass, "min-w-0 flex-1")}
+                              title={item.label}
+                            >
+                              <item.icon className="size-4 shrink-0" />
+                              <span className="truncate">{item.label}</span>
+                            </Link>
+
+                            <button
+                              type="button"
+                              className="inline-flex size-8 items-center justify-center rounded-lg border border-sidebar-border/70 bg-sidebar-accent/72 text-sidebar-foreground/80 transition hover:border-sidebar-primary/50 hover:text-sidebar-foreground"
+                              aria-label={
+                                isExpanded ? `Colapsar ${item.label}` : `Expandir ${item.label}`
+                              }
+                              onClick={() =>
+                                setExpandedItems((current) => ({
+                                  ...current,
+                                  [item.href]: !isExpanded,
+                                }))
+                              }
+                            >
+                              <ChevronDown
+                                className={cn(
+                                  "size-4 transition-transform duration-200",
+                                  isExpanded && "rotate-180",
+                                )}
+                              />
+                            </button>
+                          </div>
+                        ) : (
+                          <Link
+                            href={item.href}
+                            onClick={onClose}
+                            aria-current={isActive ? "page" : undefined}
+                            className={baseClass}
+                            title={item.label}
+                          >
+                            <item.icon className="size-4" />
+                            {!collapsed ? <span>{item.label}</span> : null}
+                          </Link>
+                        )}
+
+                        {!collapsed && hasChildren && isExpanded ? (
+                          <div className="ml-3 space-y-1 border-l border-sidebar-border/70 pl-3">
+                            {item.children?.map((child) => {
+                              const childActive = isChildActive(pathname, child.href);
+
+                              return (
+                                <Link
+                                  key={child.href}
+                                  href={child.href}
+                                  onClick={onClose}
+                                  className={cn(
+                                    "flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors",
+                                    childActive
+                                      ? "border-sidebar-primary/45 bg-sidebar-accent/88 text-sidebar-primary"
+                                      : "border-transparent text-sidebar-foreground/72 hover:border-sidebar-border/70 hover:bg-sidebar-accent/78 hover:text-sidebar-foreground",
+                                  )}
+                                >
+                                  <child.icon className="size-4" />
+                                  <span>{child.label}</span>
+                                </Link>
+                              );
+                            })}
+                          </div>
+                        ) : null}
+                      </div>
                     );
                   })}
                 </div>

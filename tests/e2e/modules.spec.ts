@@ -177,6 +177,79 @@ test("inventory items page renders list", async ({ page }) => {
   await expect(page.getByRole("heading", { name: "Items" })).toBeVisible();
   await expect(page.getByText("Laptop")).toBeVisible();
   await expect(page.getByText("SKU: SKU-001")).toBeVisible();
+
+  const sidebar = page.getByLabel("Sidebar tenant");
+  const panelPrincipalLink = sidebar.getByRole("link", { name: "Panel principal" }).first();
+  const itemsLink = sidebar.getByRole("link", { name: "Items" }).first();
+
+  await expect(panelPrincipalLink).not.toHaveClass(/text-sidebar-primary/);
+  await expect(itemsLink).toHaveClass(/text-sidebar-primary/);
+});
+
+test("inventory stock page renders movement list", async ({ page }) => {
+  attachAuthAndTenantMocks(page);
+
+  page.route("**/api/v1/modules/inventory/items**", async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        success: true,
+        data: {
+          items: [
+            {
+              id: "507f191e810c19729de860ec",
+              tenantId: DEFAULT_TENANT_ID,
+              categoryId: "507f191e810c19729de860eb",
+              sku: "SKU-001",
+              name: "Laptop",
+              description: "Equipo",
+              currentStock: 12,
+              minStock: 3,
+              isLowStock: false,
+              isActive: true,
+            },
+          ],
+        },
+        pagination: { page: 1, limit: 100, total: 1, totalPages: 1 },
+        traceId: "trace-inventory-items-stock",
+      }),
+    });
+  });
+
+  page.route("**/api/v1/modules/inventory/stock-movements**", async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        success: true,
+        data: {
+          items: [
+            {
+              id: "507f191e810c19729de860fd",
+              tenantId: DEFAULT_TENANT_ID,
+              itemId: "507f191e810c19729de860ec",
+              direction: "out",
+              quantity: 2,
+              stockBefore: 12,
+              stockAfter: 10,
+              reason: "Venta",
+              performedByUserId: "507f191e810c19729de860ff",
+              createdAt: "2026-03-16T23:32:13.765Z",
+            },
+          ],
+        },
+        pagination: { page: 1, limit: 20, total: 1, totalPages: 1 },
+        traceId: "trace-inventory-stock",
+      }),
+    });
+  });
+
+  await page.goto("/app/inventory/stock");
+
+  await expect(page.getByRole("heading", { name: "Movimientos de stock" })).toBeVisible();
+  await expect(page.getByText("Salida - 2")).toBeVisible();
+  await expect(page.getByText("Venta", { exact: true })).toBeVisible();
 });
 
 test("crm contacts page renders list", async ({ page }) => {
@@ -289,4 +362,3 @@ test("hr employees page renders list", async ({ page }) => {
   await expect(employeeRow).toBeVisible();
   await expect(page.getByText("EMP-01")).toBeVisible();
 });
-
