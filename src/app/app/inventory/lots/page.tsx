@@ -1,16 +1,26 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
+import { PencilLine, Plus, RotateCcw, Save, X } from "lucide-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { InventoryHelpPanel } from "@/components/modules/inventory/inventory-help-panel";
 import { InventoryModuleNav } from "@/components/modules/inventory/inventory-module-nav";
 import { InventoryPaginationControls } from "@/components/modules/inventory/inventory-pagination-controls";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { LoadingScreen } from "@/components/ui/loading-screen";
 import { TenantContextGate } from "@/components/tenant/tenant-context-gate";
 import { MODULE_GUARDS, TenantModuleGate } from "@/components/tenant/tenant-module-gate";
 import { TenantPageShell } from "@/components/tenant/tenant-page-shell";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { InventoryFormModal } from "@/components/ui/inventory-form-modal";
+import {
+  InventoryCell,
+  InventoryDataTable,
+  InventoryRecordsShell,
+  InventoryRow,
+  inventorySelectClassName,
+} from "@/components/ui/inventory-records-shell";
+import { LoadingScreen } from "@/components/ui/loading-screen";
 import { resolveInventoryErrorMessage } from "@/features/inventory/error-code-map";
 import {
   createInventoryLot,
@@ -19,9 +29,11 @@ import {
   listInventoryWarehouses,
   updateInventoryLot,
 } from "@/features/inventory/inventory.service";
-import { formatSpanishLongDate } from "@/lib/format-spanish-long-date";
 import { ApiRequestError } from "@/lib/api/client";
+import { downloadCsv } from "@/lib/export-csv";
+import { formatSpanishLongDate } from "@/lib/format-spanish-long-date";
 import { queryKeys } from "@/lib/query/query-keys";
+import { cn } from "@/lib/utils";
 import { useSessionStore } from "@/store/session-store";
 
 export default function InventoryLotsPage() {
@@ -55,6 +67,13 @@ export default function InventoryLotsPage() {
       eyebrow="Inventory"
       title="Lotes"
       description="Administra lotes por item y bodega, con seguimiento de vencimientos."
+      breadcrumbItems={[
+        { label: "Dashboard", href: "/app" },
+        { label: "Inventario", href: "/app/inventory" },
+        { label: "Lotes" },
+      ]}
+      backHref="/app/inventory"
+      backLabel="Volver a Panel principal"
     >
       <TenantContextGate>
         {({ tenant, membership }) => (
@@ -116,9 +135,14 @@ function InventoryLotsContent({
   setErrorMessage,
 }: LotsContentProps) {
   const [page, setPage] = useState(1);
+  const [search, setSearch] = useState("");
   const [itemFilter, setItemFilter] = useState("");
   const [warehouseFilter, setWarehouseFilter] = useState("");
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [noticeMessage, setNoticeMessage] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
   const limit = 20;
+  const normalizedSearch = search.trim().toLowerCase();
 
   const itemsQuery = useQuery({
     queryKey: [...queryKeys.inventoryItems(tenantId), "for-lots-form"],
@@ -178,9 +202,11 @@ function InventoryLotsContent({
     },
     onSuccess: (response) => {
       setLastTraceId(response.traceId);
-      queryClient.invalidateQueries({ queryKey: queryKeys.inventoryLots(tenantId) });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.inventoryLots(tenantId) });
       setErrorMessage(null);
+      setNoticeMessage(null);
       resetForm();
+      setIsModalOpen(false);
     },
     onError: (error: unknown) => {
       if (error instanceof ApiRequestError) {
@@ -224,6 +250,19 @@ function InventoryLotsContent({
   const warehouses = warehousesQuery.data?.data.items ?? [];
   const lots = lotsQuery.data?.data.items ?? [];
   const pagination = lotsQuery.data?.pagination;
+  const itemsById = new Map(items.map((item) => [item.id, item]));
+  const warehousesById = new Map(warehouses.map((warehouse) => [warehouse.id, warehouse]));
+  const visibleLots = lots.filter((lot) => {
+    if (!normalizedSearch) {
+      return true;
+    }
+
+    const item = itemsById.get(lot.itemId);
+    const warehouse = warehousesById.get(lot.warehouseId);
+    return [lot.lotCode, item?.name, item?.sku, warehouse?.name]
+      .filter(Boolean)
+      .some((value) => String(value).toLowerCase().includes(normalizedSearch));
+  });
 
   return (
     <div className="space-y-6">
@@ -231,141 +270,30 @@ function InventoryLotsContent({
 
       <div className="grid items-start gap-5 xl:grid-cols-[minmax(0,1fr)_320px]">
         <div className="space-y-6">
-          <div className="rounded-xl border border-border/80 bg-card/80 p-4">
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <div>
-                <p className="text-sm font-semibold">{editingId ? "Editar lote" : "Nuevo lote"}</p>
-                <p className="text-xs text-muted-foreground">
-                  Registra lotes por item y bodega para trazabilidad.
-                </p>
-              </div>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={resetForm}
-                disabled={!editingId && !formState.lotCode}
-              >
-                Limpiar
-              </Button>
+          {noticeMessage ? (
+            <div className="rounded-xl border border-primary/25 bg-primary/8 px-4 py-3 text-sm text-foreground/90">
+              {noticeMessage}
             </div>
-
-            <div className="mt-4 grid gap-3 md:grid-cols-2">
-              <div className="space-y-2">
-                <label className="field-label">Item</label>
-                <select
-                  className="h-11 w-full rounded-md border border-border/80 bg-background/70 px-3 text-sm text-foreground"
-                  value={formState.itemId}
-                  onChange={(event) => setFormState({ ...formState, itemId: event.target.value })}
-                  disabled={Boolean(editingId)}
-                >
-                  <option value="">Selecciona un item</option>
-                  {items.map((item) => (
-                    <option key={item.id} value={item.id}>
-                      {item.name} ({item.sku})
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div className="space-y-2">
-                <label className="field-label">Bodega</label>
-                <select
-                  className="h-11 w-full rounded-md border border-border/80 bg-background/70 px-3 text-sm text-foreground"
-                  value={formState.warehouseId}
-                  onChange={(event) =>
-                    setFormState({ ...formState, warehouseId: event.target.value })
-                  }
-                  disabled={Boolean(editingId)}
-                >
-                  <option value="">Selecciona una bodega</option>
-                  {warehouses.map((warehouse) => (
-                    <option key={warehouse.id} value={warehouse.id}>
-                      {warehouse.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {!editingId ? (
-                <>
-                  <div className="space-y-2">
-                    <label className="field-label">Codigo lote</label>
-                    <Input
-                      value={formState.lotCode}
-                      onChange={(event) =>
-                        setFormState({ ...formState, lotCode: event.target.value })
-                      }
-                      placeholder="LOT-2026-001"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="field-label">Cantidad inicial</label>
-                    <Input
-                      type="number"
-                      value={formState.quantity}
-                      onChange={(event) =>
-                        setFormState({ ...formState, quantity: event.target.value })
-                      }
-                      placeholder="100"
-                    />
-                  </div>
-                </>
-              ) : (
-                <div className="space-y-2">
-                  <label className="field-label">Estado</label>
-                  <select
-                    className="h-11 w-full rounded-md border border-border/80 bg-background/70 px-3 text-sm text-foreground"
-                    value={formState.isActive ? "active" : "inactive"}
-                    onChange={(event) =>
-                      setFormState({ ...formState, isActive: event.target.value === "active" })
-                    }
-                  >
-                    <option value="active">Activo</option>
-                    <option value="inactive">Inactivo</option>
-                  </select>
-                </div>
-              )}
-
-              <div className="space-y-2">
-                <label className="field-label">Fecha vencimiento (opcional)</label>
-                <Input
-                  type="datetime-local"
-                  value={formState.expiresAt}
-                  onChange={(event) =>
-                    setFormState({ ...formState, expiresAt: event.target.value })
-                  }
-                />
-              </div>
+          ) : null}
+          {errorMessage ? (
+            <div className="rounded-xl border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-red-200">
+              {errorMessage}
             </div>
+          ) : null}
 
-            <div className="mt-4 flex flex-wrap gap-2">
-              <Button size="sm" onClick={() => mutation.mutate()} disabled={mutation.isPending}>
-                {editingId ? "Actualizar lote" : "Crear lote"}
-              </Button>
-              {editingId ? (
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={resetForm}
-                  disabled={mutation.isPending}
-                >
-                  Cancelar edicion
-                </Button>
-              ) : null}
-            </div>
-
-            {errorMessage ? (
-              <div className="mt-3 rounded-md border border-destructive/40 bg-destructive/10 p-3 text-sm text-red-200">
-                {errorMessage}
-              </div>
-            ) : null}
-          </div>
-
-          <div className="space-y-3">
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <h2 className="text-lg font-semibold">Lotes registrados</h2>
-              <div className="flex w-full flex-wrap gap-2 sm:w-auto">
+          <InventoryRecordsShell
+            title="Lotes registrados"
+            description="Administra trazabilidad, vencimientos y disponibilidad por item y bodega sin salir de la vista de registros."
+            badgeLabel="Trazabilidad"
+            countLabel="Total visible"
+            countValue={String(pagination?.total ?? lots.length)}
+            searchValue={search}
+            onSearchChange={setSearch}
+            searchPlaceholder="Buscar por lote, item o bodega"
+            filters={(
+              <>
                 <select
-                  className="h-9 rounded-md border border-border/80 bg-background/70 px-3 text-sm text-foreground"
+                  className={cn(inventorySelectClassName, "lg:max-w-[220px]")}
                   value={itemFilter}
                   onChange={(event) => {
                     setItemFilter(event.target.value);
@@ -380,7 +308,7 @@ function InventoryLotsContent({
                   ))}
                 </select>
                 <select
-                  className="h-9 rounded-md border border-border/80 bg-background/70 px-3 text-sm text-foreground"
+                  className={cn(inventorySelectClassName, "lg:max-w-[220px]")}
                   value={warehouseFilter}
                   onChange={(event) => {
                     setWarehouseFilter(event.target.value);
@@ -395,74 +323,139 @@ function InventoryLotsContent({
                   ))}
                 </select>
                 <Button
+                  type="button"
                   size="sm"
                   variant="outline"
                   onClick={() => {
+                    setSearch("");
                     setItemFilter("");
                     setWarehouseFilter("");
                     setPage(1);
                   }}
-                  disabled={!itemFilter && !warehouseFilter}
-                >
-                  Limpiar filtros
-                </Button>
-              </div>
-            </div>
-
-            {lots.length === 0 ? (
-              <div className="rounded-xl border border-border/80 bg-card/80 p-4 text-sm text-muted-foreground">
-                {itemFilter || warehouseFilter
-                  ? "Sin resultados para los filtros aplicados."
-                  : "Sin lotes registrados."}
-              </div>
-            ) : (
-              <div className="space-y-2">
-                {lots.map((lot) => (
-                  <div
-                    key={lot.id}
-                    className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-border/80 bg-background/70 p-3"
-                  >
-                    <div>
-                      <p className="text-sm font-semibold text-foreground">{lot.lotCode}</p>
-                      <p className="text-xs text-muted-foreground">
-                        Cantidad actual: {lot.currentQuantity} / inicial: {lot.initialQuantity}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        Vence:{" "}
-                        {lot.expiresAt ? formatSpanishLongDate(lot.expiresAt) : "Sin vencimiento"}
-                      </p>
-                    </div>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => {
-                        setEditingId(lot.id);
-                        setFormState({
-                          itemId: lot.itemId,
-                          warehouseId: lot.warehouseId,
-                          lotCode: lot.lotCode,
-                          quantity: String(lot.initialQuantity),
-                          expiresAt: lot.expiresAt ? lot.expiresAt.slice(0, 16) : "",
-                          isActive: lot.isActive,
-                        });
-                      }}
-                    >
-                      Editar
-                    </Button>
-                  </div>
-                ))}
-              </div>
+                  disabled={!search && !itemFilter && !warehouseFilter}
+                ><RotateCcw className="size-4" />Limpiar filtros</Button>
+              </>
             )}
+            createLabel="Nuevo lote"
+            onCreate={() => {
+              resetForm();
+              setErrorMessage(null);
+              setIsModalOpen(true);
+            }}
+            exportAction={() =>
+              downloadCsv(
+                "inventory-lots.csv",
+                [
+                  { label: "Lote", value: (lot) => lot.lotCode },
+                  { label: "Item", value: (lot) => itemsById.get(lot.itemId)?.name ?? "" },
+                  { label: "Bodega", value: (lot) => warehousesById.get(lot.warehouseId)?.name ?? "" },
+                  { label: "Cantidad actual", value: (lot) => lot.currentQuantity },
+                  { label: "Vence", value: (lot) => (lot.expiresAt ? lot.expiresAt : "") },
+                  { label: "Estado", value: (lot) => (lot.isActive ? "Activo" : "Inactivo") },
+                ],
+                visibleLots,
+              )
+            }
+            importAction={() => fileInputRef.current?.click()}
+            table={(
+              <InventoryDataTable
+                hasRows={visibleLots.length > 0}
+                empty={
+                  search || itemFilter || warehouseFilter
+                    ? "Sin resultados para los filtros aplicados."
+                    : "Sin lotes registrados."
+                }
+                columns={(
+                  <>
+                    <InventoryCell header>Lote</InventoryCell>
+                    <InventoryCell header>Item / Bodega</InventoryCell>
+                    <InventoryCell header>Cantidades</InventoryCell>
+                    <InventoryCell header>Vencimiento</InventoryCell>
+                    <InventoryCell header>Estado</InventoryCell>
+                    <InventoryCell header className="text-right">Acciones</InventoryCell>
+                  </>
+                )}
+              >
+                {visibleLots.map((lot) => (
+                  <InventoryRow key={lot.id}>
+                    <InventoryCell>
+                      <div className="space-y-1">
+                        <p className="font-semibold text-foreground">{lot.lotCode}</p>
+                        <p className="text-xs text-muted-foreground">ID: {lot.id.slice(0, 8)}</p>
+                      </div>
+                    </InventoryCell>
+                    <InventoryCell>
+                      <div className="space-y-1">
+                        <p className="text-sm text-foreground">{itemsById.get(lot.itemId)?.name ?? "Item no disponible"}</p>
+                        <p className="text-xs text-muted-foreground">{warehousesById.get(lot.warehouseId)?.name ?? "Bodega no disponible"}</p>
+                      </div>
+                    </InventoryCell>
+                    <InventoryCell>
+                      <div className="space-y-1 text-sm">
+                        <p className="font-semibold text-foreground">Actual: {lot.currentQuantity}</p>
+                        <p className="text-xs text-muted-foreground">Inicial: {lot.initialQuantity}</p>
+                      </div>
+                    </InventoryCell>
+                    <InventoryCell>
+                      <span className="text-sm text-foreground/80">
+                        {lot.expiresAt ? formatSpanishLongDate(lot.expiresAt) : "Sin vencimiento"}
+                      </span>
+                    </InventoryCell>
+                    <InventoryCell>
+                      <Badge variant={lot.isActive ? "outline" : "destructive"} className="rounded-md">
+                        {lot.isActive ? "Activo" : "Inactivo"}
+                      </Badge>
+                    </InventoryCell>
+                    <InventoryCell className="text-right">
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="outline"
+                        onClick={() => {
+                          setEditingId(lot.id);
+                          setFormState({
+                            itemId: lot.itemId,
+                            warehouseId: lot.warehouseId,
+                            lotCode: lot.lotCode,
+                            quantity: String(lot.initialQuantity),
+                            expiresAt: lot.expiresAt ? lot.expiresAt.slice(0, 16) : "",
+                            isActive: lot.isActive,
+                          });
+                          setErrorMessage(null);
+                          setIsModalOpen(true);
+                        }}
+                      ><PencilLine className="size-4" />Editar</Button>
+                    </InventoryCell>
+                  </InventoryRow>
+                ))}
+              </InventoryDataTable>
+            )}
+            pagination={
+              pagination ? (
+                <InventoryPaginationControls
+                  page={pagination.page}
+                  totalPages={pagination.totalPages}
+                  total={pagination.total}
+                  onPageChange={setPage}
+                />
+              ) : null
+            }
+          />
 
-            {pagination ? (
-              <InventoryPaginationControls
-                page={pagination.page}
-                totalPages={pagination.totalPages}
-                total={pagination.total}
-                onPageChange={setPage}
-              />
-            ) : null}
-          </div>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".csv"
+            className="hidden"
+            onChange={(event) => {
+              const file = event.target.files?.[0];
+              if (!file) {
+                return;
+              }
+              setNoticeMessage(`Archivo preparado para importacion: ${file.name}. La carga asistida se conectara al flujo backend cuando exista contrato.`);
+              event.target.value = "";
+            }}
+          />
         </div>
 
         <aside className="space-y-4 xl:sticky xl:top-24">
@@ -476,6 +469,123 @@ function InventoryLotsContent({
           />
         </aside>
       </div>
+
+      <InventoryFormModal
+        open={isModalOpen}
+        onOpenChange={(open) => {
+          setIsModalOpen(open);
+          if (!open) {
+            resetForm();
+            setErrorMessage(null);
+          }
+        }}
+        title={editingId ? "Editar lote" : "Nuevo lote"}
+        description="Registra trazabilidad por item y bodega con estado operativo y fecha de vencimiento."
+        footer={(
+          <>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => {
+                setIsModalOpen(false);
+                resetForm();
+                setErrorMessage(null);
+              }}
+              disabled={mutation.isPending}
+            ><X className="size-4" />Cancelar</Button>
+            <Button type="button" onClick={() => mutation.mutate()} disabled={mutation.isPending}>
+              {editingId ? <><Save className="size-4" />Actualizar lote</> : <><Plus className="size-4" />Crear lote</>}
+            </Button>
+          </>
+        )}
+      >
+        <div className="grid gap-4 md:grid-cols-2">
+          <div className="space-y-2">
+            <label className="field-label">Item</label>
+            <select
+              className={inventorySelectClassName}
+              value={formState.itemId}
+              onChange={(event) => setFormState({ ...formState, itemId: event.target.value })}
+              disabled={Boolean(editingId)}
+            >
+              <option value="">Selecciona un item</option>
+              {items.map((item) => (
+                <option key={item.id} value={item.id}>
+                  {item.name} ({item.sku})
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="space-y-2">
+            <label className="field-label">Bodega</label>
+            <select
+              className={inventorySelectClassName}
+              value={formState.warehouseId}
+              onChange={(event) => setFormState({ ...formState, warehouseId: event.target.value })}
+              disabled={Boolean(editingId)}
+            >
+              <option value="">Selecciona una bodega</option>
+              {warehouses.map((warehouse) => (
+                <option key={warehouse.id} value={warehouse.id}>
+                  {warehouse.name}
+                </option>
+              ))}
+            </select>
+          </div>
+          {!editingId ? (
+            <>
+              <div className="space-y-2">
+                <label className="field-label">Codigo lote</label>
+                <Input
+                  value={formState.lotCode}
+                  onChange={(event) => setFormState({ ...formState, lotCode: event.target.value })}
+                  placeholder="LOT-2026-001"
+                  className="h-10 rounded-md bg-background/80"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="field-label">Cantidad inicial</label>
+                <Input
+                  type="number"
+                  value={formState.quantity}
+                  onChange={(event) => setFormState({ ...formState, quantity: event.target.value })}
+                  placeholder="100"
+                  className="h-10 rounded-md bg-background/80"
+                />
+              </div>
+            </>
+          ) : (
+            <div className="space-y-2 md:col-span-2">
+              <label className="field-label">Estado</label>
+              <select
+                className={inventorySelectClassName}
+                value={formState.isActive ? "active" : "inactive"}
+                onChange={(event) =>
+                  setFormState({ ...formState, isActive: event.target.value === "active" })
+                }
+              >
+                <option value="active">Activo</option>
+                <option value="inactive">Inactivo</option>
+              </select>
+            </div>
+          )}
+          <div className="space-y-2 md:col-span-2">
+            <label className="field-label">Fecha vencimiento</label>
+            <Input
+              type="datetime-local"
+              value={formState.expiresAt}
+              onChange={(event) => setFormState({ ...formState, expiresAt: event.target.value })}
+              className="h-10 rounded-md bg-background/80"
+            />
+          </div>
+        </div>
+      </InventoryFormModal>
     </div>
   );
 }
+
+
+
+
+
+

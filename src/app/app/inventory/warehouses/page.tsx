@@ -1,16 +1,26 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { PencilLine, Plus, Save, X } from "lucide-react";
 import { InventoryHelpPanel } from "@/components/modules/inventory/inventory-help-panel";
 import { InventoryModuleNav } from "@/components/modules/inventory/inventory-module-nav";
 import { InventoryPaginationControls } from "@/components/modules/inventory/inventory-pagination-controls";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { LoadingScreen } from "@/components/ui/loading-screen";
 import { TenantContextGate } from "@/components/tenant/tenant-context-gate";
 import { MODULE_GUARDS, TenantModuleGate } from "@/components/tenant/tenant-module-gate";
 import { TenantPageShell } from "@/components/tenant/tenant-page-shell";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { InventoryFormModal } from "@/components/ui/inventory-form-modal";
+import {
+  InventoryCell,
+  InventoryDataTable,
+  InventoryRecordsShell,
+  InventoryRow,
+  inventorySelectClassName,
+} from "@/components/ui/inventory-records-shell";
+import { LoadingScreen } from "@/components/ui/loading-screen";
 import { resolveInventoryErrorMessage } from "@/features/inventory/error-code-map";
 import {
   createInventoryWarehouse,
@@ -18,6 +28,7 @@ import {
   updateInventoryWarehouse,
 } from "@/features/inventory/inventory.service";
 import { ApiRequestError } from "@/lib/api/client";
+import { downloadCsv } from "@/lib/export-csv";
 import { queryKeys } from "@/lib/query/query-keys";
 import { useSessionStore } from "@/store/session-store";
 
@@ -38,6 +49,13 @@ export default function InventoryWarehousesPage() {
       eyebrow="Inventory"
       title="Bodegas"
       description="Gestiona bodegas activas para operaciones de inventario por tenant."
+      breadcrumbItems={[
+        { label: "Dashboard", href: "/app" },
+        { label: "Inventario", href: "/app/inventory" },
+        { label: "Bodegas" },
+      ]}
+      backHref="/app/inventory"
+      backLabel="Volver a Panel principal"
     >
       <TenantContextGate>
         {({ tenant, membership }) => (
@@ -97,6 +115,9 @@ function InventoryWarehousesContent({
 }: WarehousesContentProps) {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [noticeMessage, setNoticeMessage] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
   const limit = 20;
   const normalizedSearch = search.trim();
 
@@ -132,9 +153,11 @@ function InventoryWarehousesContent({
     },
     onSuccess: (response) => {
       setLastTraceId(response.traceId);
-      queryClient.invalidateQueries({ queryKey: queryKeys.inventoryWarehouses(tenantId) });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.inventoryWarehouses(tenantId) });
       setErrorMessage(null);
+      setNoticeMessage(null);
       resetForm();
+      setIsModalOpen(false);
     },
     onError: (error: unknown) => {
       if (error instanceof ApiRequestError) {
@@ -182,162 +205,130 @@ function InventoryWarehousesContent({
 
       <div className="grid items-start gap-5 xl:grid-cols-[minmax(0,1fr)_320px]">
         <div className="space-y-6">
-          <div className="rounded-xl border border-border/80 bg-card/80 p-4">
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <div>
-                <p className="text-sm font-semibold">
-                  {editingId ? "Editar bodega" : "Nueva bodega"}
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  Define el nombre operativo y estado de disponibilidad.
-                </p>
-              </div>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={resetForm}
-                disabled={!editingId && !formState.name && !formState.description}
+          {noticeMessage ? (
+            <div className="rounded-xl border border-primary/25 bg-primary/8 px-4 py-3 text-sm text-foreground/90">
+              {noticeMessage}
+            </div>
+          ) : null}
+          {errorMessage ? (
+            <div className="rounded-xl border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-red-200">
+              {errorMessage}
+            </div>
+          ) : null}
+
+          <InventoryRecordsShell
+            title="Bodegas registradas"
+            description="Controla ubicaciones activas, descripciones operativas y su disponibilidad para movimientos."
+            badgeLabel="Red logistica"
+            countLabel="Total visible"
+            countValue={String(pagination?.total ?? warehouses.length)}
+            searchValue={search}
+            onSearchChange={(value) => {
+              setSearch(value);
+              setPage(1);
+            }}
+            searchPlaceholder="Buscar bodega"
+            createLabel="Nueva bodega"
+            onCreate={() => {
+              resetForm();
+              setErrorMessage(null);
+              setIsModalOpen(true);
+            }}
+            exportAction={() =>
+              downloadCsv(
+                "inventory-warehouses.csv",
+                [
+                  { label: "Nombre", value: (warehouse) => warehouse.name },
+                  { label: "Descripcion", value: (warehouse) => warehouse.description ?? "" },
+                  { label: "Estado", value: (warehouse) => (warehouse.isActive ? "Activa" : "Inactiva") },
+                ],
+                warehouses,
+              )
+            }
+            importAction={() => fileInputRef.current?.click()}
+            table={(
+              <InventoryDataTable
+                hasRows={warehouses.length > 0}
+                empty={
+                  normalizedSearch.length > 0
+                    ? "Sin resultados para la busqueda aplicada."
+                    : "Sin bodegas registradas."
+                }
+                columns={(
+                  <>
+                    <InventoryCell header>Bodega</InventoryCell>
+                    <InventoryCell header>Descripcion</InventoryCell>
+                    <InventoryCell header>Estado</InventoryCell>
+                    <InventoryCell header className="text-right">Acciones</InventoryCell>
+                  </>
+                )}
               >
-                Limpiar
-              </Button>
-            </div>
-
-            <div className="mt-4 grid gap-3 md:grid-cols-2">
-              <div className="space-y-2">
-                <label className="field-label">Nombre</label>
-                <Input
-                  value={formState.name}
-                  onChange={(event) => setFormState({ ...formState, name: event.target.value })}
-                  placeholder="Ej: Bodega Central"
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="field-label">Descripcion (opcional)</label>
-                <Input
-                  value={formState.description}
-                  onChange={(event) =>
-                    setFormState({ ...formState, description: event.target.value })
-                  }
-                  placeholder="Uso o ubicacion"
-                />
-              </div>
-              {editingId ? (
-                <div className="space-y-2">
-                  <label className="field-label">Estado</label>
-                  <select
-                    className="h-11 w-full rounded-md border border-border/80 bg-background/70 px-3 text-sm text-foreground"
-                    value={formState.isActive ? "active" : "inactive"}
-                    onChange={(event) =>
-                      setFormState({ ...formState, isActive: event.target.value === "active" })
-                    }
-                  >
-                    <option value="active">Activa</option>
-                    <option value="inactive">Inactiva</option>
-                  </select>
-                </div>
-              ) : null}
-            </div>
-
-            <div className="mt-4 flex flex-wrap gap-2">
-              <Button size="sm" onClick={() => mutation.mutate()} disabled={mutation.isPending}>
-                {editingId ? "Actualizar bodega" : "Crear bodega"}
-              </Button>
-              {editingId ? (
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={resetForm}
-                  disabled={mutation.isPending}
-                >
-                  Cancelar edicion
-                </Button>
-              ) : null}
-            </div>
-
-            {errorMessage ? (
-              <div className="mt-3 rounded-md border border-destructive/40 bg-destructive/10 p-3 text-sm text-red-200">
-                {errorMessage}
-              </div>
-            ) : null}
-          </div>
-
-          <div className="space-y-3">
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <h2 className="text-lg font-semibold">Bodegas registradas</h2>
-              <div className="flex w-full gap-2 sm:w-auto">
-                <Input
-                  value={search}
-                  onChange={(event) => {
-                    setSearch(event.target.value);
-                    setPage(1);
-                  }}
-                  placeholder="Buscar bodega..."
-                  className="h-9 w-full sm:w-60"
-                />
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => {
-                    setSearch("");
-                    setPage(1);
-                  }}
-                  disabled={normalizedSearch.length === 0}
-                >
-                  Limpiar
-                </Button>
-              </div>
-            </div>
-
-            {warehouses.length === 0 ? (
-              <div className="rounded-xl border border-border/80 bg-card/80 p-4 text-sm text-muted-foreground">
-                {normalizedSearch.length > 0
-                  ? "Sin resultados para la busqueda aplicada."
-                  : "Sin bodegas registradas."}
-              </div>
-            ) : (
-              <div className="space-y-2">
                 {warehouses.map((warehouse) => (
-                  <div
-                    key={warehouse.id}
-                    className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-border/80 bg-background/70 p-3"
-                  >
-                    <div>
-                      <p className="text-sm font-semibold text-foreground">{warehouse.name}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {warehouse.description ?? "Sin descripcion"}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        Estado: {warehouse.isActive ? "Activa" : "Inactiva"}
-                      </p>
-                    </div>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => {
-                        setEditingId(warehouse.id);
-                        setFormState({
-                          name: warehouse.name,
-                          description: warehouse.description ?? "",
-                          isActive: warehouse.isActive,
-                        });
-                      }}
-                    >
-                      Editar
-                    </Button>
-                  </div>
+                  <InventoryRow key={warehouse.id}>
+                    <InventoryCell>
+                      <div className="space-y-1">
+                        <p className="font-semibold text-foreground">{warehouse.name}</p>
+                        <p className="text-xs text-muted-foreground">ID: {warehouse.id.slice(0, 8)}</p>
+                      </div>
+                    </InventoryCell>
+                    <InventoryCell>{warehouse.description ?? "Sin descripcion"}</InventoryCell>
+                    <InventoryCell>
+                      <Badge
+                        variant={warehouse.isActive ? "outline" : "destructive"}
+                        className="rounded-md"
+                      >
+                        {warehouse.isActive ? "Activa" : "Inactiva"}
+                      </Badge>
+                    </InventoryCell>
+                    <InventoryCell className="text-right">
+                      <div className="flex justify-end gap-2">
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="outline"
+                          onClick={() => {
+                            setEditingId(warehouse.id);
+                            setFormState({
+                              name: warehouse.name,
+                              description: warehouse.description ?? "",
+                              isActive: warehouse.isActive,
+                            });
+                            setErrorMessage(null);
+                            setIsModalOpen(true);
+                          }}
+                        ><PencilLine className="size-4" />Editar</Button>
+                      </div>
+                    </InventoryCell>
+                  </InventoryRow>
                 ))}
-              </div>
+              </InventoryDataTable>
             )}
+            pagination={
+              pagination ? (
+                <InventoryPaginationControls
+                  page={pagination.page}
+                  totalPages={pagination.totalPages}
+                  total={pagination.total}
+                  onPageChange={setPage}
+                />
+              ) : null
+            }
+          />
 
-            {pagination ? (
-              <InventoryPaginationControls
-                page={pagination.page}
-                totalPages={pagination.totalPages}
-                total={pagination.total}
-                onPageChange={setPage}
-              />
-            ) : null}
-          </div>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".csv"
+            className="hidden"
+            onChange={(event) => {
+              const file = event.target.files?.[0];
+              if (!file) {
+                return;
+              }
+              setNoticeMessage(`Archivo preparado para importacion: ${file.name}. La carga asistida se conectara al flujo backend cuando exista contrato.`);
+              event.target.value = "";
+            }}
+          />
         </div>
 
         <aside className="space-y-4 xl:sticky xl:top-24">
@@ -351,6 +342,75 @@ function InventoryWarehousesContent({
           />
         </aside>
       </div>
+
+      <InventoryFormModal
+        open={isModalOpen}
+        onOpenChange={(open) => {
+          setIsModalOpen(open);
+          if (!open) {
+            resetForm();
+            setErrorMessage(null);
+          }
+        }}
+        title={editingId ? "Editar bodega" : "Nueva bodega"}
+        description="Define ubicaciones operativas y su estado disponible dentro del tenant activo."
+        footer={(
+          <>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => {
+                setIsModalOpen(false);
+                resetForm();
+                setErrorMessage(null);
+              }}
+              disabled={mutation.isPending}
+            ><X className="size-4" />Cancelar</Button>
+            <Button type="button" onClick={() => mutation.mutate()} disabled={mutation.isPending}>
+              {editingId ? <><Save className="size-4" />Actualizar bodega</> : <><Plus className="size-4" />Crear bodega</>}
+            </Button>
+          </>
+        )}
+      >
+        <div className="grid gap-4 md:grid-cols-2">
+          <div className="space-y-2">
+            <label className="field-label">Nombre</label>
+            <Input
+              value={formState.name}
+              onChange={(event) => setFormState({ ...formState, name: event.target.value })}
+              placeholder="Bodega Central"
+              className="h-10 rounded-md bg-background/80"
+            />
+          </div>
+          <div className="space-y-2">
+            <label className="field-label">Descripcion</label>
+            <Input
+              value={formState.description}
+              onChange={(event) => setFormState({ ...formState, description: event.target.value })}
+              placeholder="Uso o ubicacion"
+              className="h-10 rounded-md bg-background/80"
+            />
+          </div>
+          <div className="space-y-2 md:col-span-2">
+            <label className="field-label">Estado</label>
+            <select
+              className={inventorySelectClassName}
+              value={formState.isActive ? "active" : "inactive"}
+              onChange={(event) =>
+                setFormState({ ...formState, isActive: event.target.value === "active" })
+              }
+            >
+              <option value="active">Activa</option>
+              <option value="inactive">Inactiva</option>
+            </select>
+          </div>
+        </div>
+      </InventoryFormModal>
     </div>
   );
 }
+
+
+
+
+

@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
+import { ChevronRight, House, Undo2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -11,6 +12,11 @@ export type TenantPageAction = {
   variant?: TenantPageActionVariant;
 };
 
+export type TenantPageBreadcrumbItem = {
+  label: string;
+  href?: string;
+};
+
 type TenantPageShellProps = {
   eyebrow: string;
   title: string;
@@ -19,6 +25,9 @@ type TenantPageShellProps = {
   actions?: readonly TenantPageAction[];
   className?: string;
   contentClassName?: string;
+  breadcrumbItems?: readonly TenantPageBreadcrumbItem[];
+  backHref?: string;
+  backLabel?: string;
 };
 
 export function TenantPageShell({
@@ -29,7 +38,14 @@ export function TenantPageShell({
   actions,
   className,
   contentClassName,
+  breadcrumbItems,
+  backHref,
+  backLabel,
 }: TenantPageShellProps) {
+  const hasContextHeader = Boolean(
+    (breadcrumbItems && breadcrumbItems.length > 0) || (backHref && backLabel),
+  );
+
   return (
     <main className={cn("min-h-[calc(100dvh-4.5rem)] px-4 py-6 sm:px-6 lg:px-8", className)}>
       <section className="w-full space-y-5">
@@ -48,13 +64,53 @@ export function TenantPageShell({
         <article
           className={cn("surface-card border-border/90 bg-card/95 p-5 sm:p-6", contentClassName)}
         >
+          {hasContextHeader ? (
+            <div className="mb-6 flex flex-col gap-3 rounded-2xl border border-border/80 bg-background/50 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+              {breadcrumbItems && breadcrumbItems.length > 0 ? (
+                <nav
+                  className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground"
+                  aria-label="Ruta activa"
+                >
+                  <House className="size-4 text-primary" />
+                  {breadcrumbItems.map((item, index) => {
+                    const isLast = index === breadcrumbItems.length - 1;
+
+                    return (
+                      <div key={`${item.label}:${index}`} className="flex items-center gap-2">
+                        <ChevronRight className="size-3.5 text-muted-foreground/70" />
+                        {item.href && !isLast ? (
+                          <Link href={item.href} className="transition-colors hover:text-foreground">
+                            {item.label}
+                          </Link>
+                        ) : (
+                          <span className={cn(isLast && "font-semibold text-foreground")}>{item.label}</span>
+                        )}
+                      </div>
+                    );
+                  })}
+                </nav>
+              ) : (
+                <div />
+              )}
+
+              {backHref && backLabel ? (
+                <Link href={backHref}>
+                  <Button variant="toolbar" className="w-full sm:w-auto">
+                    <Undo2 className="size-4" />
+                    {backLabel}
+                  </Button>
+                </Link>
+              ) : null}
+            </div>
+          ) : null}
+
           {children}
 
           {actions && actions.length > 0 ? (
             <div className="mt-8 flex flex-wrap gap-2">
               {actions.map((action) => (
                 <Link key={`${action.href}:${action.label}`} href={action.href}>
-                  <Button size="sm" variant={action.variant ?? "outline"} className="rounded-lg">
+                  <Button variant={action.variant ?? "outline"}>
                     {action.label}
                   </Button>
                 </Link>
@@ -66,3 +122,4 @@ export function TenantPageShell({
     </main>
   );
 }
+
