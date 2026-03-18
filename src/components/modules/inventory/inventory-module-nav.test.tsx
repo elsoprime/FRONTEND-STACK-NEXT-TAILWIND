@@ -14,20 +14,24 @@ describe("InventoryModuleNav", () => {
   });
 
   it("highlights the active direct route", () => {
-    pathnameMock = "/app/inventory/stock";
+    pathnameMock = "/app/inventory/settings";
 
     render(<InventoryModuleNav />);
 
-    expect(screen.getByRole("link", { name: /stock/i })).toHaveClass("text-primary");
-    expect(screen.getByRole("link", { name: /panel principal/i })).not.toHaveClass("text-primary");
-    expect(screen.getByRole("link", { name: /items/i })).not.toHaveClass("text-primary");
+    expect(screen.getByRole("link", { name: /configuracion/i })).toHaveClass("text-primary");
+    expect(screen.getByRole("link", { name: /panel principal/i })).not.toHaveClass(
+      "text-primary",
+    );
+    expect(screen.getByRole("link", { name: /alertas/i })).not.toHaveClass("text-primary");
   });
 
-  it("keeps parent section active for detail routes", () => {
-    pathnameMock = "/app/inventory/categories/507f191e810c19729de860eb";
+  it("keeps parent section active for nested routes", () => {
+    pathnameMock = "/app/inventory/reconciliation/history";
 
     render(<InventoryModuleNav />);
 
-    expect(screen.getByRole("link", { name: /categorias/i })).toHaveClass("text-primary");
+    expect(screen.getByRole("link", { name: /reconciliacion/i })).toHaveClass(
+      "text-primary",
+    );
   });
 });

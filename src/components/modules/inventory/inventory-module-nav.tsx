@@ -2,31 +2,14 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import {
-  ArrowRightLeft,
-  BellRing,
-  ClipboardCheck,
-  LayoutGrid,
-  Layers3,
-  Package,
-  ScanSearch,
-  Settings2,
-  Tags,
-  Warehouse,
-} from "lucide-react";
+import { BellRing, LayoutGrid, ScanSearch, Settings2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const INVENTORY_NAV_ITEMS = [
   { label: "Panel principal", href: "/app/inventory", icon: LayoutGrid },
-  { label: "Items", href: "/app/inventory/items", icon: Package },
-  { label: "Categorias", href: "/app/inventory/categories", icon: Tags },
-  { label: "Bodegas", href: "/app/inventory/warehouses", icon: Warehouse },
-  { label: "Lotes", href: "/app/inventory/lots", icon: Layers3 },
-  { label: "Conteos", href: "/app/inventory/stocktakes", icon: ClipboardCheck },
-  { label: "Stock", href: "/app/inventory/stock", icon: ArrowRightLeft },
   { label: "Alertas", href: "/app/inventory/alerts", icon: BellRing },
   { label: "Reconciliacion", href: "/app/inventory/reconciliation", icon: ScanSearch },
-  { label: "Settings", href: "/app/inventory/settings", icon: Settings2 },
+  { label: "Configuracion", href: "/app/inventory/settings", icon: Settings2 },
 ] as const;
 
 function isActive(pathname: string, href: string): boolean {
