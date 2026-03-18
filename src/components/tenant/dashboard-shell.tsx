@@ -36,9 +36,8 @@ export function DashboardShell({ children }: DashboardShellProps) {
 
       <div
         className={cn(
-          "relative transition-[padding] duration-300",
+          "relative transition-[padding] duration-300 before:pointer-events-none before:absolute before:inset-0 before:bg-[radial-gradient(circle_at_82%_0%,oklch(0.66_0.08_214/0.1),transparent_42%),radial-gradient(circle_at_12%_0%,oklch(0.68_0.08_42/0.08),transparent_34%)]",
           sidebarCollapsed ? "lg:pl-24" : "lg:pl-72",
-          "before:pointer-events-none before:absolute before:inset-0 before:bg-[radial-gradient(circle_at_85%_0%,oklch(0.62_0.08_214/0.08),transparent_45%)]",
         )}
       >
         <DashboardHeader
@@ -51,7 +50,7 @@ export function DashboardShell({ children }: DashboardShellProps) {
 
       <div
         className={cn(
-          "fixed inset-0 z-30 bg-black/45 opacity-0 transition-opacity lg:hidden",
+          "fixed inset-0 z-30 bg-[radial-gradient(circle_at_top,rgba(15,23,42,0.24),rgba(15,23,42,0.62))] opacity-0 transition-opacity lg:hidden",
           sidebarOpen && "pointer-events-auto opacity-100",
           !sidebarOpen && "pointer-events-none",
         )}

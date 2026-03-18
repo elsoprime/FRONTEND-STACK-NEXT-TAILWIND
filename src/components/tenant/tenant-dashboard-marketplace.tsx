@@ -9,14 +9,15 @@ import {
   BellRing,
   Boxes,
   BriefcaseBusiness,
+  Building2,
   ClipboardCopy,
   LoaderCircle,
   ReceiptText,
   ScanSearch,
-  Settings2,
   Sparkles,
   UserPlus,
   Users2,
+  Wrench,
 } from "lucide-react";
 import Link from "next/link";
 import { TenantContextGate } from "@/components/tenant/tenant-context-gate";
@@ -371,8 +372,8 @@ function DashboardMarketplaceContent({
   return (
     <section className="w-full space-y-6 px-4 pb-10 pt-6 sm:px-6 xl:px-8 2xl:px-10">
       <article className="surface-card reveal-up relative overflow-hidden p-6 sm:p-7 [--reveal-delay:40ms]">
-        <div className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-gradient-to-r from-primary/18 via-accent/14 to-transparent" />
-        <div className="pointer-events-none absolute -left-20 -top-16 size-64 rounded-full bg-primary/10 blur-3xl" />
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-28 bg-gradient-to-r from-primary/16 via-accent/10 to-transparent" />
+        <div className="pointer-events-none absolute -left-20 -top-16 size-64 rounded-full bg-primary/12 blur-3xl" />
 
         <div className="relative space-y-5">
           <div className="grid gap-4 lg:grid-cols-[1fr_auto] lg:items-start">
@@ -393,24 +394,25 @@ function DashboardMarketplaceContent({
 
             <div className="flex flex-wrap gap-2 lg:justify-end">
               <Link href="/app/tenants/create">
-                <Button size="sm" className="rounded-lg">
+                <Button size="lg">
+                  <Building2 className="size-4" />
                   Crear tenant
                 </Button>
               </Link>
               <Link href="/app/tenants/select">
-                <Button size="sm" variant="outline" className="rounded-lg">
+                <Button size="lg" variant="toolbar">
                   <ArrowRightLeft className="size-4" />
                   Cambiar tenant
                 </Button>
               </Link>
               <Link href="/app/settings/tenant">
-                <Button size="sm" variant="outline" className="rounded-lg">
-                  <Settings2 className="size-4" />
+                <Button size="lg" variant="toolbar">
+                  <Wrench className="size-4" />
                   Configuracion
                 </Button>
               </Link>
               <Link href="/app/settings/billing">
-                <Button size="sm" className="rounded-lg">
+                <Button size="lg" variant="secondary">
                   <ReceiptText className="size-4" />
                   Plan y billing
                 </Button>
@@ -422,7 +424,7 @@ function DashboardMarketplaceContent({
             {dependencyCards.map((dependency) => (
               <article
                 key={dependency.label}
-                className="rounded-xl border border-border/85 bg-background/84 px-4 py-3"
+                className="rounded-2xl border border-border/76 bg-white/56 px-4 py-3 shadow-[0_14px_28px_-24px_oklch(0.24_0.02_55/0.22)] dark:bg-card/52"
               >
                 <p className="text-[10px] font-semibold uppercase tracking-[0.11em] text-foreground/62">
                   {dependency.label}
@@ -521,7 +523,7 @@ function DashboardMarketplaceContent({
           ) : null}
 
           {!auditRecentQuery.isLoading && !auditError && auditEvents.length === 0 ? (
-            <div className="rounded-xl border border-border/80 bg-background/84 px-4 py-3 text-sm dashboard-text-muted">
+            <div className="rounded-2xl border border-border/76 bg-white/56 px-4 py-3 text-sm dashboard-text-muted dark:bg-card/52">
               No hay eventos recientes para este tenant.
             </div>
           ) : null}
@@ -531,7 +533,7 @@ function DashboardMarketplaceContent({
               {auditEvents.map((event) => (
                 <li
                   key={event.id}
-                  className="rounded-xl border border-border/80 bg-background/84 px-3 py-2.5"
+                  className="rounded-2xl border border-border/76 bg-white/56 px-3 py-2.5 dark:bg-card/52"
                 >
                   <div className="flex flex-wrap items-start justify-between gap-2">
                     <div>
@@ -569,7 +571,7 @@ function DashboardMarketplaceContent({
           className="reveal-up min-h-[420px] [--reveal-delay:190ms]"
         >
           <div className="grid gap-3 sm:grid-cols-2">
-            <article className="rounded-xl border border-border/80 bg-background/84 p-4">
+            <article className="rounded-2xl border border-border/76 bg-white/56 p-4 shadow-[0_14px_28px_-24px_oklch(0.24_0.02_55/0.2)] dark:bg-card/52">
               <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
                 Alertas de stock
               </p>
@@ -583,7 +585,7 @@ function DashboardMarketplaceContent({
               </p>
             </article>
 
-            <article className="rounded-xl border border-border/80 bg-background/84 p-4">
+            <article className="rounded-2xl border border-border/76 bg-white/56 p-4 shadow-[0_14px_28px_-24px_oklch(0.24_0.02_55/0.2)] dark:bg-card/52">
               <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
                 Oportunidades abiertas
               </p>
@@ -602,20 +604,22 @@ function DashboardMarketplaceContent({
             <Link href="/app/inventory/alerts" className="block">
               <Button
                 type="button"
-                variant="outline"
-                className="w-full rounded-lg"
+                variant="toolbar"
+                className="w-full"
                 disabled={!canOpenInventoryAlerts}
               >
+                <BellRing className="size-4" />
                 Ver alertas de stock
               </Button>
             </Link>
             <Link href="/app/crm/opportunities" className="block">
               <Button
                 type="button"
-                variant="outline"
-                className="w-full rounded-lg"
+                variant="toolbar"
+                className="w-full"
                 disabled={crmState !== "active"}
               >
+                <BriefcaseBusiness className="size-4" />
                 Ver oportunidades
               </Button>
             </Link>
@@ -761,11 +765,11 @@ function DashboardMarketplaceContent({
                 onChange={(event) => setInviteEmail(event.target.value)}
                 placeholder="usuario@empresa.com"
                 aria-label="Email para invitacion tenant"
-                className="h-10 rounded-lg"
+                className="h-10 rounded-md"
               />
               <Button
                 type="button"
-                className="w-full rounded-lg"
+                className="w-full"
                 onClick={handleInvite}
                 disabled={inviteMutation.isPending || inviteEmail.trim().length === 0}
               >
@@ -790,14 +794,15 @@ function DashboardMarketplaceContent({
             icon={ReceiptText}
           >
             <div className="space-y-2">
-              <article className="rounded-xl border border-border/80 bg-background/84 px-3 py-2.5">
+              <article className="rounded-2xl border border-border/76 bg-white/56 px-3 py-2.5 dark:bg-card/52">
                 <p className="text-xs dashboard-text-muted">Plan vigente</p>
                 <p className="text-sm font-semibold text-foreground">
                   {currentPlan?.name ?? "Sin plan"}
                 </p>
               </article>
               <Link href="/app/settings/billing" className="block">
-                <Button type="button" className="w-full rounded-lg">
+                <Button type="button" size="lg" variant="secondary" className="w-full">
+                  <ReceiptText className="size-4" />
                   Abrir billing
                 </Button>
               </Link>
@@ -810,7 +815,7 @@ function DashboardMarketplaceContent({
             icon={ScanSearch}
           >
             <div className="space-y-2">
-              <article className="rounded-xl border border-border/80 bg-background/84 px-3 py-2.5">
+              <article className="rounded-2xl border border-border/76 bg-white/56 px-3 py-2.5 dark:bg-card/52">
                 <p className="text-xs dashboard-text-muted">Ultimo traceId</p>
                 <p className="break-all font-mono text-xs text-foreground">
                   {lastTraceId ?? "sin traza"}
@@ -819,8 +824,7 @@ function DashboardMarketplaceContent({
               <div className="grid grid-cols-2 gap-2">
                 <Button
                   type="button"
-                  variant="outline"
-                  className="rounded-lg"
+                  variant="toolbar"
                   onClick={() => void handleCopyTraceId()}
                   disabled={!lastTraceId}
                 >
@@ -830,17 +834,19 @@ function DashboardMarketplaceContent({
                 <Link href="/app/audit" className="block">
                   <Button
                     type="button"
-                    variant="outline"
-                    className="w-full rounded-lg"
+                    variant="toolbar"
+                    className="w-full"
                     disabled={!canOpenAudit}
                   >
+                    <Activity className="size-4" />
                     Eventos de auditoria
                   </Button>
                 </Link>
               </div>
               {supportUrl ? (
                 <a href={supportUrl} target="_blank" rel="noreferrer">
-                  <Button type="button" className="w-full rounded-lg">
+                  <Button type="button" size="lg" variant="secondary" className="w-full">
+                    <ScanSearch className="size-4" />
                     Ir a soporte
                   </Button>
                 </a>
@@ -897,3 +903,9 @@ export function TenantDashboardMarketplace() {
     </main>
   );
 }
+
+
+
+
+
+

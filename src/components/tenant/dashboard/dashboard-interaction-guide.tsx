@@ -39,9 +39,9 @@ const RULES: RuleItem[] = [
 
 const RULE_TONE_CLASSNAMES: Record<RuleItem["tone"], string> = {
   warning:
-    "border-amber-300/85 bg-amber-100/70 text-amber-950 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-100",
+    "border-amber-300/82 bg-amber-100/82 text-amber-950 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-100",
   danger:
-    "border-red-300/85 bg-red-100/70 text-red-900 dark:border-destructive/45 dark:bg-destructive/15 dark:text-red-200",
+    "border-red-300/82 bg-red-100/82 text-red-900 dark:border-destructive/45 dark:bg-destructive/15 dark:text-red-200",
   info: "border-accent/35 bg-accent/12 text-foreground",
 };
 
@@ -62,8 +62,9 @@ export function TenantDashboardInteractionGuide({
   lastTraceId,
 }: TenantDashboardInteractionGuideProps) {
   return (
-    <article className="surface-card rounded-2xl p-5">
-      <header className="space-y-2">
+    <article className="surface-card relative overflow-hidden rounded-2xl p-5">
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-16 bg-gradient-to-r from-primary/14 via-accent/10 to-transparent" />
+      <header className="relative space-y-2">
         <p className="label-kicker text-primary/90">Guia de Interaccion</p>
         <h3 className="text-xl font-semibold tracking-tight text-foreground">
           Estados de error, alertas y validaciones
@@ -73,15 +74,12 @@ export function TenantDashboardInteractionGuide({
         </p>
       </header>
 
-      <div className="mt-4 grid gap-3 md:grid-cols-3">
+      <div className="relative mt-4 grid gap-3 md:grid-cols-3">
         {RULES.map((rule) => {
           const Icon = resolveIcon(rule.tone);
 
           return (
-            <section
-              key={rule.code}
-              className={cn("rounded-xl border px-3 py-3", RULE_TONE_CLASSNAMES[rule.tone])}
-            >
+            <section key={rule.code} className={cn("rounded-2xl border px-3 py-3 shadow-[0_14px_28px_-24px_oklch(0.24_0.02_55/0.18)]", RULE_TONE_CLASSNAMES[rule.tone])}>
               <div className="flex items-start justify-between gap-2">
                 <Icon className="mt-0.5 size-4 shrink-0" />
                 <Badge variant="outline" className="border-current/30 bg-transparent text-[10px]">
@@ -97,14 +95,11 @@ export function TenantDashboardInteractionGuide({
 
       <div className="mt-4 flex flex-wrap items-center gap-2 text-xs dashboard-text-muted">
         <span>Ultimo codigo de dominio:</span>
-        <Badge variant="outline" className="border-border/80 bg-background/80 text-foreground">
+        <Badge variant="outline" className="border-border/74 bg-white/62 text-foreground dark:bg-card/56">
           {lastDomainCode ?? "N/A"}
         </Badge>
         <span>TraceId soporte:</span>
-        <Badge
-          variant="outline"
-          className="border-border/80 bg-background/80 font-mono text-foreground"
-        >
+        <Badge variant="outline" className="border-border/74 bg-white/62 font-mono text-foreground dark:bg-card/56">
           {lastTraceId ?? "sin traza"}
         </Badge>
       </div>

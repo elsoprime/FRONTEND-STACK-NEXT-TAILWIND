@@ -8,6 +8,7 @@ import { TenantContextGate } from "@/components/tenant/tenant-context-gate";
 import { TenantEffectiveSettingsPanel } from "@/components/tenant/tenant-effective-settings-panel";
 import { TenantPageShell, type TenantPageAction } from "@/components/tenant/tenant-page-shell";
 import { TenantSettingsForm } from "@/components/tenant/tenant-settings-form";
+import { cn } from "@/lib/utils";
 
 const ACTIONS: readonly TenantPageAction[] = [
   { label: "Abrir vista efectiva completa", href: "/app/settings/tenant/effective" },
@@ -33,28 +34,26 @@ export default function TenantSettingsPage() {
             <section className="space-y-4">
               <article className="surface-card rounded-xl border-border/90 bg-card/95 p-4">
                 <div className="inline-flex rounded-xl border border-border/80 bg-background/72 p-1">
-                  <button
-                    type="button"
-                    className={`rounded-lg px-3 py-1.5 text-sm font-semibold transition ${
-                      activeTab === "form"
-                        ? "bg-primary/16 text-primary"
-                        : "text-foreground/70 hover:bg-muted/60"
-                    }`}
+                  <Button
+                    variant={activeTab === "form" ? "secondary" : "ghost"}
+                    className={cn(
+                      "px-3 py-1.5 text-sm font-semibold transition",
+                      activeTab === "form" ? "bg-primary/16 text-primary" : "text-foreground/70",
+                    )}
                     onClick={() => setActiveTab("form")}
                   >
                     Formulario
-                  </button>
-                  <button
-                    type="button"
-                    className={`rounded-lg px-3 py-1.5 text-sm font-semibold transition ${
-                      activeTab === "summary"
-                        ? "bg-primary/16 text-primary"
-                        : "text-foreground/70 hover:bg-muted/60"
-                    }`}
+                  </Button>
+                  <Button
+                    variant={activeTab === "summary" ? "secondary" : "ghost"}
+                    className={cn(
+                      "px-3 py-1.5 text-sm font-semibold transition",
+                      activeTab === "summary" ? "bg-primary/16 text-primary" : "text-foreground/70",
+                    )}
                     onClick={() => setActiveTab("summary")}
                   >
                     Resumen avanzado
-                  </button>
+                  </Button>
                 </div>
 
                 <p className="mt-3 text-sm dashboard-text-muted">
@@ -91,7 +90,7 @@ export default function TenantSettingsPage() {
                       </p>
                     </div>
                     <Link href="/app/settings/tenant/effective" className="mt-3 inline-flex">
-                      <Button variant="outline" className="rounded-lg">
+                      <Button variant="outline">
                         Abrir vista efectiva completa
                       </Button>
                     </Link>
@@ -109,7 +108,7 @@ export default function TenantSettingsPage() {
                 compact
               />
               <Link href="/app/settings/tenant/effective" className="inline-flex w-full">
-                <Button variant="outline" className="w-full rounded-lg">
+                <Button variant="outline" className="w-full">
                   Ver detalle completo
                 </Button>
               </Link>

@@ -105,7 +105,7 @@ export default function ProfileSettingsPage() {
                 </div>
 
                 <Link href="/app/settings/security">
-                  <Button className="rounded-lg">
+                  <Button>
                     <LockKeyhole className="size-4" />
                     Abrir seguridad
                   </Button>
