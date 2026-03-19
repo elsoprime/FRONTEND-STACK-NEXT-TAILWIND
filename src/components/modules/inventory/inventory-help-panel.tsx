@@ -7,7 +7,7 @@ type InventoryHelpPanelProps = {
 
 export function InventoryHelpPanel({ title = "Panel de ayuda", items }: InventoryHelpPanelProps) {
   return (
-    <article className="surface-card rounded-xl border-border/90 bg-card/95 p-4">
+    <article className="rounded-md bg-card/96 p-6 shadow-sm">
       <div className="flex items-center gap-2">
         <BookOpenText className="size-4 text-primary" />
         <h3 className="text-sm font-semibold uppercase tracking-[0.08em] text-foreground">

@@ -195,7 +195,7 @@
   }
 
   .surface-card {
-    @apply rounded-2xl border border-border/82 bg-[linear-gradient(180deg,rgba(255,255,255,0.78)_0%,rgba(248,243,237,0.94)_100%)] shadow-[0_20px_44px_-32px_oklch(0.24_0.02_55/0.24)] backdrop-blur-xl transition-all duration-300 dark:bg-[linear-gradient(180deg,rgba(42,39,36,0.92)_0%,rgba(31,29,27,0.96)_100%)];
+    @apply rounded-lg border border-border/82 bg-[linear-gradient(180deg,rgba(255,255,255,0.78)_0%,rgba(248,243,237,0.94)_100%)] shadow-[0_20px_44px_-32px_oklch(0.24_0.02_55/0.24)] backdrop-blur-xl transition-all duration-300 dark:bg-[linear-gradient(180deg,rgba(42,39,36,0.92)_0%,rgba(31,29,27,0.96)_100%)];
   }
 
   .surface-card-hover {
@@ -226,4 +226,3 @@
     @apply text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground;
   }
 }
-

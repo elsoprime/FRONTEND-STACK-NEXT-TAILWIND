@@ -4,7 +4,14 @@ import { ChevronRight, House, Undo2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
-type TenantPageActionVariant = "default" | "outline";
+type TenantPageActionVariant =
+  | "default"
+  | "primary"
+  | "secondary"
+  | "tertiary"
+  | "outline"
+  | "toolbar"
+  | "destructive";
 
 export type TenantPageAction = {
   label: string;
@@ -65,7 +72,7 @@ export function TenantPageShell({
           className={cn("surface-card border-border/90 bg-card/95 p-5 sm:p-6", contentClassName)}
         >
           {hasContextHeader ? (
-            <div className="mb-6 flex flex-col gap-3 rounded-2xl border border-border/80 bg-background/50 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="mb-6 flex flex-col gap-3 rounded-md border border-border/80 bg-background/50 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
               {breadcrumbItems && breadcrumbItems.length > 0 ? (
                 <nav
                   className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground"
@@ -79,11 +86,16 @@ export function TenantPageShell({
                       <div key={`${item.label}:${index}`} className="flex items-center gap-2">
                         <ChevronRight className="size-3.5 text-muted-foreground/70" />
                         {item.href && !isLast ? (
-                          <Link href={item.href} className="transition-colors hover:text-foreground">
+                          <Link
+                            href={item.href}
+                            className="transition-colors hover:text-foreground"
+                          >
                             {item.label}
                           </Link>
                         ) : (
-                          <span className={cn(isLast && "font-semibold text-foreground")}>{item.label}</span>
+                          <span className={cn(isLast && "font-semibold text-foreground")}>
+                            {item.label}
+                          </span>
                         )}
                       </div>
                     );
@@ -110,9 +122,7 @@ export function TenantPageShell({
             <div className="mt-8 flex flex-wrap gap-2">
               {actions.map((action) => (
                 <Link key={`${action.href}:${action.label}`} href={action.href}>
-                  <Button variant={action.variant ?? "outline"}>
-                    {action.label}
-                  </Button>
+                  <Button variant={action.variant ?? "secondary"}>{action.label}</Button>
                 </Link>
               ))}
             </div>
@@ -122,4 +132,3 @@ export function TenantPageShell({
     </main>
   );
 }
-

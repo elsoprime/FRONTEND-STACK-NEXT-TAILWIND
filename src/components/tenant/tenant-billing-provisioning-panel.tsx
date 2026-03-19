@@ -527,7 +527,8 @@ export function TenantBillingProvisioningPanel({
           <div className="grid gap-3 md:grid-cols-3">
             <Button
               type="button"
-              className="h-11 rounded-xl"
+              variant="primary"
+              className="h-11"
               disabled={isWorking || !canAssignSelectedPlan}
               onClick={() => {
                 setViewState({ status: "idle" });
@@ -546,8 +547,8 @@ export function TenantBillingProvisioningPanel({
 
             <Button
               type="button"
-              variant="outline"
-              className="h-11 rounded-xl"
+              variant="tertiary"
+              className="h-11"
               disabled={!canStartCheckout}
               onClick={() => {
                 setViewState({ status: "idle" });
@@ -569,8 +570,8 @@ export function TenantBillingProvisioningPanel({
 
             <Button
               type="button"
-              variant="outline"
-              className="h-11 rounded-xl"
+              variant="tertiary"
+              className="h-11"
               disabled={!canVerifyActivation}
               onClick={() => {
                 setViewState({ status: "idle" });
@@ -593,8 +594,8 @@ export function TenantBillingProvisioningPanel({
           <div className="mt-3">
             <Button
               type="button"
-              variant="outline"
-              className="h-11 rounded-xl text-destructive hover:bg-destructive/10 hover:text-destructive"
+              variant="destructive"
+              className="h-11"
               disabled={!canCancelSubscription}
               onClick={() => {
                 setViewState({ status: "idle" });
@@ -773,3 +774,7 @@ export function TenantBillingProvisioningPanel({
     </div>
   );
 }
+
+
+
+

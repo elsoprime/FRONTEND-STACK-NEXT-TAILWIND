@@ -1,18 +1,9 @@
-"use client";
+﻿"use client";
 
 import { useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
-import {
-  Eye,
-  PencilLine,
-  Plus,
-  RotateCcw,
-  Save,
-  Trash2,
-  TriangleAlert,
-  X,
-} from "lucide-react";
+import { Eye, PencilLine, Plus, RotateCcw, Save, Trash2, TriangleAlert, X } from "lucide-react";
 import { InventoryHelpPanel } from "@/components/modules/inventory/inventory-help-panel";
 import { InventoryModuleNav } from "@/components/modules/inventory/inventory-module-nav";
 import { InventoryPaginationControls } from "@/components/modules/inventory/inventory-pagination-controls";
@@ -77,14 +68,11 @@ export default function InventoryItemsPage() {
     <TenantPageShell
       eyebrow="Inventory"
       title="Items"
-      description="Gestiona items y niveles de stock del tenant activo."
+      description="Gestiona items del inventario del tenant activo."
       breadcrumbItems={[
-        { label: "Dashboard", href: "/app" },
-        { label: "Inventario", href: "/app/inventory" },
+        { label: "Panel principal", href: "/app/inventory?tab=submodules" },
         { label: "Items" },
       ]}
-      backHref="/app/inventory"
-      backLabel="Volver a Panel principal"
     >
       <TenantContextGate>
         {({ tenant, membership }) => (
@@ -280,7 +268,11 @@ function InventoryItemsContent({
         ? resolveInventoryErrorMessage(err.code, err.message)
         : resolveInventoryErrorMessage("GEN_INTERNAL_ERROR");
 
-    return <div className="rounded-xl border border-destructive/40 bg-destructive/12 p-4 text-red-200">{message}</div>;
+    return (
+      <div className="rounded-xl border border-destructive/40 bg-destructive/12 p-4 text-red-200">
+        {message}
+      </div>
+    );
   }
 
   const submitting = mutation.isPending;
@@ -288,11 +280,18 @@ function InventoryItemsContent({
   return (
     <div className="space-y-6">
       <InventoryModuleNav />
-
       <div className="grid items-start gap-5 xl:grid-cols-[minmax(0,1fr)_320px]">
         <div className="space-y-6">
-          {noticeMessage ? <div className="rounded-xl border border-primary/25 bg-primary/8 px-4 py-3 text-sm text-foreground/90">{noticeMessage}</div> : null}
-          {actionErrorMessage ? <div className="rounded-xl border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-red-200">{actionErrorMessage}</div> : null}
+          {noticeMessage ? (
+            <div className="rounded-xl border border-primary/25 bg-primary/8 px-4 py-3 text-sm text-foreground/90">
+              {noticeMessage}
+            </div>
+          ) : null}
+          {actionErrorMessage ? (
+            <div className="rounded-xl border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-red-200">
+              {actionErrorMessage}
+            </div>
+          ) : null}
 
           <InventoryRecordsShell
             title="Items registrados"
@@ -306,24 +305,52 @@ function InventoryItemsContent({
               setPage(1);
             }}
             searchPlaceholder="Buscar por item o SKU"
-            filters={(
+            filters={
               <>
-                <select className={cn(inventorySelectClassName, "lg:max-w-[210px]")} value={categoryFilter} onChange={(event) => { setCategoryFilter(event.target.value); setPage(1); }}>
+                <select
+                  className={cn(inventorySelectClassName, "lg:max-w-[210px]")}
+                  value={categoryFilter}
+                  onChange={(event) => {
+                    setCategoryFilter(event.target.value);
+                    setPage(1);
+                  }}
+                >
                   <option value="">Todas las categorias</option>
                   {categories.map((category) => (
-                    <option key={category.id} value={category.id}>{category.name}</option>
+                    <option key={category.id} value={category.id}>
+                      {category.name}
+                    </option>
                   ))}
                 </select>
-                <Button type="button" size="sm" variant={lowStockOnly ? "default" : "outline"} onClick={() => { setLowStockOnly((current) => !current); setPage(1); }}>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant={lowStockOnly ? "tertiary" : "outline"}
+                  onClick={() => {
+                    setLowStockOnly((current) => !current);
+                    setPage(1);
+                  }}
+                >
                   <TriangleAlert className="size-4" />
                   Solo low stock
                 </Button>
-                <Button type="button" size="sm" variant="outline" onClick={() => { setSearch(""); setCategoryFilter(""); setLowStockOnly(false); setPage(1); }} disabled={!normalizedSearch && !normalizedCategoryFilter && !lowStockOnly}>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="tertiary"
+                  onClick={() => {
+                    setSearch("");
+                    setCategoryFilter("");
+                    setLowStockOnly(false);
+                    setPage(1);
+                  }}
+                  disabled={!normalizedSearch && !normalizedCategoryFilter && !lowStockOnly}
+                >
                   <RotateCcw className="size-4" />
                   Limpiar filtros
                 </Button>
               </>
-            )}
+            }
             createLabel="Nuevo item"
             onCreate={() => {
               resetForm();
@@ -331,50 +358,160 @@ function InventoryItemsContent({
               setIsModalOpen(true);
             }}
             exportAction={() => {
-              downloadCsv("inventory-items.csv", [
-                { label: "SKU", value: (item) => item.sku },
-                { label: "Nombre", value: (item) => item.name },
-                { label: "Categoria", value: (item) => categoriesById.get(item.categoryId) ?? "Sin categoria" },
-                { label: "Stock actual", value: (item) => item.currentStock },
-                { label: "Stock minimo", value: (item) => item.minStock ?? "" },
-              ], items);
+              downloadCsv(
+                "inventory-items.csv",
+                [
+                  { label: "SKU", value: (item) => item.sku },
+                  { label: "Nombre", value: (item) => item.name },
+                  {
+                    label: "Categoria",
+                    value: (item) => categoriesById.get(item.categoryId) ?? "Sin categoria",
+                  },
+                  { label: "Stock actual", value: (item) => item.currentStock },
+                  { label: "Stock minimo", value: (item) => item.minStock ?? "" },
+                ],
+                items,
+              );
             }}
             importAction={() => fileInputRef.current?.click()}
-            table={(
+            table={
               <InventoryDataTable
                 hasRows={items.length > 0}
-                empty={normalizedSearch || normalizedCategoryFilter || lowStockOnly ? "Sin resultados para los filtros aplicados." : "Sin items registrados."}
-                columns={<><InventoryCell header>Item</InventoryCell><InventoryCell header>Categoria</InventoryCell><InventoryCell header className="text-right">Stock</InventoryCell><InventoryCell header>Estado</InventoryCell><InventoryCell header className="text-right">Acciones</InventoryCell></>}
+                empty={
+                  normalizedSearch || normalizedCategoryFilter || lowStockOnly
+                    ? "Sin resultados para los filtros aplicados."
+                    : "Sin items registrados."
+                }
+                columns={
+                  <>
+                    <InventoryCell header>Item</InventoryCell>
+                    <InventoryCell header>Categoria</InventoryCell>
+                    <InventoryCell header className="text-right">
+                      Stock
+                    </InventoryCell>
+                    <InventoryCell header>Estado</InventoryCell>
+                    <InventoryCell header className="text-right">
+                      Acciones
+                    </InventoryCell>
+                  </>
+                }
               >
                 {items.map((item) => {
                   const minStock = item.minStock ?? 0;
                   const isLowStock = minStock > 0 && item.currentStock <= minStock;
                   return (
                     <InventoryRow key={item.id}>
-                      <InventoryCell><div className="space-y-1"><p className="font-semibold text-foreground">{item.name}</p><p className="text-xs text-muted-foreground">SKU: {item.sku}</p></div></InventoryCell>
-                      <InventoryCell><div className="text-sm text-foreground/80">{categoriesById.get(item.categoryId) ?? "Sin categoria"}</div></InventoryCell>
-                      <InventoryCell className="text-right"><div className="space-y-1"><p className="font-semibold text-foreground">{item.currentStock}</p><p className="text-xs text-muted-foreground">Min: {item.minStock ?? 0}</p></div></InventoryCell>
-                      <InventoryCell><Badge variant={isLowStock ? "destructive" : "outline"} className="rounded-md">{isLowStock ? "Bajo stock" : "Operativo"}</Badge></InventoryCell>
+                      <InventoryCell>
+                        <div className="space-y-1">
+                          <p className="font-semibold text-foreground">{item.name}</p>
+                          <p className="text-xs text-muted-foreground">SKU: {item.sku}</p>
+                        </div>
+                      </InventoryCell>
+                      <InventoryCell>
+                        <div className="text-sm text-foreground/80">
+                          {categoriesById.get(item.categoryId) ?? "Sin categoria"}
+                        </div>
+                      </InventoryCell>
+                      <InventoryCell className="text-right">
+                        <div className="space-y-1">
+                          <p className="font-semibold text-foreground">{item.currentStock}</p>
+                          <p className="text-xs text-muted-foreground">Min: {item.minStock ?? 0}</p>
+                        </div>
+                      </InventoryCell>
+                      <InventoryCell>
+                        <Badge
+                          variant={isLowStock ? "destructive" : "outline"}
+                          className="rounded-md"
+                        >
+                          {isLowStock ? "Bajo stock" : "Operativo"}
+                        </Badge>
+                      </InventoryCell>
                       <InventoryCell className="text-right">
                         <div className="flex justify-end gap-2">
-                          <Link href={`/app/inventory/items/${item.id}`} className={buttonVariants({ variant: "ghost", size: "sm" })}><Eye className="size-4" />Ver detalle</Link>
-                          <Button type="button" size="sm" variant="outline" onClick={() => { setEditingId(item.id); setFormState({ categoryId: item.categoryId, sku: item.sku, name: item.name, description: item.description ?? "", initialStock: "", minStock: String(item.minStock ?? "") }); setFormErrorMessage(null); setIsModalOpen(true); }}><PencilLine className="size-4" />Editar</Button>
-                          <Button type="button" size="sm" variant="destructive" onClick={() => { setActionErrorMessage(null); setDeleteCandidate({ id: item.id, name: item.name }); }}><Trash2 className="size-4" />Eliminar</Button>
+                          <Link
+                            href={`/app/inventory/items/${item.id}`}
+                            className={buttonVariants({ variant: "ghost", size: "sm" })}
+                          >
+                            <Eye className="size-4" />
+                            Ver detalle
+                          </Link>
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="outline"
+                            onClick={() => {
+                              setEditingId(item.id);
+                              setFormState({
+                                categoryId: item.categoryId,
+                                sku: item.sku,
+                                name: item.name,
+                                description: item.description ?? "",
+                                initialStock: "",
+                                minStock: String(item.minStock ?? ""),
+                              });
+                              setFormErrorMessage(null);
+                              setIsModalOpen(true);
+                            }}
+                          >
+                            <PencilLine className="size-4" />
+                            Editar
+                          </Button>
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="destructive"
+                            onClick={() => {
+                              setActionErrorMessage(null);
+                              setDeleteCandidate({ id: item.id, name: item.name });
+                            }}
+                          >
+                            <Trash2 className="size-4" />
+                            Eliminar
+                          </Button>
                         </div>
                       </InventoryCell>
                     </InventoryRow>
                   );
                 })}
               </InventoryDataTable>
-            )}
-            pagination={pagination ? <InventoryPaginationControls page={pagination.page} totalPages={pagination.totalPages} total={pagination.total} onPageChange={setPage} /> : null}
+            }
+            pagination={
+              pagination ? (
+                <InventoryPaginationControls
+                  page={pagination.page}
+                  totalPages={pagination.totalPages}
+                  total={pagination.total}
+                  onPageChange={setPage}
+                />
+              ) : null
+            }
           />
 
-          <input ref={fileInputRef} type="file" accept=".csv" className="hidden" onChange={(event) => { const file = event.target.files?.[0]; if (!file) return; setNoticeMessage(`Archivo preparado para importacion: ${file.name}. La carga asistida se conectara al flujo backend cuando exista contrato.`); event.target.value = ""; }} />
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".csv"
+            className="hidden"
+            onChange={(event) => {
+              const file = event.target.files?.[0];
+              if (!file) return;
+              setNoticeMessage(
+                `Archivo preparado para importacion: ${file.name}. La carga asistida se conectara al flujo backend cuando exista contrato.`,
+              );
+              event.target.value = "";
+            }}
+          />
         </div>
 
         <aside className="space-y-4 xl:sticky xl:top-24">
-          <InventoryHelpPanel title="Ayuda items" items={["Usa SKU unico para evitar colisiones en operaciones.", "Define stock minimo por item critico.", "Mantiene descripciones cortas y accionables."]} />
+          <InventoryHelpPanel
+            title="Ayuda items"
+            items={[
+              "Usa SKU unico para evitar colisiones en operaciones.",
+              "Define stock minimo por item critico.",
+              "Mantiene descripciones cortas y accionables.",
+            ]}
+          />
         </aside>
       </div>
 
@@ -389,21 +526,113 @@ function InventoryItemsContent({
         }}
         title={editingId ? "Editar item" : "Nuevo item"}
         description="Administra datos maestros del item y sus umbrales operativos sin salir de la tabla."
-        alert={formErrorMessage ? <div className="rounded-md border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-red-200">{formErrorMessage}</div> : null}
-        footer={(
+        alert={
+          formErrorMessage ? (
+            <div className="rounded-md border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-red-200">
+              {formErrorMessage}
+            </div>
+          ) : null
+        }
+        footer={
           <>
-            <Button type="button" variant="outline" onClick={() => { setIsModalOpen(false); resetForm(); setFormErrorMessage(null); }} disabled={submitting}><X className="size-4" />Cancelar</Button>
-            <Button type="button" onClick={() => mutation.mutate()} disabled={submitting}>{editingId ? <><Save className="size-4" />Actualizar item</> : <><Plus className="size-4" />Crear item</>}</Button>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => {
+                setIsModalOpen(false);
+                resetForm();
+                setFormErrorMessage(null);
+              }}
+              disabled={submitting}
+            >
+              <X className="size-4" />
+              Cancelar
+            </Button>
+            <Button
+              type="button"
+              variant="primary"
+              onClick={() => mutation.mutate()}
+              disabled={submitting}
+            >
+              {editingId ? (
+                <>
+                  <Save className="size-4" />
+                  Actualizar item
+                </>
+              ) : (
+                <>
+                  <Plus className="size-4" />
+                  Crear item
+                </>
+              )}
+            </Button>
           </>
-        )}
+        }
       >
         <div className="grid gap-4 md:grid-cols-2">
-          <div className="space-y-2"><label className="field-label">Categoria</label><select className={inventorySelectClassName} value={formState.categoryId} onChange={(event) => setFormState({ ...formState, categoryId: event.target.value })}><option value="">Selecciona una categoria</option>{categories.map((category) => <option key={category.id} value={category.id}>{category.name}</option>)}</select></div>
-          <div className="space-y-2"><label className="field-label">SKU</label><Input value={formState.sku} onChange={(event) => setFormState({ ...formState, sku: event.target.value })} placeholder="SKU-001" className="h-10 rounded-md bg-background/80" /></div>
-          <div className="space-y-2"><label className="field-label">Nombre</label><Input value={formState.name} onChange={(event) => setFormState({ ...formState, name: event.target.value })} placeholder="Nombre del item" className="h-10 rounded-md bg-background/80" /></div>
-          <div className="space-y-2"><label className="field-label">Descripcion</label><Input value={formState.description} onChange={(event) => setFormState({ ...formState, description: event.target.value })} placeholder="Descripcion operativa" className="h-10 rounded-md bg-background/80" /></div>
-          <div className="space-y-2"><label className="field-label">Stock inicial</label><Input type="number" value={formState.initialStock} onChange={(event) => setFormState({ ...formState, initialStock: event.target.value })} placeholder="0" className="h-10 rounded-md bg-background/80" disabled={Boolean(editingId)} /></div>
-          <div className="space-y-2"><label className="field-label">Stock minimo</label><Input type="number" value={formState.minStock} onChange={(event) => setFormState({ ...formState, minStock: event.target.value })} placeholder="0" className="h-10 rounded-md bg-background/80" /></div>
+          <div className="space-y-2">
+            <label className="field-label">Categoria</label>
+            <select
+              className={inventorySelectClassName}
+              value={formState.categoryId}
+              onChange={(event) => setFormState({ ...formState, categoryId: event.target.value })}
+            >
+              <option value="">Selecciona una categoria</option>
+              {categories.map((category) => (
+                <option key={category.id} value={category.id}>
+                  {category.name}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="space-y-2">
+            <label className="field-label">SKU</label>
+            <Input
+              value={formState.sku}
+              onChange={(event) => setFormState({ ...formState, sku: event.target.value })}
+              placeholder="SKU-001"
+              className="h-10 rounded-md bg-background/80"
+            />
+          </div>
+          <div className="space-y-2">
+            <label className="field-label">Nombre</label>
+            <Input
+              value={formState.name}
+              onChange={(event) => setFormState({ ...formState, name: event.target.value })}
+              placeholder="Nombre del item"
+              className="h-10 rounded-md bg-background/80"
+            />
+          </div>
+          <div className="space-y-2">
+            <label className="field-label">Descripcion</label>
+            <Input
+              value={formState.description}
+              onChange={(event) => setFormState({ ...formState, description: event.target.value })}
+              placeholder="Descripcion operativa"
+              className="h-10 rounded-md bg-background/80"
+            />
+          </div>
+          <div className="space-y-2">
+            <label className="field-label">Stock inicial</label>
+            <Input
+              type="number"
+              value={formState.initialStock}
+              onChange={(event) => setFormState({ ...formState, initialStock: event.target.value })}
+              placeholder="0"
+              className="h-10 rounded-md bg-background/80"
+              disabled={Boolean(editingId)}
+            />
+          </div>
+          <div className="space-y-2">
+            <label className="field-label">Stock minimo</label>
+            <Input
+              type="number"
+              value={formState.minStock}
+              onChange={(event) => setFormState({ ...formState, minStock: event.target.value })}
+              placeholder="0"
+              className="h-10 rounded-md bg-background/80"
+            />
+          </div>
         </div>
       </InventoryFormModal>
 
@@ -423,7 +652,9 @@ function InventoryItemsContent({
           await deleteMutation.mutateAsync(deleteCandidate.id);
         }}
       >
-        {deleteCandidate ? `Confirma la eliminacion de ${deleteCandidate.name}. Esta operacion no se puede deshacer.` : null}
+        {deleteCandidate
+          ? `Confirma la eliminacion de ${deleteCandidate.name}. Esta operacion no se puede deshacer.`
+          : null}
       </DecisionDialog>
     </div>
   );

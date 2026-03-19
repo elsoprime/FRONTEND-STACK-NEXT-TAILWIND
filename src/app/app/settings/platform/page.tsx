@@ -278,7 +278,7 @@ function PlatformSettingsForm({ settings, setLastTraceId }: PlatformSettingsForm
       </div>
 
       <div className="flex flex-wrap gap-2">
-        <Button onClick={() => updateMutation.mutate()} disabled={updateMutation.isPending}>
+        <Button variant="primary" onClick={() => updateMutation.mutate()} disabled={updateMutation.isPending}>
           Guardar platform settings
         </Button>
       </div>
@@ -297,3 +297,4 @@ function PlatformSettingsForm({ settings, setLastTraceId }: PlatformSettingsForm
     </div>
   );
 }
+

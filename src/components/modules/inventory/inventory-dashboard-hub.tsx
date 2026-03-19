@@ -1,19 +1,13 @@
 "use client";
-
-import Image from "next/image";
-import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import {
   AlertTriangle,
-  ArrowRightLeft,
-  ArrowUpRight,
   Boxes,
   ClipboardCheck,
   Layers3,
   Package,
   PieChart as PieChartIcon,
   ShieldCheck,
-  Tags,
   TrendingDown,
   TrendingUp,
   Warehouse,
@@ -31,7 +25,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { Button } from "@/components/ui/button";
+
 import { LoadingScreen } from "@/components/ui/loading-screen";
 import {
   listInventoryExpiringLotAlerts,
@@ -44,92 +38,10 @@ import {
 import { resolveInventoryErrorMessage } from "@/features/inventory/error-code-map";
 import { ApiRequestError } from "@/lib/api/client";
 import { queryKeys } from "@/lib/query/query-keys";
-import { cn } from "@/lib/utils";
 
 type InventoryDashboardHubProps = {
   tenantId: string;
 };
-
-type QuickAccessCard = {
-  title: string;
-  description: string;
-  href: string;
-  icon: typeof Package;
-  imageSrc: string;
-  imageAlt: string;
-  imageClassName?: string;
-  overlayClassName: string;
-  accentClassName: string;
-};
-
-const QUICK_ACCESS_CARDS: readonly QuickAccessCard[] = [
-  {
-    title: "Items",
-    description: "Administra catalogo, SKU y stock minimo del tenant.",
-    href: "/app/inventory/items",
-    icon: Package,
-    imageSrc: "/images/box-items.avif",
-    imageAlt: "Vista operativa de items de inventario",
-    imageClassName: "object-center",
-    overlayClassName: "from-slate-950/92 via-slate-900/70 to-sky-700/40",
-    accentClassName: "text-sky-100 border-sky-200/20 bg-sky-300/12",
-  },
-  {
-    title: "Categorias",
-    description: "Ordena familias de productos y mejora la clasificacion.",
-    href: "/app/inventory/categories",
-    icon: Tags,
-    imageSrc: "/images/box-categories.avif",
-    imageAlt: "Clasificacion de categorias de inventario",
-    imageClassName: "object-center",
-    overlayClassName: "from-slate-950/92 via-slate-900/68 to-violet-700/35",
-    accentClassName: "text-violet-100 border-violet-200/20 bg-violet-300/12",
-  },
-  {
-    title: "Bodegas",
-    description: "Controla ubicaciones activas para la operacion diaria.",
-    href: "/app/inventory/warehouses",
-    icon: Warehouse,
-    imageSrc: "/images/box-warehouse.avif",
-    imageAlt: "Bodega principal del modulo inventario",
-    imageClassName: "object-center",
-    overlayClassName: "from-slate-950/92 via-slate-900/68 to-emerald-700/35",
-    accentClassName: "text-emerald-100 border-emerald-200/20 bg-emerald-300/12",
-  },
-  {
-    title: "Lotes",
-    description: "Gestiona trazabilidad, vencimientos y disponibilidad.",
-    href: "/app/inventory/lots",
-    icon: Layers3,
-    imageSrc: "/images/box-lots.avif",
-    imageAlt: "Seguimiento de lotes y vencimientos",
-    imageClassName: "object-[center_62%]",
-    overlayClassName: "from-slate-950/92 via-slate-900/68 to-amber-700/35",
-    accentClassName: "text-amber-100 border-amber-200/20 bg-amber-300/12",
-  },
-  {
-    title: "Conteo",
-    description: "Abre y supervisa sesiones de stocktake por bodega.",
-    href: "/app/inventory/stocktakes",
-    icon: ClipboardCheck,
-    imageSrc: "/images/box-stocktakes.avif",
-    imageAlt: "Conteo de inventario por bodega",
-    imageClassName: "object-[center_38%]",
-    overlayClassName: "from-slate-950/92 via-slate-900/68 to-rose-700/35",
-    accentClassName: "text-rose-100 border-rose-200/20 bg-rose-300/12",
-  },
-  {
-    title: "Stock",
-    description: "Registra entradas y salidas de inventario con control operativo.",
-    href: "/app/inventory/stock",
-    icon: ArrowRightLeft,
-    imageSrc: "/images/box-stock.avif",
-    imageAlt: "Movimientos de stock del inventario",
-    imageClassName: "object-[center_58%]",
-    overlayClassName: "from-slate-950/92 via-slate-900/68 to-cyan-700/35",
-    accentClassName: "text-cyan-100 border-cyan-200/20 bg-cyan-300/12",
-  },
-] as const;
 
 const MOVEMENT_SERIES = [
   { label: "Lun", incoming: 42, outgoing: 31 },
@@ -234,14 +146,17 @@ export function InventoryDashboardHub({ tenantId }: InventoryDashboardHubProps) 
   const stocktakesCount = stocktakesQuery.data?.pagination.total ?? 0;
   const itemsCount = itemsQuery.data?.pagination.total ?? 0;
   const lowStockCount = lowStockQuery.data?.pagination.total ?? 0;
+  const lowStockItems = lowStockQuery.data?.data.items ?? [];
   const expiringCount = expiringQuery.data?.pagination.total ?? 0;
+  const stocktakes = stocktakesQuery.data?.data.items ?? [];
   const stockUnits = 2840;
   const urgentAlerts = lowStockCount + expiringCount;
 
   return (
     <div className="space-y-6">
-      <section className="grid gap-5 xl:grid-cols-[minmax(0,1.45fr)_minmax(320px,0.9fr)]">
-        <article className="surface-card rounded-2xl border-border/85 bg-card/92 p-5">
+      <section className="border-b border-border/85 pb-6">
+        {/** Grid de tarjetas de lanzamiento a sub modulos activos dentro del modulo de inventory */}
+        <article>
           <div className="flex items-center justify-between gap-3">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
@@ -264,8 +179,48 @@ export function InventoryDashboardHub({ tenantId }: InventoryDashboardHubProps) 
             <MetricCard label="Alertas activas" value={String(urgentAlerts)} icon={AlertTriangle} />
           </div>
         </article>
-
-        <article className="surface-card rounded-2xl border-border/85 bg-card/92 p-5">
+      </section>
+      {/* Las siguientes secciones de este dashboard son ejemplos estaticos para ilustrar el diseño y la experiencia, en una implementacion real se deberian conectar a datos reales y actualizar dinamicamente segun la operacion del tenant. Se recomienda priorizar la integracion de datos en la seccion de accesos rapidos y estado operativo, ya que son las mas criticas para la supervisión diaria. Las secciones de movimientos de la semana y salud del inventario pueden ser implementadas en fases posteriores una vez que los datos historicos y de trazabilidad esten disponibles. */}
+      <section className="grid gap-5 xl:grid-cols-3">
+        <article className="bg-card/92 rounded-lg shadow-md p-5">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+                Movimientos de la semana
+              </p>
+              <h2 className="mt-1 text-lg font-semibold text-foreground">Entradas y salidas</h2>
+            </div>
+          </div>
+          {/* Grafica de movimientos */}
+          <div className="mt-6 h-72 w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={MOVEMENT_SERIES} barCategoryGap={18}>
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(148, 163, 184, 0.16)" />
+                <XAxis
+                  dataKey="label"
+                  axisLine={false}
+                  tickLine={false}
+                  tick={{ fill: "#94a3b8", fontSize: 12 }}
+                />
+                <YAxis axisLine={false} tickLine={false} tick={{ fill: "#94a3b8", fontSize: 12 }} />
+                <Tooltip
+                  cursor={{ fill: "rgba(15, 23, 42, 0.18)" }}
+                  contentStyle={{
+                    backgroundColor: "rgba(15, 23, 42, 0.96)",
+                    border: "1px solid rgba(148, 163, 184, 0.18)",
+                    borderRadius: "16px",
+                    color: "#e2e8f0",
+                  }}
+                />
+                <Legend wrapperStyle={{ color: "#cbd5e1", fontSize: "12px" }} />
+                <Bar dataKey="incoming" name="Entrante" radius={[8, 8, 0, 0]} fill="#38bdf8" />
+                <Bar dataKey="outgoing" name="Saliente" radius={[8, 8, 0, 0]} fill="#f59e0b" />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </article>
+        {/* Grafico de stock por bodega, ideal para visualizar la distribucion del inventario y detectar posibles cuellos de botella o sobrecargas en ciertas ubicaciones */}
+        <article className="bg-card/92 rounded-lg shadow-md p-5">
           <div className="flex items-center gap-2">
             <PieChartIcon className="size-4 text-primary" />
             <h2 className="text-sm font-semibold uppercase tracking-[0.14em] text-foreground">
@@ -273,6 +228,7 @@ export function InventoryDashboardHub({ tenantId }: InventoryDashboardHubProps) 
             </h2>
           </div>
 
+          {/* Este grafico es un ejemplo estatico, en una implementacion real se deberia calcular el porcentaje de stock por bodega en base a la capacidad y el stock actual. */}
           <div className="mt-4 h-72 w-full">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart
@@ -313,48 +269,8 @@ export function InventoryDashboardHub({ tenantId }: InventoryDashboardHubProps) 
             </ResponsiveContainer>
           </div>
         </article>
-      </section>
 
-      <section className="grid gap-5 xl:grid-cols-[minmax(0,1.35fr)_minmax(320px,0.95fr)]">
-        <article className="surface-card rounded-2xl border-border/85 bg-card/92 p-5">
-          <div className="flex items-center justify-between gap-3">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
-                Movimientos de la semana
-              </p>
-              <h2 className="mt-1 text-lg font-semibold text-foreground">Entradas y salidas</h2>
-            </div>
-          </div>
-
-          <div className="mt-6 h-72 w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={MOVEMENT_SERIES} barCategoryGap={18}>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(148, 163, 184, 0.16)" />
-                <XAxis
-                  dataKey="label"
-                  axisLine={false}
-                  tickLine={false}
-                  tick={{ fill: "#94a3b8", fontSize: 12 }}
-                />
-                <YAxis axisLine={false} tickLine={false} tick={{ fill: "#94a3b8", fontSize: 12 }} />
-                <Tooltip
-                  cursor={{ fill: "rgba(15, 23, 42, 0.18)" }}
-                  contentStyle={{
-                    backgroundColor: "rgba(15, 23, 42, 0.96)",
-                    border: "1px solid rgba(148, 163, 184, 0.18)",
-                    borderRadius: "16px",
-                    color: "#e2e8f0",
-                  }}
-                />
-                <Legend wrapperStyle={{ color: "#cbd5e1", fontSize: "12px" }} />
-                <Bar dataKey="incoming" name="Entrante" radius={[8, 8, 0, 0]} fill="#38bdf8" />
-                <Bar dataKey="outgoing" name="Saliente" radius={[8, 8, 0, 0]} fill="#f59e0b" />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </article>
-
-        <article className="surface-card rounded-2xl border-border/85 bg-card/92 p-5">
+        <article className="bg-card/92 rounded-lg shadow-md p-5">
           <div className="flex items-center gap-2">
             <PieChartIcon className="size-4 text-primary" />
             <h2 className="text-sm font-semibold uppercase tracking-[0.14em] text-foreground">
@@ -415,96 +331,78 @@ export function InventoryDashboardHub({ tenantId }: InventoryDashboardHubProps) 
         </article>
       </section>
 
-      <section className="space-y-4">
-        <div className="flex items-center justify-between gap-3">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
-              Accesos rapidos
-            </p>
-            <h2 className="mt-1 text-lg font-semibold text-foreground">Submodulos operativos</h2>
+      <section className="grid gap-5 xl:grid-cols-[minmax(0,1.1fr)_minmax(320px,0.9fr)]">
+        {/* Actividad reciente */}
+        <article className="bg-card/92 rounded-lg shadow-md p-5">
+          <div className="flex items-center gap-2">
+            <ClipboardCheck className="size-4 text-primary" />
+            <h2 className="text-sm font-semibold uppercase tracking-[0.14em] text-foreground">
+              Actividad reciente
+            </h2>
           </div>
-          <Link href="/app/audit">
-            <Button size="sm" variant="toolbar">
-              <ShieldCheck className="size-4" />
-              Ir a auditoria
-            </Button>
-          </Link>
-        </div>
 
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {QUICK_ACCESS_CARDS.map((card) => (
-            <article
-              key={card.href}
-              className="surface-card surface-card-hover group relative flex min-h-[260px] overflow-hidden rounded-2xl border-border/85 bg-card/92"
-            >
-              <Image
-                src={card.imageSrc}
-                alt={card.imageAlt}
-                fill
-                className={cn(
-                  "object-cover transition-transform duration-500 group-hover:scale-105",
-                  card.imageClassName,
-                )}
-                sizes="(min-width: 1280px) 33vw, (min-width: 768px) 50vw, 100vw"
-                priority={false}
-              />
-              <div className={cn("absolute inset-0 bg-gradient-to-br", card.overlayClassName)} />
-              <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-slate-950/90 to-transparent" />
-
-              <div className="relative z-10 flex h-full w-full flex-col justify-between p-5 text-white">
-                <div>
-                  <div
-                    className={cn(
-                      "inline-flex rounded-xl border p-3 backdrop-blur-sm",
-                      card.accentClassName,
-                    )}
-                  >
-                    <card.icon className="size-5" />
+          <div className="mt-4 space-y-3">
+            {stocktakes.slice(0, 3).map((stocktake) => (
+              <div
+                key={stocktake.id}
+                className="rounded-md border border-border/80 bg-background/60 px-4 py-3"
+              >
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <p className="text-sm font-semibold text-foreground">{stocktake.name}</p>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      {warehouses.find((warehouse) => warehouse.id === stocktake.warehouseId)
+                        ?.name ?? "Bodega no disponible"}
+                    </p>
                   </div>
-                  <h3 className="mt-4 text-lg font-semibold">{card.title}</h3>
-                  <p className="mt-2 max-w-xs text-sm leading-6 text-slate-100/88">
-                    {card.description}
-                  </p>
+                  <span className="dashboard-chip capitalize">{stocktake.status}</span>
                 </div>
-
-                <Link href={card.href} className="mt-5 inline-flex w-fit">
-                  <Button size="default" variant="dashboard" className="pr-2.5">
-                    Abrir modulo
-                    <ArrowUpRight className="size-4" />
-                  </Button>
-                </Link>
               </div>
-            </article>
-          ))}
-        </div>
+            ))}
+
+            {stocktakes.length === 0 ? (
+              <p className="text-sm text-muted-foreground">Sin actividad reciente registrada.</p>
+            ) : null}
+
+            {lowStockItems.slice(0, 2).map((alert) => (
+              <div
+                key={alert.item.id}
+                className="rounded-xl border border-amber-300/70 bg-amber-100/55 px-4 py-3 text-amber-950 dark:border-amber-500/35 dark:bg-amber-500/14 dark:text-amber-100"
+              >
+                <p className="text-sm font-semibold">{alert.item.name}</p>
+                <p className="mt-1 text-xs opacity-80">Deficit actual: {alert.deficit}</p>
+              </div>
+            ))}
+          </div>
+        </article>
+        {/* Estado operativo */}
+        <article className="bg-card/92 rounded-lg shadow-md p-5">
+          <div className="flex items-center gap-2">
+            <ShieldCheck className="size-4 text-primary" />
+            <h2 className="text-sm font-semibold uppercase tracking-[0.14em] text-foreground">
+              Estado operativo
+            </h2>
+          </div>
+
+          <div className="mt-4 grid gap-3">
+            <StatusRow
+              icon={TrendingUp}
+              label="Entradas estables"
+              detail="Recepcion semanal dentro del rango esperado."
+            />
+            <StatusRow
+              icon={TrendingDown}
+              label="Salidas controladas"
+              detail="Despachos sin alertas de underflow en el panel actual."
+            />
+            <StatusRow
+              icon={AlertTriangle}
+              label="Alertas por revisar"
+              detail={`${urgentAlerts} eventos entre bajo stock y lotes proximos a vencer.`}
+            />
+          </div>
+        </article>
       </section>
-
-      <article className="surface-card rounded-2xl border-border/85 bg-card/92 p-5">
-        <div className="flex items-center gap-2">
-          <ShieldCheck className="size-4 text-primary" />
-          <h2 className="text-sm font-semibold uppercase tracking-[0.14em] text-foreground">
-            Estado operativo
-          </h2>
-        </div>
-
-        <div className="mt-4 grid gap-3 lg:grid-cols-3">
-          <StatusRow
-            icon={TrendingUp}
-            label="Entradas estables"
-            detail="Recepcion semanal dentro del rango esperado."
-          />
-          <StatusRow
-            icon={TrendingDown}
-            label="Salidas controladas"
-            detail="Despachos sin alertas de underflow en el panel actual."
-          />
-          <StatusRow
-            icon={AlertTriangle}
-            label="Alertas por revisar"
-            detail={`${urgentAlerts} eventos entre bajo stock y lotes proximos a vencer.`}
-          />
-        </div>
-      </article>
     </div>
   );
 }
@@ -543,7 +441,7 @@ function StatusRow({
   detail: string;
 }) {
   return (
-    <div className="rounded-xl border border-border/80 bg-background/60 p-3">
+    <div className="rounded-md border border-border/80 bg-background/60 p-3">
       <div className="flex items-center gap-2">
         <Icon className="size-4 text-primary" />
         <p className="text-sm font-semibold text-foreground">{label}</p>

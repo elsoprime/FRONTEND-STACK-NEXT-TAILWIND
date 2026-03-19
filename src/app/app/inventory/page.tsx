@@ -1,13 +1,19 @@
-"use client";
+﻿"use client";
 
-import { BookOpenText, LifeBuoy } from "lucide-react";
-import { InventoryDashboardHub } from "@/components/modules/inventory/inventory-dashboard-hub";
-import { InventoryModuleNav } from "@/components/modules/inventory/inventory-module-nav";
+import { useSearchParams } from "next/navigation";
+import {
+  InventoryWorkspace,
+  resolveInventoryTabKey,
+} from "@/components/modules/inventory/inventory-workspace";
 import { TenantContextGate } from "@/components/tenant/tenant-context-gate";
 import { TenantModuleGate, MODULE_GUARDS } from "@/components/tenant/tenant-module-gate";
 import { TenantPageShell } from "@/components/tenant/tenant-page-shell";
+import { InventoryHelpPanel } from "@/components/modules/inventory/inventory-help-panel";
 
 export default function InventoryIndexPage() {
+  const searchParams = useSearchParams();
+  const initialTab = resolveInventoryTabKey(searchParams.get("tab"));
+
   return (
     <TenantPageShell
       eyebrow="Modulo Inventory"
@@ -23,40 +29,18 @@ export default function InventoryIndexPage() {
             config={MODULE_GUARDS.inventory}
           >
             <div className="space-y-6">
-              <InventoryModuleNav />
-              <InventoryDashboardHub tenantId={tenant.id} />
+              <InventoryWorkspace tenantId={tenant.id} initialTab={initialTab} />
 
-              <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_320px]">
-                <article className="surface-card rounded-xl border-border/90 bg-card/95 p-4">
-                  <div className="flex items-center gap-2">
-                    <BookOpenText className="size-4 text-primary" />
-                    <h2 className="text-sm font-semibold uppercase tracking-[0.08em] text-foreground">
-                      Flujo recomendado
-                    </h2>
-                  </div>
-                  <ol className="mt-3 space-y-2 text-sm dashboard-text-muted">
-                    <li>1. Revisa alertas criticas y prioriza deficit de stock.</li>
-                    <li>2. Entra a Items o Bodegas desde accesos rapidos segun la operacion.</li>
-                    <li>3. Usa Conteo para validar diferencias antes de reconciliar.</li>
-                    <li>4. Revisa auditoria si detectas drift o movimientos inconsistentes.</li>
-                  </ol>
-                </article>
-
-                <aside className="space-y-4 xl:sticky xl:top-24">
-                  <article className="surface-card rounded-xl border-border/90 bg-card/95 p-4">
-                    <div className="flex items-center gap-2">
-                      <LifeBuoy className="size-4 text-primary" />
-                      <h3 className="text-sm font-semibold uppercase tracking-[0.08em] text-foreground">
-                        Soporte operativo
-                      </h3>
-                    </div>
-                    <p className="mt-2 text-sm dashboard-text-muted">
-                      Si detectas conflicto de stock o datos inconsistentes, valida primero la ruta
-                      afectada y el ultimo `traceId` disponible en auditoria.
-                    </p>
-                  </article>
-                </aside>
-              </div>
+              <InventoryHelpPanel
+                title="Recomendaciones y soporte"
+                items={[
+                  "Revisa alertas criticas y prioriza deficit de stock.",
+                  "Entra a Items o Bodegas desde Sub Modulos segun la operacion.",
+                  "Usa Reconciliacion para validar diferencias antes de ajustar stock.",
+                  "Cierra con Configuracion si detectas capacidad o politica fuera de objetivo.",
+                  "Si detectas conflicto de stock o datos inconsistentes, valida primero la vista activa del workspace y luego el ultimo `traceId` disponible en auditoria.",
+                ]}
+              />
             </div>
           </TenantModuleGate>
         )}

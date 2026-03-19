@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useRef, useState } from "react";
 import { PencilLine, Plus, RotateCcw, Save, X } from "lucide-react";
@@ -66,14 +66,11 @@ export default function InventoryLotsPage() {
     <TenantPageShell
       eyebrow="Inventory"
       title="Lotes"
-      description="Administra lotes por item y bodega, con seguimiento de vencimientos."
+      description="Gestiona lotes del inventario del tenant activo."
       breadcrumbItems={[
-        { label: "Dashboard", href: "/app" },
-        { label: "Inventario", href: "/app/inventory" },
+        { label: "Panel principal", href: "/app/inventory?tab=submodules" },
         { label: "Lotes" },
       ]}
-      backHref="/app/inventory"
-      backLabel="Volver a Panel principal"
     >
       <TenantContextGate>
         {({ tenant, membership }) => (
@@ -493,7 +490,7 @@ function InventoryLotsContent({
               }}
               disabled={mutation.isPending}
             ><X className="size-4" />Cancelar</Button>
-            <Button type="button" onClick={() => mutation.mutate()} disabled={mutation.isPending}>
+            <Button type="button" variant="primary" onClick={() => mutation.mutate()} disabled={mutation.isPending}>
               {editingId ? <><Save className="size-4" />Actualizar lote</> : <><Plus className="size-4" />Crear lote</>}
             </Button>
           </>
@@ -583,6 +580,9 @@ function InventoryLotsContent({
     </div>
   );
 }
+
+
+
 
 
 

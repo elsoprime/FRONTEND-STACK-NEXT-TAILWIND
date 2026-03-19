@@ -528,3 +528,4 @@ export function TenantSettingsForm({ tenantId, tenantName }: TenantSettingsFormP
     </div>
   );
 }
+

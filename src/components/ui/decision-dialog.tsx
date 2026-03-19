@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import * as React from "react";
 import { AlertDialog } from "@base-ui/react/alert-dialog";
@@ -119,9 +119,9 @@ export function DecisionDialog({
   return (
     <AlertDialog.Root open={open} onOpenChange={handleOpenChange}>
       <AlertDialog.Portal>
-        <AlertDialog.Backdrop className="fixed inset-0 z-[90] bg-foreground/24 backdrop-blur-[2px]" />
+        <AlertDialog.Backdrop className="fixed inset-0 z-[90] bg-foreground/24 backdrop-blur-[2px] transition-opacity duration-200 ease-out data-[starting-style]:opacity-0 data-[ending-style]:opacity-0" />
         <AlertDialog.Viewport className="fixed inset-0 z-[100] grid place-items-center p-4 sm:p-6">
-          <AlertDialog.Popup className="surface-card w-full max-w-xl overflow-hidden border-border/85 bg-card/95 p-0">
+          <AlertDialog.Popup className="surface-card w-full max-w-xl overflow-hidden border-border/85 bg-card/95 p-0 transition-[opacity,transform] duration-200 ease-out data-[starting-style]:translate-y-2 data-[starting-style]:scale-[0.985] data-[starting-style]:opacity-0 data-[ending-style]:translate-y-2 data-[ending-style]:scale-[0.985] data-[ending-style]:opacity-0">
             <div className="relative border-b border-border/70 px-5 py-4 sm:px-6">
               <p className="label-kicker text-muted-foreground">{currentTone.badgeText}</p>
               {showCloseButton ? (
@@ -196,3 +196,4 @@ export function DecisionDialog({
 }
 
 export type { DecisionDialogProps, DecisionDialogTone };
+

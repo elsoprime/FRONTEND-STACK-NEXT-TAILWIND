@@ -210,7 +210,7 @@ export function TenantSelectorPanel({
           <p className="text-sm font-semibold">{resolveTenantErrorMessage(viewState.code)}</p>
         </div>
         <div className="mt-4">
-          <Button type="button" onClick={() => router.refresh()}>
+          <Button type="button" variant="primary" onClick={() => router.refresh()}>
             Reintentar
           </Button>
         </div>
@@ -285,9 +285,8 @@ export function TenantSelectorPanel({
                       {item.isActive ? (
                         <Button
                           type="button"
-                          variant="outline"
+                          variant="secondary"
                           size="sm"
-                          className="rounded-lg"
                           onClick={() => void continueWithActiveTenant(item)}
                           disabled={isSwitching}
                         >
@@ -297,8 +296,8 @@ export function TenantSelectorPanel({
                       ) : (
                         <Button
                           type="button"
+                          variant="primary"
                           size="sm"
-                          className="rounded-lg"
                           onClick={() => void activateTenant(item.tenant.id)}
                           disabled={isSwitching}
                         >
@@ -356,8 +355,8 @@ export function TenantSelectorPanel({
                 {item.isActive ? (
                   <Button
                     type="button"
-                    variant="outline"
-                    className="w-full rounded-lg"
+                    variant="secondary"
+                    className="w-full"
                     onClick={() => void continueWithActiveTenant(item)}
                     disabled={isSwitching}
                   >
@@ -367,7 +366,8 @@ export function TenantSelectorPanel({
                 ) : (
                   <Button
                     type="button"
-                    className="w-full rounded-lg"
+                    variant="primary"
+                    className="w-full"
                     onClick={() => void activateTenant(item.tenant.id)}
                     disabled={isSwitching}
                   >
@@ -389,3 +389,7 @@ export function TenantSelectorPanel({
     </div>
   );
 }
+
+
+
+

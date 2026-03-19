@@ -137,10 +137,10 @@ export function TenantContextGate({
             <p className="text-sm font-semibold">{resolveTenantErrorMessage(gateErrorCode)}</p>
           </div>
           <div className="mt-4 flex gap-3">
-            <Button type="button" onClick={() => router.refresh()}>
+            <Button type="button" variant="primary" onClick={() => router.refresh()}>
               Reintentar
             </Button>
-            <Button type="button" variant="outline" onClick={() => router.replace("/logout")}>
+            <Button type="button" variant="secondary" onClick={() => router.replace("/logout")}>
               Cerrar sesion
             </Button>
           </div>
@@ -155,3 +155,4 @@ export function TenantContextGate({
 
   return <>{children(activeContext)}</>;
 }
+

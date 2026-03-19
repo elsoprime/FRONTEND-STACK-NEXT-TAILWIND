@@ -1,32 +1,46 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { BellRing, LayoutGrid, ScanSearch, Settings2 } from "lucide-react";
+import { usePathname, useSearchParams } from "next/navigation";
+import { BellRing, ScanSearch, Settings2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-const INVENTORY_NAV_ITEMS = [
-  { label: "Panel principal", href: "/app/inventory", icon: LayoutGrid },
-  { label: "Alertas", href: "/app/inventory/alerts", icon: BellRing },
-  { label: "Reconciliacion", href: "/app/inventory/reconciliation", icon: ScanSearch },
-  { label: "Configuracion", href: "/app/inventory/settings", icon: Settings2 },
+type InventoryModuleTab = "alerts" | "reconciliation" | "settings";
+
+const INVENTORY_NAV_ITEMS: ReadonlyArray<{
+  label: string;
+  href: string;
+  icon: React.ComponentType<{ className?: string }>;
+  tab: InventoryModuleTab;
+}> = [
+  { label: "Alertas", href: "/app/inventory?tab=alerts", icon: BellRing, tab: "alerts" },
+  {
+    label: "Reconciliacion",
+    href: "/app/inventory?tab=reconciliation",
+    icon: ScanSearch,
+    tab: "reconciliation",
+  },
+  {
+    label: "Configuracion",
+    href: "/app/inventory?tab=settings",
+    icon: Settings2,
+    tab: "settings",
+  },
 ] as const;
 
-function isActive(pathname: string, href: string): boolean {
-  if (href === "/app/inventory") {
-    return pathname === href;
-  }
-
-  return pathname === href || pathname.startsWith(`${href}/`);
+function isActive(pathname: string, activeTab: string | null, tab: InventoryModuleTab): boolean {
+  return pathname === "/app/inventory" && activeTab === tab;
 }
 
 export function InventoryModuleNav() {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const activeTab = searchParams.get("tab");
 
   return (
     <nav className="flex flex-wrap gap-2" aria-label="Navegacion modulo inventory">
       {INVENTORY_NAV_ITEMS.map((item) => {
-        const active = isActive(pathname, item.href);
+        const active = isActive(pathname, activeTab, item.tab);
 
         return (
           <Link

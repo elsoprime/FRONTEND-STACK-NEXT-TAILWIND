@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useMemo, useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
@@ -394,25 +394,25 @@ function DashboardMarketplaceContent({
 
             <div className="flex flex-wrap gap-2 lg:justify-end">
               <Link href="/app/tenants/create">
-                <Button size="lg">
+                <Button size="lg" variant="primary">
                   <Building2 className="size-4" />
                   Crear tenant
                 </Button>
               </Link>
               <Link href="/app/tenants/select">
-                <Button size="lg" variant="toolbar">
+                <Button size="lg" variant="secondary">
                   <ArrowRightLeft className="size-4" />
                   Cambiar tenant
                 </Button>
               </Link>
               <Link href="/app/settings/tenant">
-                <Button size="lg" variant="toolbar">
+                <Button size="lg" variant="tertiary">
                   <Wrench className="size-4" />
                   Configuracion
                 </Button>
               </Link>
               <Link href="/app/settings/billing">
-                <Button size="lg" variant="secondary">
+                <Button size="lg" variant="outline">
                   <ReceiptText className="size-4" />
                   Plan y billing
                 </Button>
@@ -601,7 +601,7 @@ function DashboardMarketplaceContent({
           </div>
 
           <div className="mt-3 grid gap-3 sm:grid-cols-2">
-            <Link href="/app/inventory/alerts" className="block">
+            <Link href="/app/inventory?tab=alerts" className="block">
               <Button
                 type="button"
                 variant="toolbar"
@@ -769,6 +769,7 @@ function DashboardMarketplaceContent({
               />
               <Button
                 type="button"
+                variant="primary"
                 className="w-full"
                 onClick={handleInvite}
                 disabled={inviteMutation.isPending || inviteEmail.trim().length === 0}
@@ -801,7 +802,7 @@ function DashboardMarketplaceContent({
                 </p>
               </article>
               <Link href="/app/settings/billing" className="block">
-                <Button type="button" size="lg" variant="secondary" className="w-full">
+                <Button type="button" size="lg" variant="tertiary" className="w-full">
                   <ReceiptText className="size-4" />
                   Abrir billing
                 </Button>
@@ -824,7 +825,7 @@ function DashboardMarketplaceContent({
               <div className="grid grid-cols-2 gap-2">
                 <Button
                   type="button"
-                  variant="toolbar"
+                  variant="secondary"
                   onClick={() => void handleCopyTraceId()}
                   disabled={!lastTraceId}
                 >
@@ -834,7 +835,7 @@ function DashboardMarketplaceContent({
                 <Link href="/app/audit" className="block">
                   <Button
                     type="button"
-                    variant="toolbar"
+                    variant="secondary"
                     className="w-full"
                     disabled={!canOpenAudit}
                   >
@@ -845,7 +846,7 @@ function DashboardMarketplaceContent({
               </div>
               {supportUrl ? (
                 <a href={supportUrl} target="_blank" rel="noreferrer">
-                  <Button type="button" size="lg" variant="secondary" className="w-full">
+                  <Button type="button" size="lg" variant="tertiary" className="w-full">
                     <ScanSearch className="size-4" />
                     Ir a soporte
                   </Button>
@@ -903,6 +904,12 @@ export function TenantDashboardMarketplace() {
     </main>
   );
 }
+
+
+
+
+
+
 
 
 

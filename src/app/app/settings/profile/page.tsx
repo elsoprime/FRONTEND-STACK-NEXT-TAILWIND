@@ -105,7 +105,7 @@ export default function ProfileSettingsPage() {
                 </div>
 
                 <Link href="/app/settings/security">
-                  <Button>
+                  <Button variant="primary">
                     <LockKeyhole className="size-4" />
                     Abrir seguridad
                   </Button>
@@ -118,3 +118,4 @@ export default function ProfileSettingsPage() {
     </TenantPageShell>
   );
 }
+

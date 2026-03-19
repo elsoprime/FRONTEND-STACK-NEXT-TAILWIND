@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -48,14 +48,11 @@ export default function InventoryWarehousesPage() {
     <TenantPageShell
       eyebrow="Inventory"
       title="Bodegas"
-      description="Gestiona bodegas activas para operaciones de inventario por tenant."
+      description="Gestiona bodegas del inventario del tenant activo."
       breadcrumbItems={[
-        { label: "Dashboard", href: "/app" },
-        { label: "Inventario", href: "/app/inventory" },
+        { label: "Panel principal", href: "/app/inventory?tab=submodules" },
         { label: "Bodegas" },
       ]}
-      backHref="/app/inventory"
-      backLabel="Volver a Panel principal"
     >
       <TenantContextGate>
         {({ tenant, membership }) => (
@@ -366,7 +363,7 @@ function InventoryWarehousesContent({
               }}
               disabled={mutation.isPending}
             ><X className="size-4" />Cancelar</Button>
-            <Button type="button" onClick={() => mutation.mutate()} disabled={mutation.isPending}>
+            <Button type="button" variant="primary" onClick={() => mutation.mutate()} disabled={mutation.isPending}>
               {editingId ? <><Save className="size-4" />Actualizar bodega</> : <><Plus className="size-4" />Crear bodega</>}
             </Button>
           </>
@@ -409,6 +406,9 @@ function InventoryWarehousesContent({
     </div>
   );
 }
+
+
+
 
 
 

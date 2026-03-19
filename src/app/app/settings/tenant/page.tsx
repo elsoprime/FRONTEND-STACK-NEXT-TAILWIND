@@ -8,12 +8,11 @@ import { TenantContextGate } from "@/components/tenant/tenant-context-gate";
 import { TenantEffectiveSettingsPanel } from "@/components/tenant/tenant-effective-settings-panel";
 import { TenantPageShell, type TenantPageAction } from "@/components/tenant/tenant-page-shell";
 import { TenantSettingsForm } from "@/components/tenant/tenant-settings-form";
-import { cn } from "@/lib/utils";
 
 const ACTIONS: readonly TenantPageAction[] = [
-  { label: "Abrir vista efectiva completa", href: "/app/settings/tenant/effective" },
-  { label: "Billing y plan", href: "/app/settings/billing" },
-  { label: "Volver al dashboard", href: "/app" },
+  { label: "Abrir vista efectiva completa", href: "/app/settings/tenant/effective", variant: "secondary" },
+  { label: "Billing y plan", href: "/app/settings/billing", variant: "tertiary" },
+  { label: "Volver al dashboard", href: "/app", variant: "outline" },
 ];
 
 type TenantTabKey = "form" | "summary";
@@ -35,21 +34,15 @@ export default function TenantSettingsPage() {
               <article className="surface-card rounded-xl border-border/90 bg-card/95 p-4">
                 <div className="inline-flex rounded-xl border border-border/80 bg-background/72 p-1">
                   <Button
-                    variant={activeTab === "form" ? "secondary" : "ghost"}
-                    className={cn(
-                      "px-3 py-1.5 text-sm font-semibold transition",
-                      activeTab === "form" ? "bg-primary/16 text-primary" : "text-foreground/70",
-                    )}
+                    variant={activeTab === "form" ? "primary" : "outline"}
+                    size="sm"
                     onClick={() => setActiveTab("form")}
                   >
                     Formulario
                   </Button>
                   <Button
-                    variant={activeTab === "summary" ? "secondary" : "ghost"}
-                    className={cn(
-                      "px-3 py-1.5 text-sm font-semibold transition",
-                      activeTab === "summary" ? "bg-primary/16 text-primary" : "text-foreground/70",
-                    )}
+                    variant={activeTab === "summary" ? "tertiary" : "outline"}
+                    size="sm"
                     onClick={() => setActiveTab("summary")}
                   >
                     Resumen avanzado
@@ -90,7 +83,7 @@ export default function TenantSettingsPage() {
                       </p>
                     </div>
                     <Link href="/app/settings/tenant/effective" className="mt-3 inline-flex">
-                      <Button variant="outline">
+                      <Button variant="secondary">
                         Abrir vista efectiva completa
                       </Button>
                     </Link>
@@ -108,7 +101,7 @@ export default function TenantSettingsPage() {
                 compact
               />
               <Link href="/app/settings/tenant/effective" className="inline-flex w-full">
-                <Button variant="outline" className="w-full">
+                <Button variant="secondary" className="w-full">
                   Ver detalle completo
                 </Button>
               </Link>
@@ -119,3 +112,7 @@ export default function TenantSettingsPage() {
     </TenantPageShell>
   );
 }
+
+
+
+

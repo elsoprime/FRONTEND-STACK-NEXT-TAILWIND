@@ -70,7 +70,9 @@ export function InventoryRecordsShell({
             <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
               {countLabel}
             </p>
-            <p className="mt-2 text-2xl font-semibold tracking-tight text-foreground">{countValue}</p>
+            <p className="mt-2 text-2xl font-semibold tracking-tight text-foreground">
+              {countValue}
+            </p>
           </div>
         </div>
 
@@ -79,12 +81,16 @@ export function InventoryRecordsShell({
             {onSearchChange ? (
               <Input
                 value={searchValue}
-                onChange={(event: ChangeEvent<HTMLInputElement>) => onSearchChange(event.target.value)}
+                onChange={(event: ChangeEvent<HTMLInputElement>) =>
+                  onSearchChange(event.target.value)
+                }
                 placeholder={searchPlaceholder}
-                className="h-10 w-full rounded-xl bg-background/85 lg:max-w-sm"
+                className="h-10 w-full rounded-md bg-background/85 lg:max-w-sm"
               />
             ) : null}
-            {filters ? <div className="flex flex-1 flex-wrap items-center gap-2">{filters}</div> : null}
+            {filters ? (
+              <div className="flex flex-1 flex-wrap items-center gap-2">{filters}</div>
+            ) : null}
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
@@ -105,10 +111,14 @@ export function InventoryRecordsShell({
       </div>
 
       <div className="px-3 py-3 sm:px-4">
-        <div className="overflow-hidden rounded-xl border border-border/70 bg-background/85">{table}</div>
+        <div className="overflow-hidden rounded-md border border-border/70 bg-background/85">
+          {table}
+        </div>
       </div>
 
-      {pagination ? <div className="border-t border-border/70 px-5 py-4 sm:px-6">{pagination}</div> : null}
+      {pagination ? (
+        <div className="border-t border-border/70 px-5 py-4 sm:px-6">{pagination}</div>
+      ) : null}
     </section>
   );
 }
@@ -122,7 +132,11 @@ type InventoryDataTableProps = {
 
 export function InventoryDataTable({ columns, children, empty, hasRows }: InventoryDataTableProps) {
   if (!hasRows) {
-    return <div className="px-6 py-12 text-center text-sm text-muted-foreground">{empty ?? "Sin registros disponibles."}</div>;
+    return (
+      <div className="px-6 py-12 text-center text-sm text-muted-foreground">
+        {empty ?? "Sin registros disponibles."}
+      </div>
+    );
   }
 
   return (
@@ -142,7 +156,11 @@ type InventoryRowProps = {
 };
 
 export function InventoryRow({ children }: InventoryRowProps) {
-  return <tr className="bg-background/80 transition-colors duration-200 hover:bg-muted/25">{children}</tr>;
+  return (
+    <tr className="bg-background/80 transition-colors duration-200 hover:bg-muted/25">
+      {children}
+    </tr>
+  );
 }
 
 type InventoryCellProps = {

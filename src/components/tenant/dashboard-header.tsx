@@ -288,11 +288,14 @@ export function DashboardHeader({
             </div>
 
             <div className="relative">
-              <button
+              <Button
                 type="button"
+                variant="toolbar"
+                size="sm"
+                radius="full"
                 className={cn(
-                  "inline-flex h-10 min-w-10 items-center justify-center rounded-md border border-border/72 bg-[linear-gradient(180deg,rgba(255,255,255,0.74)_0%,rgba(245,239,232,0.92)_100%)] px-3 text-primary shadow-[0_12px_24px_-22px_oklch(0.58_0.16_42/0.36)] transition-all hover:-translate-y-0.5 hover:border-primary/32 dark:bg-card/64",
-                  userMenuOpen && "border-primary/36 bg-white/92 shadow-[0_16px_30px_-22px_oklch(0.58_0.16_42/0.46)] dark:bg-card/78",
+                  "min-w-10 px-3 text-primary",
+                  userMenuOpen && "border-primary/36 bg-card shadow-md shadow-primary/10",
                 )}
                 onClick={() => {
                   setUserMenuOpen(!userMenuOpen);
@@ -303,7 +306,7 @@ export function DashboardHeader({
                 aria-label="Menu de usuario"
               >
                 <span className="text-sm font-bold">{initials}</span>
-              </button>
+              </Button>
 
               {userMenuOpen ? (
                 <div className="dashboard-menu-surface absolute right-0 mt-2 w-60 p-2" role="menu">
@@ -349,3 +352,4 @@ export function DashboardHeader({
     </header>
   );
 }
+

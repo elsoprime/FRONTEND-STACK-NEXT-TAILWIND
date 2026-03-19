@@ -1,6 +1,6 @@
-"use client";
+﻿"use client";
 
-import type { ReactNode } from "react";
+import { type ReactNode, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -22,6 +22,8 @@ const panelSizes = {
   lg: "max-w-4xl",
 } as const;
 
+const EXIT_TRANSITION_MS = 200;
+
 export function InventoryFormModal({
   open,
   onOpenChange,
@@ -32,7 +34,33 @@ export function InventoryFormModal({
   alert,
   size = "md",
 }: InventoryFormModalProps) {
-  if (!open || typeof document === "undefined") {
+  const [isMounted, setIsMounted] = useState(open);
+  const [isVisible, setIsVisible] = useState(open);
+
+  useEffect(() => {
+    if (open) {
+      let visibleFrameId = 0;
+      const mountFrameId = window.requestAnimationFrame(() => {
+        setIsMounted(true);
+        visibleFrameId = window.requestAnimationFrame(() => setIsVisible(true));
+      });
+
+      return () => {
+        window.cancelAnimationFrame(mountFrameId);
+        window.cancelAnimationFrame(visibleFrameId);
+      };
+    }
+
+    const hideTimeoutId = window.setTimeout(() => setIsVisible(false), 0);
+    const unmountTimeoutId = window.setTimeout(() => setIsMounted(false), EXIT_TRANSITION_MS);
+
+    return () => {
+      window.clearTimeout(hideTimeoutId);
+      window.clearTimeout(unmountTimeoutId);
+    };
+  }, [open]);
+
+  if (!isMounted || typeof document === "undefined") {
     return null;
   }
 
@@ -44,14 +72,20 @@ export function InventoryFormModal({
       aria-labelledby="inventory-form-modal-title"
     >
       <div
-        className="absolute inset-0 bg-foreground/32 backdrop-blur-[3px]"
+        className={cn(
+          "absolute inset-0 bg-foreground/32 backdrop-blur-[3px] transition-opacity duration-200 ease-out",
+          isVisible ? "opacity-100" : "opacity-0",
+        )}
         onClick={() => onOpenChange(false)}
       />
       <div className="fixed inset-0 z-[121] flex items-center justify-center overflow-y-auto p-4 sm:p-6">
         <div
           className={cn(
-            "surface-card relative w-full overflow-hidden border-border/85 p-0 shadow-2xl",
+            "surface-card relative w-full overflow-hidden border-border/85 p-0 shadow-2xl transition-[opacity,transform] duration-200 ease-out",
             panelSizes[size],
+            isVisible
+              ? "translate-y-0 scale-100 opacity-100"
+              : "translate-y-2 scale-[0.985] opacity-0",
           )}
           onClick={(event) => event.stopPropagation()}
         >
@@ -77,8 +111,12 @@ export function InventoryFormModal({
               <X className="size-4" />
             </Button>
           </div>
-          {alert ? <div className="border-b border-border/70 px-5 py-4 sm:px-6">{alert}</div> : null}
-          <div className="max-h-[calc(100dvh-18rem)] overflow-y-auto px-5 py-5 sm:px-6">{children}</div>
+          {alert ? (
+            <div className="border-b border-border/70 px-5 py-4 sm:px-6">{alert}</div>
+          ) : null}
+          <div className="max-h-[calc(100dvh-18rem)] overflow-y-auto px-5 py-5 sm:px-6">
+            {children}
+          </div>
           {footer ? (
             <div className="flex flex-col-reverse gap-2 border-t border-border/70 bg-background/55 px-5 py-4 sm:flex-row sm:justify-end sm:px-6">
               {footer}

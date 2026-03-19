@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useRef, useState } from "react";
 import { ArrowRightLeft, Copy, RotateCcw, X } from "lucide-react";
@@ -50,15 +50,12 @@ export default function InventoryStockPage() {
   return (
     <TenantPageShell
       eyebrow="Inventory"
-      title="Movimientos de stock"
-      description="Registra entradas y salidas de inventario con validaciones de negocio."
+      title="Movimientos"
+      description="Gestiona movimientos del inventario del tenant activo."
       breadcrumbItems={[
-        { label: "Dashboard", href: "/app" },
-        { label: "Inventario", href: "/app/inventory" },
-        { label: "Stock" },
+        { label: "Panel principal", href: "/app/inventory?tab=submodules" },
+        { label: "Movimientos" },
       ]}
-      backHref="/app/inventory"
-      backLabel="Volver a Panel principal"
     >
       <TenantContextGate>
         {({ tenant, membership }) => (
@@ -419,7 +416,7 @@ function StockContent({
               }}
               disabled={mutation.isPending}
             ><X className="size-4" />Cancelar</Button>
-            <Button type="button" onClick={() => mutation.mutate()} disabled={mutation.isPending}><ArrowRightLeft className="size-4" />Registrar movimiento</Button>
+            <Button type="button" variant="primary" onClick={() => mutation.mutate()} disabled={mutation.isPending}><ArrowRightLeft className="size-4" />Registrar movimiento</Button>
           </>
         )}
       >
@@ -474,6 +471,10 @@ function StockContent({
     </div>
   );
 }
+
+
+
+
 
 
 

@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+﻿import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { InventoryPaginationControls } from "@/components/modules/inventory/inventory-pagination-controls";
 
@@ -56,5 +56,24 @@ describe("InventoryPaginationControls", () => {
 
     expect(screen.getByRole("button", { name: "Anterior" })).not.toBeDisabled();
     expect(screen.getByRole("button", { name: "Siguiente" })).toBeDisabled();
+  });
+
+  it("renders legend and numeric page buttons", () => {
+    const onPageChange = vi.fn();
+
+    render(
+      <InventoryPaginationControls
+        page={3}
+        totalPages={8}
+        total={160}
+        onPageChange={onPageChange}
+      />,
+    );
+
+    expect(screen.getByText("Paginacion de registros")).toBeInTheDocument();
+    expect(screen.getByText("Pagina 3 de 8 · Total de registros: 160")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "4" }));
+    expect(onPageChange).toHaveBeenCalledWith(4);
   });
 });

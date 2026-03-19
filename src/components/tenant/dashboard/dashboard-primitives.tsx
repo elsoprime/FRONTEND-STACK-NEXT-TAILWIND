@@ -216,25 +216,25 @@ export function DashboardModuleCard({
       <div className="mt-5 flex flex-wrap gap-2 border-t border-border/72 pt-4">
         {state === "active" ? (
           <Link href={primaryHref}>
-            <Button>
+            <Button variant="primary">
               {primaryLabel}
               <ArrowUpRight className="size-4" />
             </Button>
           </Link>
         ) : (
-          <Button disabled>
+          <Button variant="primary" disabled>
             {primaryLabel}
           </Button>
         )}
 
         {state === "active" ? (
           <Link href={secondaryHref}>
-            <Button variant="toolbar">
+            <Button variant="secondary">
               {secondaryLabel}
             </Button>
           </Link>
         ) : (
-          <Button variant="toolbar" disabled>
+          <Button variant="secondary" disabled>
             {secondaryLabel}
           </Button>
         )}
@@ -321,4 +321,5 @@ function DashboardModuleStateBadge({ state }: { state: ModuleState }) {
     </span>
   );
 }
+
 
