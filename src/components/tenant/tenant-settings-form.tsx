@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -260,228 +260,226 @@ export function TenantSettingsForm({ tenantId, tenantName }: TenantSettingsFormP
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
-        <SettingsSection
-          title="Marca"
-          description="Datos visibles de marca y canales de soporte."
-          icon={<Building2 className="size-4" />}
-        >
-          <Field
-            id="branding-display-name"
-            label="Nombre para mostrar"
-            error={errors.branding?.displayName?.message}
+        <div className="grid gap-5 xl:grid-cols-2 xl:items-start">
+          <SettingsSection
+            title="Marca"
+            description="Datos visibles de marca y canales de soporte."
+            icon={<Building2 className="size-4" />}
           >
-            <input
+            <Field
               id="branding-display-name"
-              type="text"
-              className={cn(
-                "h-11 w-full rounded-xl border border-border/80 bg-background/70 px-3 text-sm text-foreground outline-none transition-all placeholder:text-muted-foreground focus:border-primary/60 focus:ring-4 focus:ring-primary/20",
-                errors.branding?.displayName && "border-destructive focus:ring-destructive/25",
-              )}
-              {...register("branding.displayName")}
-            />
-          </Field>
+              label="Nombre para mostrar"
+              error={errors.branding?.displayName?.message}
+            >
+              <input
+                id="branding-display-name"
+                type="text"
+                className={cn(
+                  "h-11 w-full rounded-xl border border-border/80 bg-background/70 px-3 text-sm text-foreground outline-none transition-all placeholder:text-muted-foreground focus:border-primary/60 focus:ring-4 focus:ring-primary/20",
+                  errors.branding?.displayName && "border-destructive focus:ring-destructive/25",
+                )}
+                {...register("branding.displayName")}
+              />
+            </Field>
 
-          <Field
-            id="branding-support-email"
-            label="Correo de soporte"
-            error={errors.branding?.supportEmail?.message}
-          >
-            <input
+            <Field
               id="branding-support-email"
-              type="email"
-              className={cn(
-                "h-11 w-full rounded-xl border border-border/80 bg-background/70 px-3 text-sm text-foreground outline-none transition-all placeholder:text-muted-foreground focus:border-primary/60 focus:ring-4 focus:ring-primary/20",
-                errors.branding?.supportEmail && "border-destructive focus:ring-destructive/25",
-              )}
-              {...register("branding.supportEmail")}
-            />
-          </Field>
+              label="Correo de soporte"
+              error={errors.branding?.supportEmail?.message}
+            >
+              <input
+                id="branding-support-email"
+                type="email"
+                className={cn(
+                  "h-11 w-full rounded-xl border border-border/80 bg-background/70 px-3 text-sm text-foreground outline-none transition-all placeholder:text-muted-foreground focus:border-primary/60 focus:ring-4 focus:ring-primary/20",
+                  errors.branding?.supportEmail && "border-destructive focus:ring-destructive/25",
+                )}
+                {...register("branding.supportEmail")}
+              />
+            </Field>
 
-          <Field
-            id="branding-support-url"
-            label="URL de soporte"
-            error={errors.branding?.supportUrl?.message}
-          >
-            <input
+            <Field
               id="branding-support-url"
-              type="url"
-              className={cn(
-                "h-11 w-full rounded-xl border border-border/80 bg-background/70 px-3 text-sm text-foreground outline-none transition-all placeholder:text-muted-foreground focus:border-primary/60 focus:ring-4 focus:ring-primary/20",
-                errors.branding?.supportUrl && "border-destructive focus:ring-destructive/25",
-              )}
-              {...register("branding.supportUrl")}
-            />
-          </Field>
-        </SettingsSection>
+              label="URL de soporte"
+              error={errors.branding?.supportUrl?.message}
+            >
+              <input
+                id="branding-support-url"
+                type="url"
+                className={cn(
+                  "h-11 w-full rounded-xl border border-border/80 bg-background/70 px-3 text-sm text-foreground outline-none transition-all placeholder:text-muted-foreground focus:border-primary/60 focus:ring-4 focus:ring-primary/20",
+                  errors.branding?.supportUrl && "border-destructive focus:ring-destructive/25",
+                )}
+                {...register("branding.supportUrl")}
+              />
+            </Field>
+          </SettingsSection>
 
-        <SettingsSection
-          title="Localizacion"
-          description="Valores por defecto de zona horaria, moneda e idioma."
-          icon={<Globe2 className="size-4" />}
-        >
-          <Field
-            id="localization-default-timezone"
-            label="Zona horaria por defecto"
-            error={errors.localization?.defaultTimezone?.message}
+          <SettingsSection
+            title="Localizacion"
+            description="Valores por defecto de zona horaria, moneda e idioma."
+            icon={<Globe2 className="size-4" />}
           >
-            <input
+            <Field
               id="localization-default-timezone"
-              type="text"
-              className={cn(
-                "h-11 w-full rounded-xl border border-border/80 bg-background/70 px-3 text-sm text-foreground outline-none transition-all placeholder:text-muted-foreground focus:border-primary/60 focus:ring-4 focus:ring-primary/20",
-                errors.localization?.defaultTimezone &&
-                  "border-destructive focus:ring-destructive/25",
-              )}
-              {...register("localization.defaultTimezone")}
-            />
-          </Field>
+              label="Zona horaria por defecto"
+              error={errors.localization?.defaultTimezone?.message}
+            >
+              <input
+                id="localization-default-timezone"
+                type="text"
+                className={cn(
+                  "h-11 w-full rounded-xl border border-border/80 bg-background/70 px-3 text-sm text-foreground outline-none transition-all placeholder:text-muted-foreground focus:border-primary/60 focus:ring-4 focus:ring-primary/20",
+                  errors.localization?.defaultTimezone &&
+                    "border-destructive focus:ring-destructive/25",
+                )}
+                {...register("localization.defaultTimezone")}
+              />
+            </Field>
 
-          <Field
-            id="localization-default-currency"
-            label="Moneda por defecto"
-            error={errors.localization?.defaultCurrency?.message}
-          >
-            <input
+            <Field
               id="localization-default-currency"
-              type="text"
-              maxLength={3}
-              className={cn(
-                "h-11 w-full rounded-xl border border-border/80 bg-background/70 px-3 text-sm uppercase text-foreground outline-none transition-all placeholder:text-muted-foreground focus:border-primary/60 focus:ring-4 focus:ring-primary/20",
-                errors.localization?.defaultCurrency &&
-                  "border-destructive focus:ring-destructive/25",
-              )}
-              {...register("localization.defaultCurrency")}
-            />
-          </Field>
+              label="Moneda por defecto"
+              error={errors.localization?.defaultCurrency?.message}
+            >
+              <input
+                id="localization-default-currency"
+                type="text"
+                maxLength={3}
+                className={cn(
+                  "h-11 w-full rounded-xl border border-border/80 bg-background/70 px-3 text-sm uppercase text-foreground outline-none transition-all placeholder:text-muted-foreground focus:border-primary/60 focus:ring-4 focus:ring-primary/20",
+                  errors.localization?.defaultCurrency &&
+                    "border-destructive focus:ring-destructive/25",
+                )}
+                {...register("localization.defaultCurrency")}
+              />
+            </Field>
 
-          <Field
-            id="localization-default-language"
-            label="Idioma por defecto"
-            error={errors.localization?.defaultLanguage?.message}
-          >
-            <input
+            <Field
               id="localization-default-language"
-              type="text"
-              className={cn(
-                "h-11 w-full rounded-xl border border-border/80 bg-background/70 px-3 text-sm text-foreground outline-none transition-all placeholder:text-muted-foreground focus:border-primary/60 focus:ring-4 focus:ring-primary/20",
-                errors.localization?.defaultLanguage &&
-                  "border-destructive focus:ring-destructive/25",
-              )}
-              {...register("localization.defaultLanguage")}
-            />
-          </Field>
-        </SettingsSection>
+              label="Idioma por defecto"
+              error={errors.localization?.defaultLanguage?.message}
+            >
+              <input
+                id="localization-default-language"
+                type="text"
+                className={cn(
+                  "h-11 w-full rounded-xl border border-border/80 bg-background/70 px-3 text-sm text-foreground outline-none transition-all placeholder:text-muted-foreground focus:border-primary/60 focus:ring-4 focus:ring-primary/20",
+                  errors.localization?.defaultLanguage &&
+                    "border-destructive focus:ring-destructive/25",
+                )}
+                {...register("localization.defaultLanguage")}
+              />
+            </Field>
+          </SettingsSection>
 
-        <SettingsSection
-          title="Contacto"
-          description="Canales publicos y operativos del tenant."
-          icon={<Mail className="size-4" />}
-        >
-          <Field
-            id="contact-primary-email"
-            label="Correo principal"
-            error={errors.contact?.primaryEmail?.message}
+          <SettingsSection
+            title="Contacto"
+            description="Canales publicos y operativos del tenant."
+            icon={<Mail className="size-4" />}
           >
-            <input
+            <Field
               id="contact-primary-email"
-              type="email"
-              className={cn(
-                "h-11 w-full rounded-xl border border-border/80 bg-background/70 px-3 text-sm text-foreground outline-none transition-all placeholder:text-muted-foreground focus:border-primary/60 focus:ring-4 focus:ring-primary/20",
-                errors.contact?.primaryEmail && "border-destructive focus:ring-destructive/25",
-              )}
-              {...register("contact.primaryEmail")}
-            />
-          </Field>
+              label="Correo principal"
+              error={errors.contact?.primaryEmail?.message}
+            >
+              <input
+                id="contact-primary-email"
+                type="email"
+                className={cn(
+                  "h-11 w-full rounded-xl border border-border/80 bg-background/70 px-3 text-sm text-foreground outline-none transition-all placeholder:text-muted-foreground focus:border-primary/60 focus:ring-4 focus:ring-primary/20",
+                  errors.contact?.primaryEmail && "border-destructive focus:ring-destructive/25",
+                )}
+                {...register("contact.primaryEmail")}
+              />
+            </Field>
 
-          <Field id="contact-phone" label="Telefono" error={errors.contact?.phone?.message}>
-            <input
-              id="contact-phone"
-              type="text"
-              className={cn(
-                "h-11 w-full rounded-xl border border-border/80 bg-background/70 px-3 text-sm text-foreground outline-none transition-all placeholder:text-muted-foreground focus:border-primary/60 focus:ring-4 focus:ring-primary/20",
-                errors.contact?.phone && "border-destructive focus:ring-destructive/25",
-              )}
-              {...register("contact.phone")}
-            />
-          </Field>
+            <Field id="contact-phone" label="Telefono" error={errors.contact?.phone?.message}>
+              <input
+                id="contact-phone"
+                type="text"
+                className={cn(
+                  "h-11 w-full rounded-xl border border-border/80 bg-background/70 px-3 text-sm text-foreground outline-none transition-all placeholder:text-muted-foreground focus:border-primary/60 focus:ring-4 focus:ring-primary/20",
+                  errors.contact?.phone && "border-destructive focus:ring-destructive/25",
+                )}
+                {...register("contact.phone")}
+              />
+            </Field>
 
-          <Field
-            id="contact-website-url"
-            label="Sitio web"
-            error={errors.contact?.websiteUrl?.message}
-          >
-            <input
+            <Field
               id="contact-website-url"
-              type="url"
-              className={cn(
-                "h-11 w-full rounded-xl border border-border/80 bg-background/70 px-3 text-sm text-foreground outline-none transition-all placeholder:text-muted-foreground focus:border-primary/60 focus:ring-4 focus:ring-primary/20",
-                errors.contact?.websiteUrl && "border-destructive focus:ring-destructive/25",
-              )}
-              {...register("contact.websiteUrl")}
-            />
-          </Field>
-        </SettingsSection>
+              label="Sitio web"
+              error={errors.contact?.websiteUrl?.message}
+            >
+              <input
+                id="contact-website-url"
+                type="url"
+                className={cn(
+                  "h-11 w-full rounded-xl border border-border/80 bg-background/70 px-3 text-sm text-foreground outline-none transition-all placeholder:text-muted-foreground focus:border-primary/60 focus:ring-4 focus:ring-primary/20",
+                  errors.contact?.websiteUrl && "border-destructive focus:ring-destructive/25",
+                )}
+                {...register("contact.websiteUrl")}
+              />
+            </Field>
+          </SettingsSection>
 
-        <SettingsSection
-          title="Facturacion"
-          description="Datos administrativos y fiscales del tenant."
-          icon={<ReceiptText className="size-4" />}
-        >
-          <Field
-            id="billing-billing-email"
-            label="Correo de facturacion"
-            error={errors.billing?.billingEmail?.message}
+          <SettingsSection
+            title="Facturacion"
+            description="Datos administrativos y fiscales del tenant."
+            icon={<ReceiptText className="size-4" />}
           >
-            <input
+            <Field
               id="billing-billing-email"
-              type="email"
-              className={cn(
-                "h-11 w-full rounded-xl border border-border/80 bg-background/70 px-3 text-sm text-foreground outline-none transition-all placeholder:text-muted-foreground focus:border-primary/60 focus:ring-4 focus:ring-primary/20",
-                errors.billing?.billingEmail && "border-destructive focus:ring-destructive/25",
-              )}
-              {...register("billing.billingEmail")}
-            />
-          </Field>
+              label="Correo de facturacion"
+              error={errors.billing?.billingEmail?.message}
+            >
+              <input
+                id="billing-billing-email"
+                type="email"
+                className={cn(
+                  "h-11 w-full rounded-xl border border-border/80 bg-background/70 px-3 text-sm text-foreground outline-none transition-all placeholder:text-muted-foreground focus:border-primary/60 focus:ring-4 focus:ring-primary/20",
+                  errors.billing?.billingEmail && "border-destructive focus:ring-destructive/25",
+                )}
+                {...register("billing.billingEmail")}
+              />
+            </Field>
 
-          <Field
-            id="billing-legal-name"
-            label="Razon social"
-            error={errors.billing?.legalName?.message}
-          >
-            <input
+            <Field
               id="billing-legal-name"
-              type="text"
-              className={cn(
-                "h-11 w-full rounded-xl border border-border/80 bg-background/70 px-3 text-sm text-foreground outline-none transition-all placeholder:text-muted-foreground focus:border-primary/60 focus:ring-4 focus:ring-primary/20",
-                errors.billing?.legalName && "border-destructive focus:ring-destructive/25",
-              )}
-              {...register("billing.legalName")}
-            />
-          </Field>
+              label="Razon social"
+              error={errors.billing?.legalName?.message}
+            >
+              <input
+                id="billing-legal-name"
+                type="text"
+                className={cn(
+                  "h-11 w-full rounded-xl border border-border/80 bg-background/70 px-3 text-sm text-foreground outline-none transition-all placeholder:text-muted-foreground focus:border-primary/60 focus:ring-4 focus:ring-primary/20",
+                  errors.billing?.legalName && "border-destructive focus:ring-destructive/25",
+                )}
+                {...register("billing.legalName")}
+              />
+            </Field>
 
-          <Field
-            id="billing-tax-id"
-            label="Identificacion fiscal"
-            error={errors.billing?.taxId?.message}
-          >
-            <input
+            <Field
               id="billing-tax-id"
-              type="text"
-              className={cn(
-                "h-11 w-full rounded-xl border border-border/80 bg-background/70 px-3 text-sm text-foreground outline-none transition-all placeholder:text-muted-foreground focus:border-primary/60 focus:ring-4 focus:ring-primary/20",
-                errors.billing?.taxId && "border-destructive focus:ring-destructive/25",
-              )}
-              {...register("billing.taxId")}
-            />
-          </Field>
-        </SettingsSection>
+              label="Identificacion fiscal"
+              error={errors.billing?.taxId?.message}
+            >
+              <input
+                id="billing-tax-id"
+                type="text"
+                className={cn(
+                  "h-11 w-full rounded-xl border border-border/80 bg-background/70 px-3 text-sm text-foreground outline-none transition-all placeholder:text-muted-foreground focus:border-primary/60 focus:ring-4 focus:ring-primary/20",
+                  errors.billing?.taxId && "border-destructive focus:ring-destructive/25",
+                )}
+                {...register("billing.taxId")}
+              />
+            </Field>
+          </SettingsSection>
+        </div>
 
         <div className="flex flex-wrap items-center gap-3 pt-2">
-          <Button
-            type="submit"
-            className="h-11 rounded-xl px-6 font-semibold"
-            disabled={updateMutation.isPending}
-          >
+          <Button type="submit" className="h-11 px-6 font-semibold" disabled={updateMutation.isPending}>
             {updateMutation.isPending ? (
               <>
                 <LoaderCircle className="size-4 animate-spin" />
@@ -495,7 +493,7 @@ export function TenantSettingsForm({ tenantId, tenantName }: TenantSettingsFormP
           <Button
             type="button"
             variant="outline"
-            className="h-11 rounded-xl px-6"
+            className="h-11 px-6"
             onClick={() =>
               settingsQuery.data ? reset(toTenantSettingsFormValues(settingsQuery.data)) : undefined
             }
@@ -528,4 +526,3 @@ export function TenantSettingsForm({ tenantId, tenantName }: TenantSettingsFormP
     </div>
   );
 }
-

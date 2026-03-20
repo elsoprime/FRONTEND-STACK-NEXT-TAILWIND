@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -44,6 +44,7 @@ import { useTenantStore } from "@/store/tenant-store";
 type TenantBillingProvisioningPanelProps = {
   tenantId: string;
   tenantName: string;
+  sideContent?: React.ReactNode;
 };
 
 type ViewState =
@@ -79,6 +80,7 @@ function buildMissingCatalogPlan(planKey: string): BillingPlan {
 export function TenantBillingProvisioningPanel({
   tenantId,
   tenantName,
+  sideContent,
 }: TenantBillingProvisioningPanelProps) {
   const queryClient = useQueryClient();
   const setLastTraceId = useSessionStore((state) => state.setLastTraceId);
@@ -225,6 +227,7 @@ export function TenantBillingProvisioningPanel({
     const traceId = payload.data?.traceId ?? payload.data?.upstreamBody?.traceId ?? null;
     setLastTraceId(traceId ?? null);
   }
+
   function resolveUnknownErrorMessage(error: unknown): string {
     if (error instanceof ApiRequestError) {
       setLastTraceId(error.traceId ?? null);
@@ -430,263 +433,276 @@ export function TenantBillingProvisioningPanel({
         </div>
       </article>
 
-      {plansQuery.isLoading ? (
-        <div className="rounded-xl border border-primary/35 bg-primary/14 p-5 text-primary">
-          <div className="flex items-center gap-3 text-sm font-semibold">
-            <LoaderCircle className="size-4 animate-spin" />
-            Cargando catalogo de planes...
-          </div>
-        </div>
-      ) : null}
-
-      {plansQuery.error ? (
-        <article className="rounded-xl border border-red-300/80 bg-red-100/70 p-4 text-red-900 dark:border-destructive/45 dark:bg-destructive/14 dark:text-red-200">
-          <div className="flex items-center gap-3">
-            <ShieldAlert className="size-4" />
-            <p className="text-sm font-semibold">{resolveUnknownErrorMessage(plansQuery.error)}</p>
-          </div>
-        </article>
-      ) : null}
-
-      {visiblePlans.length > 0 ? (
-        <div className="grid gap-4 lg:grid-cols-2">
-          {visiblePlans.map((plan) => {
-            const isCurrent = currentPlanId === plan.key;
-            const isSelected = selectedPlanId === plan.key;
-            const isAvailableByApi = (plansQuery.data ?? []).some(
-              (apiPlan) => apiPlan.key === plan.key,
-            );
-
-            return (
-              <button
-                key={plan.key}
-                type="button"
-                className={cn(
-                  "rounded-2xl border p-5 text-left transition-all duration-200",
-                  isSelected
-                    ? "border-primary/50 bg-primary/16 shadow-[0_12px_30px_-15px_oklch(0.58_0.16_42/0.4)]"
-                    : "border-border/85 bg-card/88 hover:border-primary/35 hover:bg-card/95",
-                )}
-                onClick={() => {
-                  setSelectedPlanIdOverride(plan.key);
-                  if (latestCheckoutSession?.planId !== plan.key) {
-                    setLatestCheckoutSession(null);
-                  }
-                }}
-              >
-                <div className="flex items-center justify-between gap-3">
-                  <h3 className="text-base font-bold text-foreground">
-                    {resolvePlanDisplayName(plan.key, plan.name)}
-                  </h3>
-                  {isCurrent ? (
-                    <span className="inline-flex items-center gap-1 rounded-full border border-emerald-300/80 bg-emerald-100/70 px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-[0.1em] text-emerald-950 dark:border-emerald-400/50 dark:bg-emerald-500/14 dark:text-emerald-100">
-                      <ShieldCheck className="size-3.5" />
-                      Activo
-                    </span>
-                  ) : !isAvailableByApi ? (
-                    <span className="inline-flex items-center rounded-full border border-border/70 bg-muted/30 px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">
-                      No disponible
-                    </span>
-                  ) : null}
-                </div>
-
-                <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-                  {plan.description}
-                </p>
-                <p className="field-label mt-4">Modulos permitidos</p>
-                <p className="mt-1 text-sm font-medium text-foreground">
-                  {formatModules(plan.allowedModuleKeys)}
-                </p>
-              </button>
-            );
-          })}
-        </div>
-      ) : null}
-
-      {selectedPlan ? (
-        <article className="surface-card border-border/85 bg-card/88 p-5">
-          <div className="mb-5 space-y-3">
-            <p className="field-label">Flujo guiado de activacion</p>
-            <div className="space-y-2">
-              {stepSummaries.map((step) => (
-                <div
-                  key={step.label}
-                  className={cn(
-                    "rounded-xl border px-4 py-3 text-sm transition-colors",
-                    step.done
-                      ? "border-emerald-400/40 bg-emerald-500/10 text-emerald-100"
-                      : "border-border/70 bg-muted/20 text-muted-foreground",
-                  )}
-                >
-                  <p className="font-semibold">{step.label}</p>
-                  <p className="mt-0.5 opacity-85">{step.description}</p>
-                </div>
-              ))}
+      <div className="grid gap-4 xl:grid-cols-[minmax(0,1.18fr)_minmax(320px,0.82fr)] xl:items-start">
+        <div className="space-y-6">
+          {plansQuery.isLoading ? (
+            <div className="rounded-xl border border-primary/35 bg-primary/14 p-5 text-primary">
+              <div className="flex items-center gap-3 text-sm font-semibold">
+                <LoaderCircle className="size-4 animate-spin" />
+                Cargando catalogo de planes...
+              </div>
             </div>
-          </div>
-          <div className="grid gap-3 md:grid-cols-3">
-            <Button
-              type="button"
-              variant="primary"
-              className="h-11"
-              disabled={isWorking || !canAssignSelectedPlan}
-              onClick={() => {
-                setViewState({ status: "idle" });
-                setConfirmDialogOpen(true);
-              }}
-            >
-              {assignMutation.isPending ? (
-                <>
-                  <LoaderCircle className="size-4 animate-spin" />
-                  Aplicando...
-                </>
-              ) : (
-                "Confirmar pago y activar plan"
-              )}
-            </Button>
+          ) : null}
 
-            <Button
-              type="button"
-              variant="tertiary"
-              className="h-11"
-              disabled={!canStartCheckout}
-              onClick={() => {
-                setViewState({ status: "idle" });
-                checkoutMutation.mutate();
-              }}
-            >
-              {checkoutMutation.isPending ? (
-                <>
-                  <LoaderCircle className="size-4 animate-spin" />
-                  Creando checkout...
-                </>
-              ) : (
-                <span className="inline-flex items-center gap-2">
-                  <CreditCard className="size-4" />
-                  Iniciar checkout
-                </span>
-              )}
-            </Button>
+          {plansQuery.error ? (
+            <article className="rounded-xl border border-red-300/80 bg-red-100/70 p-4 text-red-900 dark:border-destructive/45 dark:bg-destructive/14 dark:text-red-200">
+              <div className="flex items-center gap-3">
+                <ShieldAlert className="size-4" />
+                <p className="text-sm font-semibold">{resolveUnknownErrorMessage(plansQuery.error)}</p>
+              </div>
+            </article>
+          ) : null}
 
-            <Button
-              type="button"
-              variant="tertiary"
-              className="h-11"
-              disabled={!canVerifyActivation}
-              onClick={() => {
-                setViewState({ status: "idle" });
-                verifyActivationMutation.mutate();
-              }}
-            >
-              {verifyActivationMutation.isPending ? (
-                <>
-                  <LoaderCircle className="size-4 animate-spin" />
-                  Verificando...
-                </>
-              ) : (
-                <span className="inline-flex items-center gap-2">
-                  <ShieldCheck className="size-4" />
-                  Verificar activacion
-                </span>
-              )}
-            </Button>
-          </div>
-          <div className="mt-3">
-            <Button
-              type="button"
-              variant="destructive"
-              className="h-11"
-              disabled={!canCancelSubscription}
-              onClick={() => {
-                setViewState({ status: "idle" });
-                setCancelDialogOpen(true);
-              }}
-            >
-              {cancelMutation.isPending ? (
-                <>
-                  <LoaderCircle className="size-4 animate-spin" />
-                  Cancelando...
-                </>
-              ) : (
-                <span className="inline-flex items-center gap-2">
-                  <CircleSlash className="size-4" />
-                  Cancelar suscripcion
-                </span>
-              )}
-            </Button>
-            {!canCancelSubscription ? (
-              <p className="mt-2 text-xs text-muted-foreground">
-                No disponible mientras la suscripcion este pendiente o desactivada.
-              </p>
-            ) : null}
-          </div>
-        </article>
-      ) : null}
+          {visiblePlans.length > 0 ? (
+            <div className="grid gap-4 lg:grid-cols-2">
+              {visiblePlans.map((plan) => {
+                const isCurrent = currentPlanId === plan.key;
+                const isSelected = selectedPlanId === plan.key;
+                const isAvailableByApi = (plansQuery.data ?? []).some(
+                  (apiPlan) => apiPlan.key === plan.key,
+                );
 
-      {latestCheckoutSession ? (
-        <article className="surface-card border-border/85 bg-card/88 p-5">
-          <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
-            <Sparkles className="size-4 text-primary" />
-            Ultima sesion de checkout
-          </div>
-          <div className="mt-4 space-y-2 text-sm text-muted-foreground">
-            <p>
-              Provider session:{" "}
-              <span className="font-mono text-foreground">
-                {latestCheckoutSession.providerSessionId}
-              </span>
-            </p>
-            <p>
-              Estado:{" "}
-              <span className="font-semibold text-foreground">{latestCheckoutSession.status}</span>
-            </p>
-            <p>
-              Expira en:{" "}
-              <span className="font-semibold text-foreground">
-                {latestCheckoutSession.expiresAt}
-              </span>
-            </p>
-          </div>
-          <a
-            href={latestCheckoutSession.checkoutUrl}
-            target="_blank"
-            rel="noreferrer"
-            className="mt-5 inline-flex h-10 items-center gap-2 rounded-xl border border-border/80 bg-background/50 px-4 text-sm font-semibold transition-all hover:border-primary/35 hover:text-primary"
-          >
-            Abrir checkout URL
-            <ExternalLink className="size-4" />
-          </a>
-        </article>
-      ) : null}
+                return (
+                  <button
+                    key={plan.key}
+                    type="button"
+                    className={cn(
+                      "rounded-2xl border p-5 text-left transition-all duration-200",
+                      isSelected
+                        ? "border-primary/50 bg-primary/16 shadow-[0_12px_30px_-15px_oklch(0.58_0.16_42/0.4)]"
+                        : "border-border/85 bg-card/88 hover:border-primary/35 hover:bg-card/95",
+                    )}
+                    onClick={() => {
+                      setSelectedPlanIdOverride(plan.key);
+                      if (latestCheckoutSession?.planId !== plan.key) {
+                        setLatestCheckoutSession(null);
+                      }
+                    }}
+                  >
+                    <div className="flex items-center justify-between gap-3">
+                      <h3 className="text-base font-bold text-foreground">
+                        {resolvePlanDisplayName(plan.key, plan.name)}
+                      </h3>
+                      {isCurrent ? (
+                        <span className="inline-flex items-center gap-1 rounded-full border border-emerald-300/80 bg-emerald-100/70 px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-[0.1em] text-emerald-950 dark:border-emerald-400/50 dark:bg-emerald-500/14 dark:text-emerald-100">
+                          <ShieldCheck className="size-3.5" />
+                          Activo
+                        </span>
+                      ) : !isAvailableByApi ? (
+                        <span className="inline-flex items-center rounded-full border border-border/70 bg-muted/30 px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">
+                          No disponible
+                        </span>
+                      ) : null}
+                    </div>
 
-      {activationDetectedAfterCheckout ? (
-        <article className="rounded-xl border border-emerald-300/80 bg-emerald-100/70 p-4 text-emerald-950 dark:border-emerald-400/55 dark:bg-emerald-500/14 dark:text-emerald-100">
-          <div className="flex items-center gap-3">
-            <ShieldCheck className="size-4" />
-            <p className="text-sm font-semibold">
-              Activacion detectada: el plan seleccionado ya esta activo en el runtime del tenant.
-            </p>
-          </div>
-        </article>
-      ) : null}
+                    <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                      {plan.description}
+                    </p>
+                    <p className="field-label mt-4">Modulos permitidos</p>
+                    <p className="mt-1 text-sm font-medium text-foreground">
+                      {formatModules(plan.allowedModuleKeys)}
+                    </p>
+                  </button>
+                );
+              })}
+            </div>
+          ) : null}
 
-      {viewState.status === "success" ? (
-        <article className="rounded-xl border border-emerald-300/80 bg-emerald-100/70 p-4 text-emerald-950 dark:border-emerald-400/55 dark:bg-emerald-500/14 dark:text-emerald-100">
-          <div className="flex items-center gap-3">
-            <ShieldCheck className="size-4" />
-            <p className="text-sm font-semibold">{viewState.message}</p>
-          </div>
-        </article>
-      ) : null}
+          {selectedPlan ? (
+            <article className="surface-card border-border/85 bg-card/88 p-5">
+              <div className="grid gap-3 md:grid-cols-3">
+                <Button
+                  type="button"
+                  variant="primary"
+                  className="h-11"
+                  disabled={isWorking || !canAssignSelectedPlan}
+                  onClick={() => {
+                    setViewState({ status: "idle" });
+                    setConfirmDialogOpen(true);
+                  }}
+                >
+                  {assignMutation.isPending ? (
+                    <>
+                      <LoaderCircle className="size-4 animate-spin" />
+                      Aplicando...
+                    </>
+                  ) : (
+                    "Confirmar pago y activar plan"
+                  )}
+                </Button>
 
-      {viewState.status === "error" ? (
-        <article className="rounded-xl border border-red-300/80 bg-red-100/70 p-4 text-red-900 dark:border-destructive/45 dark:bg-destructive/14 dark:text-red-200">
-          <div className="flex items-center gap-3">
-            <ShieldAlert className="size-4" />
-            <p className="text-sm font-semibold">{viewState.message}</p>
-          </div>
-        </article>
-      ) : null}
+                <Button
+                  type="button"
+                  variant="tertiary"
+                  className="h-11"
+                  disabled={!canStartCheckout}
+                  onClick={() => {
+                    setViewState({ status: "idle" });
+                    checkoutMutation.mutate();
+                  }}
+                >
+                  {checkoutMutation.isPending ? (
+                    <>
+                      <LoaderCircle className="size-4 animate-spin" />
+                      Creando checkout...
+                    </>
+                  ) : (
+                    <span className="inline-flex items-center gap-2">
+                      <CreditCard className="size-4" />
+                      Iniciar checkout
+                    </span>
+                  )}
+                </Button>
+
+                <Button
+                  type="button"
+                  variant="tertiary"
+                  className="h-11"
+                  disabled={!canVerifyActivation}
+                  onClick={() => {
+                    setViewState({ status: "idle" });
+                    verifyActivationMutation.mutate();
+                  }}
+                >
+                  {verifyActivationMutation.isPending ? (
+                    <>
+                      <LoaderCircle className="size-4 animate-spin" />
+                      Verificando...
+                    </>
+                  ) : (
+                    <span className="inline-flex items-center gap-2">
+                      <ShieldCheck className="size-4" />
+                      Verificar activacion
+                    </span>
+                  )}
+                </Button>
+              </div>
+              <div className="mt-3">
+                <Button
+                  type="button"
+                  variant="destructive"
+                  className="h-11"
+                  disabled={!canCancelSubscription}
+                  onClick={() => {
+                    setViewState({ status: "idle" });
+                    setCancelDialogOpen(true);
+                  }}
+                >
+                  {cancelMutation.isPending ? (
+                    <>
+                      <LoaderCircle className="size-4 animate-spin" />
+                      Cancelando...
+                    </>
+                  ) : (
+                    <span className="inline-flex items-center gap-2">
+                      <CircleSlash className="size-4" />
+                      Cancelar suscripcion
+                    </span>
+                  )}
+                </Button>
+                {!canCancelSubscription ? (
+                  <p className="mt-2 text-xs text-muted-foreground">
+                    No disponible mientras la suscripcion este pendiente o desactivada.
+                  </p>
+                ) : null}
+              </div>
+            </article>
+          ) : null}
+
+          {activationDetectedAfterCheckout ? (
+            <article className="rounded-xl border border-emerald-300/80 bg-emerald-100/70 p-4 text-emerald-950 dark:border-emerald-400/55 dark:bg-emerald-500/14 dark:text-emerald-100">
+              <div className="flex items-center gap-3">
+                <ShieldCheck className="size-4" />
+                <p className="text-sm font-semibold">
+                  Activacion detectada: el plan seleccionado ya esta activo en el runtime del tenant.
+                </p>
+              </div>
+            </article>
+          ) : null}
+
+          {viewState.status === "success" ? (
+            <article className="rounded-xl border border-emerald-300/80 bg-emerald-100/70 p-4 text-emerald-950 dark:border-emerald-400/55 dark:bg-emerald-500/14 dark:text-emerald-100">
+              <div className="flex items-center gap-3">
+                <ShieldCheck className="size-4" />
+                <p className="text-sm font-semibold">{viewState.message}</p>
+              </div>
+            </article>
+          ) : null}
+
+          {viewState.status === "error" ? (
+            <article className="rounded-xl border border-red-300/80 bg-red-100/70 p-4 text-red-900 dark:border-destructive/45 dark:bg-destructive/14 dark:text-red-200">
+              <div className="flex items-center gap-3">
+                <ShieldAlert className="size-4" />
+                <p className="text-sm font-semibold">{viewState.message}</p>
+              </div>
+            </article>
+          ) : null}
+        </div>
+
+        <aside className="space-y-4 xl:sticky xl:top-24">
+          {selectedPlan ? (
+            <article className="surface-card border-border/85 bg-card/88 p-5">
+              <div className="mb-5 space-y-3">
+                <p className="field-label">Flujo guiado de activacion</p>
+                <div className="space-y-2">
+                  {stepSummaries.map((step) => (
+                    <div
+                      key={step.label}
+                      className={cn(
+                        "rounded-xl border px-4 py-3 text-sm transition-colors",
+                        step.done
+                          ? "border-emerald-400/40 bg-emerald-500/10 text-emerald-100"
+                          : "border-border/70 bg-muted/20 text-muted-foreground",
+                      )}
+                    >
+                      <p className="font-semibold">{step.label}</p>
+                      <p className="mt-0.5 opacity-85">{step.description}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </article>
+          ) : null}
+
+          {sideContent}
+
+          {latestCheckoutSession ? (
+            <article className="surface-card border-border/85 bg-card/88 p-5">
+              <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
+                <Sparkles className="size-4 text-primary" />
+                Ultima sesion de checkout
+              </div>
+              <div className="mt-4 space-y-2 text-sm text-muted-foreground">
+                <p>
+                  Provider session:{" "}
+                  <span className="font-mono text-foreground">
+                    {latestCheckoutSession.providerSessionId}
+                  </span>
+                </p>
+                <p>
+                  Estado:{" "}
+                  <span className="font-semibold text-foreground">{latestCheckoutSession.status}</span>
+                </p>
+                <p>
+                  Expira en:{" "}
+                  <span className="font-semibold text-foreground">
+                    {latestCheckoutSession.expiresAt}
+                  </span>
+                </p>
+              </div>
+              <a
+                href={latestCheckoutSession.checkoutUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="mt-5 inline-flex h-10 items-center gap-2 rounded-xl border border-border/80 bg-background/50 px-4 text-sm font-semibold transition-all hover:border-primary/35 hover:text-primary"
+              >
+                Abrir checkout URL
+                <ExternalLink className="size-4" />
+              </a>
+            </article>
+          ) : null}
+        </aside>
+      </div>
 
       <DecisionDialog
         open={cancelDialogOpen}
@@ -774,7 +790,3 @@ export function TenantBillingProvisioningPanel({
     </div>
   );
 }
-
-
-
-

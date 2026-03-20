@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -47,13 +47,14 @@ const SEARCH_INDEX: SearchItem[] = [
   { label: "Plan y suscripcion", href: "/app/settings/billing", group: "Billing", keywords: ["pago", "invoice", "upgrade", "suscripcion"] },
   { label: "Configuracion de tenant", href: "/app/settings/tenant", group: "Tenant", keywords: ["branding", "ajustes", "nombre", "slug"] },
   { label: "Mi Perfil", href: "/app/settings/profile", group: "Usuario", keywords: ["cuenta", "datos"] },
-  { label: "Seguridad y 2FA", href: "/app/settings/security", group: "Usuario", keywords: ["password", "autenticacion", "dos factores"] },
+  { label: "Seguridad de usuario", href: "/app/settings/profile?tab=security", group: "Usuario", keywords: ["password", "autenticacion", "dos factores", "2fa"] },
+  { label: "Seguridad de plataforma", href: "/app/settings/security", group: "Plataforma", keywords: ["politicas", "hardening", "platform", "security"] },
   { label: "Modulo Inventory", href: "/app/inventory", group: "Modulos", keywords: ["stock", "productos", "almacen"] },
   { label: "Modulo CRM", href: "/app/crm", group: "Modulos", keywords: ["ventas", "clientes", "pipeline"] },
   { label: "Modulo HR", href: "/app/hr", group: "Modulos", keywords: ["empleados", "nomina", "talento"] },
   { label: "Auditoria de eventos", href: "/app/audit", group: "Seguridad", keywords: ["logs", "trazabilidad"] },
-  { label: "Invitaciones de miembros", href: "/app/members/invitations", group: "Tenant", keywords: ["invitar", "usuarios", "equipo"] },
-  { label: "Propiedad del tenant", href: "/app/tenant/ownership", group: "Seguridad", keywords: ["owner", "transferir", "titular"] },
+  { label: "Miembros e invitaciones", href: "/app/members?tab=invitations", group: "Tenant", keywords: ["invitar", "usuarios", "equipo", "miembros"] },
+  { label: "Ownership del tenant", href: "/app/members?tab=ownership", group: "Seguridad", keywords: ["owner", "transferir", "titular"] },
 ];
 
 function resolveInitials(firstName?: string | null, lastName?: string | null): string {
@@ -215,7 +216,7 @@ export function DashboardHeader({
                 <div id="dashboard-search-results" role="listbox" className="dashboard-menu-surface absolute left-0 right-0 top-12 z-50 p-2">
                   {filteredResults.map((item, index) => (
                     <button
-                      key={item.href}
+                      key={`${item.href}-${index}`}
                       type="button"
                       role="option"
                       aria-selected={activeSearchIndex === index}
@@ -270,7 +271,7 @@ export function DashboardHeader({
                     <CreditCard className="size-4 text-primary" />
                     Plan y Billing
                   </button>
-                  <button className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium hover:bg-muted/60" onMouseDown={() => handleNavigate("/app/members/invitations")}>
+                  <button className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium hover:bg-muted/60" onMouseDown={() => handleNavigate("/app/members")}>
                     <UserPlus className="size-4 text-primary" />
                     Miembros y Equipo
                   </button>
@@ -318,13 +319,13 @@ export function DashboardHeader({
                     <UserRound className="size-4" />
                     Mi Perfil
                   </button>
-                  <button className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium hover:bg-muted/60" onMouseDown={() => handleNavigate("/app/settings/security")}>
+                  <button className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium hover:bg-muted/60" onMouseDown={() => handleNavigate("/app/settings/profile?tab=security")}>
                     <ShieldCheck className="size-4" />
-                    Seguridad y 2FA
+                    Seguridad de usuario
                   </button>
-                  <button className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium hover:bg-muted/60" onMouseDown={() => handleNavigate("/app/settings/tenant")}>
+                  <button className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium hover:bg-muted/60" onMouseDown={() => handleNavigate("/app/settings/security")}>
                     <LifeBuoy className="size-4" />
-                    Soporte Tecnico
+                    Seguridad de plataforma
                   </button>
                   <div className="my-1 h-px bg-border/45" />
                   <button className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-destructive hover:bg-destructive/10" onClick={() => setLogoutOpen(true)}>
@@ -352,4 +353,3 @@ export function DashboardHeader({
     </header>
   );
 }
-
