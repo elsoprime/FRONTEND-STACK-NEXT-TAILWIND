@@ -5,6 +5,7 @@ export const queryKeys = {
   tenantSettings: (tenantId: string) => ["tenant", tenantId, "settings"] as const,
   tenantSettingsEffective: (tenantId: string) =>
     ["tenant", tenantId, "settings", "effective"] as const,
+  tenantMemberships: (tenantId: string) => ["tenant", tenantId, "memberships"] as const,
   billingPlans: () => ["billing", "plans"] as const,
   tenantBillingCheckout: (tenantId: string) => ["tenant", tenantId, "billing", "checkout"] as const,
   tenantSubscription: (tenantId: string) => ["tenant", tenantId, "subscription"] as const,

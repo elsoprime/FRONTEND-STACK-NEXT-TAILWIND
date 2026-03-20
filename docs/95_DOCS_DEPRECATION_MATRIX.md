@@ -1,8 +1,8 @@
 # Matriz de Deprecacion Documental Frontend
 
-Version: 1.2.0
+Version: 1.3.0
 Estado: Activo
-Ultima actualizacion: 2026-03-11
+Ultima actualizacion: 2026-03-20
 
 ## 1. Objetivo
 
@@ -19,17 +19,17 @@ Clasificar la documentacion de `docs/frontend/*` para eliminar ruido, conservar 
 | Documento | Estado | Motivo | Accion |
 |---|---|---|---|
 | `README.md` | Vigente | Indice oficial de `docs/frontend` | Mantener y actualizar referencia principal a V2 |
-| `10_IMPLEMENTATION_GUIDE_V2.md` | Vigente | Guia principal por fases y etapas, incluyendo billing/provisioning | Fuente principal para ejecucion FE |
+| `10_IMPLEMENTATION_GUIDE_V2.md` | Vigente | Guia principal por fases y etapas, incluyendo Members y Platform Security | Fuente principal para ejecucion FE |
 | `_deprecated/90_INTEGRATION_PLAN_V1.md` | Deprecado controlado | Referencias historicas y rol superado por V2 | Mantener en `_deprecated` con redireccion a V2 |
 | `15_INVENTORY_MODULO_IMPLEMENTATION_GUIDE_V2.md` | Vigente | Guia especifica para escalar Inventario frontend mas alla del piloto | Mantener sincronizada con releases backend de inventario |
-| `20_ACCESS_MATRIX.md` | Vigente | Matriz alineada con OpenAPI vigente, incluyendo billing/provisioning | Mantener sincronizada por cambios de contrato |
+| `20_ACCESS_MATRIX.md` | Vigente | Matriz alineada con OpenAPI vigente y rutas reales de Members/Settings | Mantener sincronizada por cambios de contrato |
 | `30_API_CLIENT_STANDARD.md` | Vigente | Reglas de headers y clasificacion de rutas actualizadas | Mantener y validar contra cliente real |
 | `40_STATE_AND_CACHE_POLICY.md` | Vigente | Base de aislamiento tenant/cache actualizada con provisioning | Mantener |
-| `50_ERROR_CATALOG.md` | Vigente con correccion | Faltaban codigos de password reset/change | Completar codigos y acciones UX |
-| `60_MOCKING_GUIDE.md` | Vigente | Incluye escenarios de billing/provisioning en MSW | Mantener |
-| `70_E2E_CRITICAL_FLOWS.md` | Vigente | Flujos criticos incluyen provisioning billing | Mantener |
+| `50_ERROR_CATALOG.md` | Vigente con correccion | Requiere seguir ampliando codigos nuevos de memberships y platform security si crecen los flujos | Mantener sincronizado con backend |
+| `60_MOCKING_GUIDE.md` | Vigente con correccion | Debe cubrir mocks reales de `tenant/memberships` y `platform/settings.security` | Ajustar handlers/fixtures de Members y Security |
+| `70_E2E_CRITICAL_FLOWS.md` | Vigente con correccion | Debe reflejar cobertura critica de Members y `/app/settings/security` | Agregar flujos y evidencias cuando se automaticen |
 | `80_BACKEND_DEPENDENCIES.md` | Vigente | Dependencias cerradas/abiertas actualizadas | Mantener trazabilidad |
-| `90_DOD_CHECKLIST.md` | Vigente | Criterios de cierre incluyen billing/provisioning | Mantener |
+| `90_DOD_CHECKLIST.md` | Vigente | Criterios de cierre incluyen validacion funcional y documental | Mantener |
 | `operaciones/BILLING_LOCAL_DEMO_RUNBOOK.md` | Vigente | Runbook operativo para cierre practico checkout -> webhook -> activacion | Mantener y actualizar junto a cambios de billing/provisioning |
 
 ## 4. Inconsistencias detectadas y tratamiento
@@ -47,10 +47,14 @@ Reemplazar por:
 - `docs/frontend/*`
 - `docs/cierres/*`
 
-### 4.2 OpenAPI ya disponible, pero marcado como faltante en frontend docs
+### 4.2 Contratos backend ya disponibles, pero con documentacion residual
 
 Corregir menciones de ausencia para:
 
+- `GET /api/v1/tenant/memberships`
+- `PATCH /api/v1/tenant/memberships/{membershipId}`
+- `DELETE /api/v1/tenant/memberships/{membershipId}`
+- `GET /api/v1/platform/settings` y `PATCH /api/v1/platform/settings` como fuente de `settings/security`
 - `POST /api/v1/auth/forgot-password`
 - `POST /api/v1/auth/reset-password`
 - `POST /api/v1/auth/change-password`
@@ -64,7 +68,6 @@ Corregir menciones de ausencia para:
 
 Mantener como abiertas solo las dependencias con contrato/runtime aun faltante para FE:
 
-- Memberships tenant CRUD (`/api/v1/tenant/memberships*`)
 - Gestion publica de roles/permisos tenant
 - Exposicion formal de auditoria platform-scoped para frontend
 - Endpoint de documentacion runtime (si se exige como requisito operativo)
@@ -77,6 +80,3 @@ Mantener como abiertas solo las dependencias con contrato/runtime aun faltante p
    1. `openapi/openapi.yaml` + `openapi/paths/*`
    2. `10_IMPLEMENTATION_GUIDE_V2.md`
    3. documentos especializados (`ACCESS_MATRIX`, `API_CLIENT_STANDARD`, `ERROR_CATALOG`, etc.)
-
-
-

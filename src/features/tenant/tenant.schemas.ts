@@ -51,6 +51,48 @@ export const tenantMembershipSummarySchema = z
 
 export type TenantMembershipSummary = z.infer<typeof tenantMembershipSummarySchema>;
 
+export const tenantMemberStatusSchema = z.enum(["active", "suspended"]).or(z.string());
+
+export const tenantMemberSchema = z
+  .object({
+    membershipId: z.string(),
+    userId: z.string(),
+    fullName: z.string(),
+    email: z.string().email(),
+    roleKey: z.enum(["tenant:owner", "tenant:admin", "tenant:member"]).or(z.string()),
+    status: tenantMemberStatusSchema,
+    joinedAt: z.string().nullable().optional(),
+    createdAt: z.string().nullable().optional(),
+    isEffectiveOwner: z.boolean(),
+  })
+  .passthrough();
+
+export type TenantMember = z.infer<typeof tenantMemberSchema>;
+
+export const tenantMembershipListSchema = z
+  .object({
+    items: z.array(tenantMemberSchema),
+    page: z.number().int().min(1),
+    limit: z.number().int().min(1),
+    total: z.number().int().min(0),
+    totalPages: z.number().int().min(1),
+  })
+  .passthrough();
+
+export type TenantMembershipList = z.infer<typeof tenantMembershipListSchema>;
+
+export const tenantMembershipListDataSchema = tenantMembershipListSchema;
+
+export type TenantMembershipListData = z.infer<typeof tenantMembershipListDataSchema>;
+
+export const tenantMembershipMutationDataSchema = z
+  .object({
+    membership: tenantMemberSchema,
+  })
+  .passthrough();
+
+export type TenantMembershipMutationData = z.infer<typeof tenantMembershipMutationDataSchema>;
+
 export const tenantMineDataSchema = z
   .object({
     items: z.array(tenantMembershipSummarySchema),
@@ -107,4 +149,3 @@ export type TransferTenantOwnershipData = z.infer<typeof transferTenantOwnership
 export function normalizeTenantMine(data: TenantMineData): TenantSummary[] {
   return data.items.map((item) => item.tenant);
 }
-

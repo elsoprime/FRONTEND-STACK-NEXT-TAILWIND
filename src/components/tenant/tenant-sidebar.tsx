@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import type { ComponentType } from "react";
 import Link from "next/link";
@@ -136,7 +136,7 @@ const navSections: readonly NavSection[] = [
         href: "/app/members",
         icon: Users,
         match: "prefix",
-        permissionKey: TENANT_PERMISSION_KEYS.INVITATIONS_CREATE,
+        permissionKey: TENANT_PERMISSION_KEYS.MEMBERSHIPS_READ,
         tenantRequired: true,
       },
     ],
