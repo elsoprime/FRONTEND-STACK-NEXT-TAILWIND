@@ -56,6 +56,8 @@ export const queryKeys = {
   expensesDashboardCategories: (tenantId: string) =>
     ["tenant", tenantId, "expenses", "dashboard", "categories"] as const,
   expenseCategories: (tenantId: string) => ["tenant", tenantId, "expenses", "categories"] as const,
+  expenseCatalogGovernance: (tenantId: string) =>
+    ["tenant", tenantId, "expenses", "catalog", "governance"] as const,
   expenseSettings: (tenantId: string) => ["tenant", tenantId, "expenses", "settings"] as const,
   expenseAttachments: (tenantId: string, requestId: string) =>
     ["tenant", tenantId, "expenses", "requests", requestId, "attachments"] as const,

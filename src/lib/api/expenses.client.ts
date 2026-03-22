@@ -396,6 +396,42 @@ export async function createCategory(
   return mapExpenseCategory(data.category);
 }
 
+export async function createCategoriesBulkGuided(
+  tenantId: string,
+  inputs: CreateExpenseCategoryInput[],
+): Promise<{
+  processed: number;
+  succeeded: number;
+  failed: number;
+  results: Array<{ key: string; success: boolean; message?: string }>;
+}> {
+  let succeeded = 0;
+  let failed = 0;
+  const results: Array<{ key: string; success: boolean; message?: string }> = [];
+
+  for (const input of inputs) {
+    try {
+      await createCategory(tenantId, input);
+      succeeded += 1;
+      results.push({ key: input.key, success: true });
+    } catch (error) {
+      failed += 1;
+      results.push({
+        key: input.key,
+        success: false,
+        message: error instanceof Error ? error.message : "Fallo de creacion",
+      });
+    }
+  }
+
+  return {
+    processed: inputs.length,
+    succeeded,
+    failed,
+    results,
+  };
+}
+
 export async function updateCategory(
   tenantId: string,
   categoryId: string,
