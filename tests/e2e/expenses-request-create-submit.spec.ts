@@ -1,4 +1,4 @@
-import { expect, type Page, test } from "@playwright/test";
+﻿import { expect, type Page, test } from "@playwright/test";
 import { setCsrfCookie } from "./helpers/csrf";
 
 const TENANT_ID = "507f191e810c19729de860ea";
@@ -82,7 +82,7 @@ function attachBaseExpensesAuthMocks(page: Page) {
             },
             localization: {
               defaultTimezone: "America/Santiago",
-              defaultCurrency: "USD",
+              defaultCurrency: "CLP",
               defaultLanguage: "es",
             },
             contact: {
@@ -161,6 +161,38 @@ test("creates expense request and submits from workspace form", async ({ page })
     });
   });
 
+  page.route("**/api/v1/modules/expenses/categories**", async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        success: true,
+        data: {
+          items: [
+            {
+              id: "cat_01",
+              tenantId: TENANT_ID,
+              key: "travel",
+              name: "Viajes",
+              requiresAttachment: true,
+              monthlyLimit: 500000,
+              isActive: true,
+              createdAt: "2026-03-20T10:00:00.000Z",
+              updatedAt: "2026-03-20T10:00:00.000Z",
+            },
+          ],
+        },
+        pagination: {
+          page: 1,
+          limit: 100,
+          total: 1,
+          totalPages: 1,
+        },
+        traceId: "trace-expenses-categories",
+      }),
+    });
+  });
+
   page.route("**/api/v1/modules/expenses/requests", async (route) => {
     if (route.request().method() !== "POST") {
       await route.fallback();
@@ -182,7 +214,7 @@ test("creates expense request and submits from workspace form", async ({ page })
             description: "Viaje de ventas",
             categoryKey: "travel",
             amount: 120,
-            currency: "USD",
+            currency: "CLP",
             expenseDate: "2026-03-21",
             status: "draft",
             submittedAt: null,
@@ -211,7 +243,7 @@ test("creates expense request and submits from workspace form", async ({ page })
       description: "Viaje de ventas",
       categoryKey: "travel",
       amount: 120,
-      currency: "USD",
+      currency: "CLP",
       expenseDate: "2026-03-21",
       status: "submitted",
       submittedAt: "2026-03-21T10:10:00.000Z",
@@ -242,14 +274,14 @@ test("creates expense request and submits from workspace form", async ({ page })
 
   await page.getByRole("button", { name: "Nueva solicitud" }).click();
   await page.getByLabel("Titulo").fill("Hotel cliente");
-  await page.getByLabel("Categoria").fill("travel");
+  await page.getByLabel("Categoria").selectOption("travel");
   await page.getByLabel("Monto").fill("120");
-  await page.getByLabel("Moneda").fill("USD");
+  await expect(page.getByLabel("Moneda")).toHaveValue("CLP");
   await page.getByLabel("Fecha de gasto").fill("2026-03-21");
   await page.getByLabel("Descripcion (opcional)").fill("Viaje de ventas");
 
   await page.getByRole("button", { name: "Guardar y enviar" }).click();
 
   await expect(page.getByRole("heading", { name: "Solicitudes de gasto" })).toBeVisible();
-  await expect(page.getByRole("link", { name: "Hotel cliente" })).toBeVisible();
+  await expect(page.getByText("Hotel cliente")).toBeVisible();
 });

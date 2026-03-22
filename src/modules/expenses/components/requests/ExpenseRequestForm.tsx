@@ -1,15 +1,17 @@
-"use client";
+﻿"use client";
 
 import { type ReactNode, useMemo, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { inventorySelectClassName } from "@/components/ui/inventory-records-shell";
 import { ApiRequestError } from "@/lib/api/client";
 import {
   createRequest,
+  listCategories,
   submitRequest,
   updateRequest,
 } from "@/lib/api/expenses.client";
@@ -95,17 +97,45 @@ export function ExpenseRequestForm({
   const [saveIntent, setSaveIntent] = useState<SaveIntent>("save");
   const [feedbackMessage, setFeedbackMessage] = useState<string | null>(null);
 
+  const categoriesQuery = useQuery({
+    queryKey: ["tenant", tenantId, "expenses", "categories", "request-form"],
+    queryFn: async () =>
+      listCategories(tenantId, {
+        page: 1,
+        limit: 100,
+        includeInactive: false,
+      }),
+  });
+
   const defaultValues = useMemo<ExpenseRequestFormValues>(
     () => ({
       title: initialData?.title ?? "",
       categoryKey: initialData?.categoryKey ?? "",
       amount: initialData?.amount !== undefined ? String(initialData.amount) : "",
-      currency: (initialData?.currency ?? "USD").toUpperCase(),
+      currency: (initialData?.currency ?? "CLP").toUpperCase(),
       expenseDate: toDateInputValue(initialData?.expenseDate),
       description: initialData?.description ?? "",
     }),
     [initialData],
   );
+
+  const activeItems = categoriesQuery.data?.items ?? [];
+  const categoryOptions =
+    !initialData?.categoryKey || activeItems.some((item) => item.key === initialData.categoryKey)
+      ? activeItems
+      : [
+          {
+            id: "legacy-category",
+            key: initialData.categoryKey,
+            name: `${initialData.categoryKey} (historica)`,
+            isActive: false,
+            requiresAttachment: false,
+            monthlyLimit: null,
+            createdAt: "",
+            updatedAt: "",
+          },
+          ...activeItems,
+        ];
 
   const form = useForm<ExpenseRequestFormValues>({
     resolver: zodResolver(expenseRequestFormSchema),
@@ -175,11 +205,28 @@ export function ExpenseRequestForm({
 
         <div className="grid gap-3 sm:grid-cols-2">
           <FieldLabel htmlFor="expense-category" label="Categoria">
-            <Input id="expense-category" {...form.register("categoryKey")} placeholder="travel" />
+            <select
+              id="expense-category"
+              className={inventorySelectClassName}
+              {...form.register("categoryKey")}
+              disabled={categoriesQuery.isLoading || categoriesQuery.isError}
+            >
+              <option value="">
+                {categoriesQuery.isLoading ? "Cargando categorias..." : "Selecciona una categoria"}
+              </option>
+              {categoryOptions.map((category) => (
+                <option key={category.id} value={category.key}>
+                  {category.name}
+                </option>
+              ))}
+            </select>
+            {categoriesQuery.isError ? (
+              <p className="text-xs text-destructive">No se pudo cargar el catalogo de categorias.</p>
+            ) : null}
             <FieldError message={form.formState.errors.categoryKey?.message} />
           </FieldLabel>
           <FieldLabel htmlFor="expense-currency" label="Moneda">
-            <Input id="expense-currency" {...form.register("currency")} placeholder="USD" />
+            <Input id="expense-currency" {...form.register("currency")} placeholder="CLP" />
             <FieldError message={form.formState.errors.currency?.message} />
           </FieldLabel>
         </div>
@@ -294,3 +341,4 @@ function FieldError({ message }: { message?: string }) {
 
   return <p className="text-xs text-destructive">{message}</p>;
 }
+

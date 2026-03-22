@@ -27,3 +27,4 @@ Todo cierre operativo de Expenses en backend debe replicarse en frontend con:
 - misma fecha de corte
 - misma version de contenido
 - hash equivalente cuando aplique
+
