@@ -1,18 +1,27 @@
-﻿"use client";
+"use client";
 
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowRight, ChartColumn } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { LoadingScreen } from "@/components/ui/loading-screen";
-import { getCounters, getSummary, listRequests } from "@/lib/api/expenses.client";
+import { inventorySelectClassName } from "@/components/ui/inventory-records-shell";
+import { listRequests } from "@/lib/api/expenses.client";
+import { type ExpenseRequestStatus } from "@/lib/api/expenses.types";
 import { ExpenseCategoriesManager } from "@/modules/expenses/components/settings/ExpenseCategoriesManager";
 import { ExpenseModuleSettingsForm } from "@/modules/expenses/components/settings/ExpenseModuleSettingsForm";
 import { formatExpenseAmount } from "@/modules/expenses/components/workflow/ExpenseWorkflowStateCard";
+import { ExpensesCategoryDistribution } from "@/modules/expenses/components/dashboard/ExpensesCategoryDistribution";
+import { ExpensesKpiStrip } from "@/modules/expenses/components/dashboard/ExpensesKpiStrip";
+import { ExpensesOperationalAlerts } from "@/modules/expenses/components/dashboard/ExpensesOperationalAlerts";
+import { ExpensesTrendsPanel } from "@/modules/expenses/components/dashboard/ExpensesTrendsPanel";
+import {
+  type ExpensesDashboardDateWindow,
+  useExpensesDashboard,
+} from "@/modules/expenses/hooks/use-expenses-dashboard";
 import { ExpenseRequestDetailPage } from "@/modules/expenses/pages/ExpenseRequestDetailPage";
 import { ExpensesWorkspacePage } from "@/modules/expenses/pages/ExpensesWorkspacePage";
 import { type ExpensesSectionKey } from "@/modules/expenses/routes/expenses.routes";
-import { cn } from "@/lib/utils";
 
 function RequestsByStatusPanel({
   title,
@@ -101,94 +110,107 @@ function RequestsByStatusPanel({
 }
 
 function ReportsWorkspace({ tenantId }: { tenantId: string }) {
-  const summaryQuery = useQuery({
-    queryKey: ["tenant", tenantId, "expenses", "reports", "summary"],
-    queryFn: async () => getSummary(tenantId),
-  });
-  const countersQuery = useQuery({
-    queryKey: ["tenant", tenantId, "expenses", "counters"],
-    queryFn: async () => getCounters(tenantId),
-  });
+  const dashboard = useExpensesDashboard(tenantId);
 
-  if (summaryQuery.isLoading || countersQuery.isLoading) {
+  if (dashboard.isLoading) {
     return (
       <LoadingScreen
         variant="inline"
         className="mt-0"
-        label="Cargando reportes de expenses..."
-        hint="Consultando resumen y contadores del tenant."
+        label="Cargando dashboard de expenses..."
+        hint="Sincronizando metricas operativas del tenant activo."
       />
     );
   }
 
-  if (summaryQuery.isError || countersQuery.isError) {
+  if (dashboard.isError) {
     return (
       <article className="rounded-2xl border border-red-300/70 bg-red-100/60 p-4 text-red-900 dark:border-destructive/45 dark:bg-destructive/14 dark:text-red-200">
-        <h4 className="text-sm font-semibold">Reportes</h4>
-        <p className="mt-2 text-sm">No fue posible cargar resumen y contadores.</p>
-      </article>
-    );
-  }
-
-  const summary = summaryQuery.data;
-  const counters = countersQuery.data;
-
-  if (!summary || !counters) {
-    return (
-      <article className="rounded-2xl border border-red-300/70 bg-red-100/60 p-4 text-red-900 dark:border-destructive/45 dark:bg-destructive/14 dark:text-red-200">
-        <h4 className="text-sm font-semibold">Reportes</h4>
-        <p className="mt-2 text-sm">No se recibieron datos completos para resumen y contadores.</p>
+        <h4 className="text-sm font-semibold">Dashboard</h4>
+        <p className="mt-2 text-sm">{dashboard.errorMessage ?? "No fue posible cargar metricas de expenses."}</p>
       </article>
     );
   }
 
   return (
-    <section className="space-y-4">
+    <section className="space-y-4" data-testid="expenses-reports-dashboard">
       <header className="space-y-2">
         <p className="label-kicker text-primary/90">Reportes</p>
         <h3 className="text-[1.7rem] font-semibold tracking-tight text-foreground">
-          Lectura ejecutiva del modulo
+          Panel operativo de expenses
         </h3>
         <p className="max-w-2xl text-sm dashboard-text-muted">
-          Resumen financiero y volumen operativo del tenant en una superficie alineada con el dashboard.
+          Vista ejecutiva para controlar volumen, montos, alertas y comportamiento por categoria.
         </p>
         <div className="flex flex-wrap gap-2 pt-1">
           <Badge variant="outline" className="rounded-full border-cyan-300/35 bg-cyan-400/10 text-cyan-700 dark:text-cyan-100">
-            Analitica
+            Dashboard
           </Badge>
           <Badge variant="outline" className="rounded-full border-emerald-300/35 bg-emerald-400/10 text-emerald-700 dark:text-emerald-100">
-            Finanzas
+            Operacion
           </Badge>
           <Badge variant="outline" className="rounded-full border-amber-300/35 bg-amber-400/10 text-amber-700 dark:text-amber-100">
-            Workflow
+            Riesgo
           </Badge>
         </div>
       </header>
 
-      <div className="grid gap-4 xl:grid-cols-[minmax(0,1.15fr)_minmax(280px,0.85fr)]">
-        <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-          <MetricCard label="Total solicitado" value={summary.totalRequestedAmount} tone="default" />
-          <MetricCard label="Total aprobado" value={summary.totalApprovedAmount} tone="success" />
-          <MetricCard label="Total pagado" value={summary.totalPaidAmount} tone="muted" />
-          <MetricCard label="Pendientes" value={counters.submitted + counters.returned} tone="warning" />
-          <MetricCard label="Aprobadas" value={counters.approved} tone="success" />
-          <MetricCard label="Rechazadas" value={counters.rejected} tone="warning" />
-        </section>
+      <section className="grid gap-3 rounded-[1.2rem] border border-border/80 bg-background/82 p-4 sm:grid-cols-3">
+        <label className="space-y-1.5 text-sm">
+          <span className="text-muted-foreground">Rango</span>
+          <select
+            className={inventorySelectClassName}
+            value={dashboard.filters.dateWindowDays}
+            onChange={(event) => dashboard.setDateWindowDays(Number(event.target.value) as ExpensesDashboardDateWindow)}
+          >
+            <option value={7}>Ultimos 7 dias</option>
+            <option value={30}>Ultimos 30 dias</option>
+            <option value={90}>Ultimos 90 dias</option>
+          </select>
+        </label>
 
-        <aside className="surface-card rounded-[1.5rem] border-border/90 bg-background/82 p-5">
-          <div className="flex items-center gap-2 text-primary">
-            <ChartColumn className="size-4" />
-            <h4 className="text-sm font-semibold uppercase tracking-[0.12em] text-foreground/70">
-              Lectura recomendada
-            </h4>
-          </div>
-          <div className="mt-4 space-y-3 text-sm dashboard-text-muted">
-            <p>Usa total solicitado y aprobado para detectar atascos entre captura y decision.</p>
-            <p>Contrasta aprobadas contra pagadas para revisar cola financiera real.</p>
-            <p>Las solicitudes rechazadas ayudan a detectar ruido operacional o reglas mal calibradas.</p>
-          </div>
-        </aside>
+        <label className="space-y-1.5 text-sm">
+          <span className="text-muted-foreground">Estado</span>
+          <select
+            className={inventorySelectClassName}
+            value={dashboard.filters.status}
+            onChange={(event) => dashboard.setStatus(event.target.value as "all" | ExpenseRequestStatus)}
+          >
+            <option value="all">Todos</option>
+            <option value="submitted">Enviadas</option>
+            <option value="returned">Devueltas</option>
+            <option value="approved">Aprobadas</option>
+            <option value="rejected">Rechazadas</option>
+            <option value="paid">Pagadas</option>
+            <option value="canceled">Canceladas</option>
+          </select>
+        </label>
+
+        <label className="space-y-1.5 text-sm">
+          <span className="text-muted-foreground">Categoria</span>
+          <select
+            className={inventorySelectClassName}
+            value={dashboard.filters.categoryKey}
+            onChange={(event) => dashboard.setCategoryKey(event.target.value)}
+          >
+            <option value="all">Todas</option>
+            {dashboard.availableCategories.map((category) => (
+              <option key={category.key} value={category.key}>
+                {category.name}
+              </option>
+            ))}
+          </select>
+        </label>
+      </section>
+
+      <ExpensesKpiStrip kpis={dashboard.kpis} />
+
+      <div className="grid gap-4 xl:grid-cols-[minmax(0,1.3fr)_minmax(280px,0.7fr)]">
+        <ExpensesTrendsPanel trends={dashboard.trends} />
+        <ExpensesOperationalAlerts alerts={dashboard.alerts} />
       </div>
+
+      <ExpensesCategoryDistribution categories={dashboard.categories} />
     </section>
   );
 }
@@ -261,35 +283,3 @@ export function ExpensesWorkspace({
 
   return <SettingsWorkspace tenantId={tenantId} />;
 }
-
-function MetricCard({
-  label,
-  value,
-  tone,
-}: {
-  label: string;
-  value: number;
-  tone: "default" | "warning" | "success" | "muted";
-}) {
-  const toneClass =
-    tone === "warning"
-      ? "border-amber-400/35 bg-amber-400/10"
-      : tone === "success"
-        ? "border-emerald-400/35 bg-emerald-400/10"
-        : tone === "muted"
-          ? "border-border/80 bg-background/65"
-          : "border-primary/25 bg-primary/10";
-
-  return (
-    <article className={cn("surface-card rounded-[1.35rem] border-border/90 p-4", toneClass)}>
-      <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-foreground/62">
-        {label}
-      </p>
-      <p className="mt-2 text-2xl font-semibold tracking-tight text-foreground">
-        {value.toLocaleString("es-CL")}
-      </p>
-    </article>
-  );
-}
-
-

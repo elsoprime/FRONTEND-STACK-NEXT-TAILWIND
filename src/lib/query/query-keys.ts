@@ -51,6 +51,10 @@ export const queryKeys = {
   tenantAuditLogs: (tenantId: string, scope: "recent" | "critical") =>
     ["tenant", tenantId, "audit", scope] as const,
   expensesRequests: (tenantId: string) => ["tenant", tenantId, "expenses", "requests"] as const,
+  expensesDashboardRequests: (tenantId: string) =>
+    ["tenant", tenantId, "expenses", "dashboard", "requests"] as const,
+  expensesDashboardCategories: (tenantId: string) =>
+    ["tenant", tenantId, "expenses", "dashboard", "categories"] as const,
   expenseCategories: (tenantId: string) => ["tenant", tenantId, "expenses", "categories"] as const,
   expenseSettings: (tenantId: string) => ["tenant", tenantId, "expenses", "settings"] as const,
   expenseAttachments: (tenantId: string, requestId: string) =>
