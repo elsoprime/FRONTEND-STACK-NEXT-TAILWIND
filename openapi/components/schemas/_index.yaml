@@ -88,6 +88,16 @@ AuditLog:
   $ref: ./audit.yaml#/AuditLog
 AuditLogListSuccessResponse:
   $ref: ./audit.yaml#/AuditLogListSuccessResponse
+AuditMetricsShare:
+  $ref: ./audit.yaml#/AuditMetricsShare
+AuditMetricsPoint:
+  $ref: ./audit.yaml#/AuditMetricsPoint
+AuditMetricsSummary:
+  $ref: ./audit.yaml#/AuditMetricsSummary
+TenantAuditMetrics:
+  $ref: ./audit.yaml#/TenantAuditMetrics
+AuditMetricsSuccessResponse:
+  $ref: ./audit.yaml#/AuditMetricsSuccessResponse
 PlatformSettings:
   $ref: ./platform-settings.yaml#/PlatformSettings
 UpdatePlatformSettingsRequest:
@@ -275,6 +285,15 @@ InventoryStocktakeListSuccessResponse:
   $ref: ./inventory.yaml#/InventoryStocktakeListSuccessResponse
 
 
+TenantMembershipListItem:
+  $ref: ./tenant.yaml#/TenantMembershipListItem
+TenantMembershipListSuccessResponse:
+  $ref: ./tenant.yaml#/TenantMembershipListSuccessResponse
+UpdateTenantMembershipRequest:
+  $ref: ./tenant.yaml#/UpdateTenantMembershipRequest
+TenantMembershipMutationSuccessResponse:
+  $ref: ./tenant.yaml#/TenantMembershipMutationSuccessResponse
+
 ExpenseRequestStatus:
   $ref: ./expenses.yaml#/ExpenseRequestStatus
 ExpenseApprovalMode:
@@ -353,3 +372,4 @@ ExpenseBulkExportSuccessResponse:
   $ref: ./expenses.yaml#/ExpenseBulkExportSuccessResponse
 ExpenseSummarySuccessResponse:
   $ref: ./expenses.yaml#/ExpenseSummarySuccessResponse
+

@@ -19,17 +19,17 @@ Clasificar la documentacion de `docs/frontend/*` para eliminar ruido, conservar 
 | Documento | Estado | Motivo | Accion |
 |---|---|---|---|
 | `README.md` | Vigente | Indice oficial de `docs/frontend` | Mantener y actualizar referencia principal a V2 |
-| `10_IMPLEMENTATION_GUIDE_V2.md` | Vigente | Guia principal por fases y etapas, incluyendo Members y Platform Security | Fuente principal para ejecucion FE |
+| `10_IMPLEMENTATION_GUIDE_V2.md` | Vigente | Guia principal por fases y etapas, incluyendo members y seguridad de plataforma | Fuente principal para ejecucion FE |
 | `_deprecated/90_INTEGRATION_PLAN_V1.md` | Deprecado controlado | Referencias historicas y rol superado por V2 | Mantener en `_deprecated` con redireccion a V2 |
-| `15_INVENTORY_MODULO_IMPLEMENTATION_GUIDE_V2.md` | Vigente | Guia especifica para escalar Inventario frontend mas alla del piloto | Mantener sincronizada con releases backend de inventario |
-| `20_ACCESS_MATRIX.md` | Vigente | Matriz alineada con OpenAPI vigente y rutas reales de Members/Settings | Mantener sincronizada por cambios de contrato |
+| `20_ACCESS_MATRIX.md` | Vigente | Matriz alineada con OpenAPI/runtime vigente, incluyendo memberships CRUD y `settings/security` | Mantener sincronizada por cambios de contrato |
 | `30_API_CLIENT_STANDARD.md` | Vigente | Reglas de headers y clasificacion de rutas actualizadas | Mantener y validar contra cliente real |
 | `40_STATE_AND_CACHE_POLICY.md` | Vigente | Base de aislamiento tenant/cache actualizada con provisioning | Mantener |
-| `50_ERROR_CATALOG.md` | Vigente con correccion | Requiere seguir ampliando codigos nuevos de memberships y platform security si crecen los flujos | Mantener sincronizado con backend |
-| `60_MOCKING_GUIDE.md` | Vigente con correccion | Debe cubrir mocks reales de `tenant/memberships` y `platform/settings.security` | Ajustar handlers/fixtures de Members y Security |
-| `70_E2E_CRITICAL_FLOWS.md` | Vigente con correccion | Debe reflejar cobertura critica de Members y `/app/settings/security` | Agregar flujos y evidencias cuando se automaticen |
+| `50_ERROR_CATALOG.md` | Vigente con correccion | Debe reflejar codigos nuevos de memberships y seguridad | Completar codigos y acciones UX |
+| `60_MOCKING_GUIDE.md` | Vigente con correccion | Debe marcar retiro de mocks en `Members > Equipo` cuando frontend integre el runtime real | Actualizar junto con la integracion FE |
+| `70_E2E_CRITICAL_FLOWS.md` | Vigente con correccion | Debe incorporar escenarios criticos de memberships y `settings/security` | Ampliar cobertura cuando frontend conecte los nuevos contratos |
 | `80_BACKEND_DEPENDENCIES.md` | Vigente | Dependencias cerradas/abiertas actualizadas | Mantener trazabilidad |
-| `90_DOD_CHECKLIST.md` | Vigente | Criterios de cierre incluyen validacion funcional y documental | Mantener |
+| `90_DOD_CHECKLIST.md` | Vigente | Criterios de cierre siguen validos | Mantener |
+| `100_ALIGNMENT_PLAN_BACKEND_FRONTEND_TENANT_WORKSPACES.md` | Vigente con correccion | Acta de cierre y trazabilidad de alineacion ya ejecutada | Mantener como registro; usar `10_IMPLEMENTATION_GUIDE_V2.md` y `20_ACCESS_MATRIX.md` como fuente operativa |
 | `operaciones/BILLING_LOCAL_DEMO_RUNBOOK.md` | Vigente | Runbook operativo para cierre practico checkout -> webhook -> activacion | Mantener y actualizar junto a cambios de billing/provisioning |
 
 ## 4. Inconsistencias detectadas y tratamiento
@@ -47,14 +47,10 @@ Reemplazar por:
 - `docs/frontend/*`
 - `docs/cierres/*`
 
-### 4.2 Contratos backend ya disponibles, pero con documentacion residual
+### 4.2 OpenAPI ya disponible, pero marcado como faltante o pendiente en frontend docs
 
 Corregir menciones de ausencia para:
 
-- `GET /api/v1/tenant/memberships`
-- `PATCH /api/v1/tenant/memberships/{membershipId}`
-- `DELETE /api/v1/tenant/memberships/{membershipId}`
-- `GET /api/v1/platform/settings` y `PATCH /api/v1/platform/settings` como fuente de `settings/security`
 - `POST /api/v1/auth/forgot-password`
 - `POST /api/v1/auth/reset-password`
 - `POST /api/v1/auth/change-password`
@@ -63,6 +59,11 @@ Corregir menciones de ausencia para:
 - `POST /api/v1/billing/webhooks/provider`
 - `PATCH /api/v1/tenant/subscription`
 - `DELETE /api/v1/tenant/subscription`
+- `GET /api/v1/tenant/memberships`
+- `PATCH /api/v1/tenant/memberships/{membershipId}`
+- `DELETE /api/v1/tenant/memberships/{membershipId}`
+- `GET /api/v1/platform/settings` para `settings/security`
+- `PATCH /api/v1/platform/settings` para `settings/security`
 
 ### 4.3 Dependencias que siguen realmente abiertas
 

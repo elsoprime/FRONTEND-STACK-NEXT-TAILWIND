@@ -1,8 +1,8 @@
 # Dependencias Frontend del Backend
 
-Version: 1.5.0
+Version: 1.6.0
 Estado: Activo
-Ultima actualizacion: 2026-03-20
+Ultima actualizacion: 2026-03-21
 
 ## 1. Proposito
 
@@ -28,14 +28,15 @@ Centralizar bloqueos reales de frontend que dependen de contrato o runtime backe
 |---|---|---|---|
 | BE-FE-001 | Forgot password | Cerrada (backend disponible) | `POST /api/v1/auth/forgot-password` en OpenAPI |
 | BE-FE-002 | Reset password | Cerrada (backend disponible) | `POST /api/v1/auth/reset-password` en OpenAPI |
-| BE-FE-003 | Memberships list/update/remove | Cerrada (backend disponible) | `GET/PATCH/DELETE /api/v1/tenant/memberships*` consumido ya por frontend en runtime real |
+| BE-FE-003 | Memberships list/update/remove | Cerrada (backend disponible) | `GET/PATCH/DELETE /api/v1/tenant/memberships*` en OpenAPI/runtime con tests |
 | BE-FE-007 | Change password autenticado | Cerrada (backend disponible) | `POST /api/v1/auth/change-password` en OpenAPI/runtime |
 | BE-FE-008 | Tenant settings effective bootstrap de platform settings | Cerrada (backend disponible) | Bootstrap explicito en startup + `GET /api/v1/tenant/settings/effective` estable en runtime |
 | BE-FE-009 | Billing plans catalog | Cerrada (backend disponible) | `GET /api/v1/billing/plans` en OpenAPI/runtime |
 | BE-FE-010 | Checkout session tenant-scoped | Cerrada (backend disponible) | `POST /api/v1/billing/checkout/session` en OpenAPI/runtime |
 | BE-FE-011 | Billing webhook provider | Cerrada (backend disponible) | `POST /api/v1/billing/webhooks/provider` en OpenAPI/runtime |
 | BE-FE-012 | Tenant subscription assign/cancel | Cerrada (backend disponible) | `PATCH/DELETE /api/v1/tenant/subscription` en OpenAPI/runtime |
-| BE-FE-013 | Platform settings security ampliado | Cerrada (backend disponible) | `GET/PATCH /api/v1/platform/settings` con `security` ampliado y frontend conectado |
+| BE-FE-013 | Platform settings security ampliado | Cerrada (backend disponible) | `GET/PATCH /api/v1/platform/settings` expone `security` ampliado con validaciones y tests |
+| BE-FE-014 | Expenses settings/categorias/permisos base | Cerrada (backend disponible) | `GET/PUT /api/v1/modules/expenses/settings`, `GET/POST/PATCH /api/v1/modules/expenses/categories` en OpenAPI/runtime + `tests/integration/expenses/expenses.settings.routes.test.ts` |
 
 ## 5. Detalle de vigentes
 
@@ -82,23 +83,35 @@ Centralizar bloqueos reales de frontend que dependen de contrato o runtime backe
 
 ### 6.1 BE-FE-003 Memberships CRUD
 
-Frontend ya consume:
+Backend ya entrega:
 
 - `GET /api/v1/tenant/memberships`
 - `PATCH /api/v1/tenant/memberships/{membershipId}`
 - `DELETE /api/v1/tenant/memberships/{membershipId}`
-- filtros por `search`, `roleKey` y `status`
-- invalidacion de cache tenant-scoped en mutaciones
+- reglas RBAC explicitas (`tenant:memberships:read/update/delete`)
+- payload paginado para listados y proteccion del owner efectivo
 
 ### 6.2 BE-FE-013 Platform settings security ampliado
 
-Frontend ya consume en `/app/settings/security`:
+Backend ya entrega en `platform/settings.security`:
 
 - `requireTwoFactorForPrivilegedUsers`
 - `passwordPolicy`
 - `sessionPolicy`
 - `riskControls`
-- compatibilidad con `PATCH` parcial via `platform/settings`
+- compatibilidad con `PATCH` parcial
+
+### 6.3 BE-FE-014 Expenses settings/categorias/permisos base
+
+Backend ya entrega:
+
+- `GET /api/v1/modules/expenses/settings`
+- `PUT /api/v1/modules/expenses/settings`
+- `GET /api/v1/modules/expenses/categories`
+- `POST /api/v1/modules/expenses/categories`
+- `PATCH /api/v1/modules/expenses/categories/{categoryId}`
+- guardas por permisos `tenant:expenses:settings:read` y `tenant:expenses:settings:update`
+- pruebas de integracion especificas de permisos y contratos settings/categorias
 
 ## 7. Flujo de cierre de dependencia
 

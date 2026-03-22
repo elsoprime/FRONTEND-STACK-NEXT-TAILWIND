@@ -43,6 +43,8 @@ paths:
     $ref: ./paths/auth/logout-all.yaml
   /api/v1/audit:
     $ref: ./paths/audit/list.yaml
+  /api/v1/audit/metrics:
+    $ref: ./paths/audit/metrics.yaml
   /api/v1/billing/plans:
     $ref: ./paths/billing/plans.yaml
   /api/v1/billing/checkout/session:
@@ -135,6 +137,12 @@ paths:
     $ref: ./paths/modules/crm-activities.yaml
   /api/v1/modules/crm/counters:
     $ref: ./paths/modules/crm-counters.yaml
+  /api/v1/modules/hr/employees:
+    $ref: ./paths/modules/hr-employees.yaml
+  /api/v1/modules/hr/employees/{employeeId}:
+    $ref: ./paths/modules/hr-employee-by-id.yaml
+  /api/v1/modules/hr/employees/{employeeId}/compensation:
+    $ref: ./paths/modules/hr-compensation-by-employee.yaml
   /api/v1/modules/expenses/requests:
     $ref: ./paths/modules/expenses-requests.yaml
   /api/v1/modules/expenses/requests/{requestId}:
@@ -179,12 +187,10 @@ paths:
     $ref: ./paths/modules/expenses-request-attachments.yaml
   /api/v1/modules/expenses/requests/{requestId}/attachments/{attachmentId}:
     $ref: ./paths/modules/expenses-request-attachment-by-id.yaml
-  /api/v1/modules/hr/employees:
-    $ref: ./paths/modules/hr-employees.yaml
-  /api/v1/modules/hr/employees/{employeeId}:
-    $ref: ./paths/modules/hr-employee-by-id.yaml
-  /api/v1/modules/hr/employees/{employeeId}/compensation:
-    $ref: ./paths/modules/hr-compensation-by-employee.yaml
+  /api/v1/tenant/memberships:
+    $ref: ./paths/tenant/memberships.yaml
+  /api/v1/tenant/memberships/{membershipId}:
+    $ref: ./paths/tenant/membership-by-id.yaml
 components:
   schemas:
     $ref: ./components/schemas/_index.yaml
@@ -194,6 +200,9 @@ components:
     $ref: ./components/parameters/_index.yaml
   securitySchemes:
     $ref: ./components/securitySchemes/_index.yaml
+
+
+
 
 
 

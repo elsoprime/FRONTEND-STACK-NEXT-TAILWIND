@@ -50,7 +50,7 @@ Fuente de verdad API: `openapi/openapi.yaml` y `openapi/paths/modules/inventory-
 
 ## 4.2 API client
 
-Usar cliente estandar de `docs/30_API_CLIENT_STANDARD.md`.
+Usar cliente estandar de `docs/frontend/30_API_CLIENT_STANDARD.md`.
 
 Reglas obligatorias:
 
@@ -60,7 +60,7 @@ Reglas obligatorias:
 
 ## 4.3 Estado y cache
 
-Usar politica de `docs/40_STATE_AND_CACHE_POLICY.md`.
+Usar politica de `docs/frontend/40_STATE_AND_CACHE_POLICY.md`.
 
 Query keys sugeridas:
 
@@ -146,31 +146,17 @@ Query keys sugeridas:
 - [ ] Sin fugas cross-tenant en cache
 - [ ] Errores criticos mapeados y probados
 - [ ] E2E critico en verde
-- [ ] Documentacion actualizada en `docs/*`
+- [ ] Documentacion actualizada en `docs/frontend/*`
 
-## 10. Sincronizacion con backend
+## 10. Sincronizacion con repositorio frontend
 
-- Revisar en cada release del backend:
-  - `docs/operaciones/INVENTARIO_RELEASE_PACKAGE_*.md`
-  - `docs/checklists/INVENTARIO_GO_LIVE_CHECKLIST_*.md`
-- Mantener versionado de esta guia con fecha de corte y commit backend de referencia.
+Objetivo posterior:
 
-## 11. Estado de implementacion actual (UI pilot -> hardening)
+- Replicar esta guia en `FRONTEND-STACK-NEXT-TAILWIND/docs/*`
+- Mantener mismo versionado y fecha de corte
+- Validar enlaces cruzados y rutas reales del frontend repo
 
-Implementado en frontend actual:
-- Navegacion modular de inventory con submenu (`Panel principal`, `Items`, `Categorias`, `Stock`, `Alertas`).
-- Dashboard de inventory con tarjetas de contexto y ayuda operacional.
-- CRUD operativo de categorias/bodegas/lotes/items + stocktakes y registro de movimientos de stock.
-- Listados con paginacion y filtros para operacion diaria.
-- Alertas de low-stock integradas con endpoint backend.
-- Pruebas unitarias de primitives inventory y smoke e2e de modulo.
-
-Estado actual de version avanzada:
-- `reconciliation` y `settings` implementados en frontend con rutas dedicadas.
-- Alertas extendidas con lotes proximos a vencer (`expiring-lots`).
-- Integracion live ready documentada en `docs/frontend/inventory-live-integration-guide.md`.
-
-## 12. Hardening pendiente documentado
+## 11. Hardening pendiente documentado
 
 Pendientes ya identificados para retomarse sin abrir un plan paralelo nuevo:
 
@@ -189,7 +175,3 @@ Politica documental:
 
 - este hardening se mantiene en esta guia y en `70_E2E_CRITICAL_FLOWS.md`
 - no crear un `plan` o `roadmap` adicional mientras siga siendo una sola linea de hardening del modulo
-
-
-
-

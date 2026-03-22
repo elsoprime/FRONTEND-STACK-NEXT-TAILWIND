@@ -364,15 +364,6 @@ Contratos futuros recomendados para retomar sin redescubrir alcance:
 |---|---|---|---|---|---|
 | GET/POST | `/api/v1/modules/inventory/categories` | Si | Si | Condicional en POST | GET: 200,400,401,403 / POST: 201,400,401,403,409 |
 | PATCH/DELETE | `/api/v1/modules/inventory/categories/{categoryId}` | Si | Si | Condicional | 200,400,401,403,404,409 |
-| GET/POST | `/api/v1/modules/inventory/warehouses` | Si | Si | Condicional en POST | GET: 200,400,401,403 / POST: 201,400,401,403,409 |
-| PATCH | `/api/v1/modules/inventory/warehouses/{warehouseId}` | Si | Si | Condicional | 200,400,401,403,404,409 |
-| GET/POST | `/api/v1/modules/inventory/lots` | Si | Si | Condicional en POST | GET: 200,400,401,403 / POST: 201,400,401,403,404,409 |
-| PATCH | `/api/v1/modules/inventory/lots/{lotId}` | Si | Si | Condicional | 200,400,401,403,404,409 |
-| GET/POST | `/api/v1/modules/inventory/stocktakes` | Si | Si | Condicional en POST | GET: 200,400,401,403 / POST: 201,400,401,403,404,409 |
-| GET | `/api/v1/modules/inventory/stocktakes/{stocktakeId}` | Si | Si | No | 200,400,401,403,404 |
-| PUT | `/api/v1/modules/inventory/stocktakes/{stocktakeId}/counts` | Si | Si | Condicional | 200,400,401,403,404,409 |
-| POST | `/api/v1/modules/inventory/stocktakes/{stocktakeId}/apply` | Si | Si | Condicional | 200,400,401,403,404,409 |
-| POST | `/api/v1/modules/inventory/stocktakes/{stocktakeId}/cancel` | Si | Si | Condicional | 200,400,401,403,404,409 |
 | GET/POST | `/api/v1/modules/inventory/items` | Si | Si | Condicional en POST | GET: 200,400,401,403 / POST: 201,400,401,403,404,409 |
 | GET/PATCH/DELETE | `/api/v1/modules/inventory/items/{itemId}` | Si | Si | Condicional en PATCH/DELETE | 200,400,401,403,404,409 |
 | GET/POST | `/api/v1/modules/inventory/stock-movements` | Si | Si | Condicional en POST | GET: 200,400,401,403 / POST: 201,400,401,403,404,409 |

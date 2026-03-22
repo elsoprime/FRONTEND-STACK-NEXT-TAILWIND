@@ -63,15 +63,6 @@ Definir la relacion exacta entre rutas UI, endpoints backend, permisos y restric
 | Auditoria tenant | `/app/audit` | `GET /api/v1/audit` | Requerida | Si | `tenant:audit:read` | N/A | Filtros + paginacion |
 | Inventory categorias | `/app/inventory/categories` | `GET/POST /api/v1/modules/inventory/categories` | Requerida | Si | `tenant:modules:inventory:use` | Modulo `inventory` habilitado | Mutaciones con CSRF |
 | Inventory categoria detalle | `/app/inventory/categories/:id` | `PATCH/DELETE /api/v1/modules/inventory/categories/{categoryId}` | Requerida | Si | `tenant:modules:inventory:use` | Modulo `inventory` habilitado | |
-| Inventory bodegas | `/app/inventory/warehouses` | `GET/POST /api/v1/modules/inventory/warehouses` | Requerida | Si | `tenant:modules:inventory:use` | Modulo `inventory` habilitado | Mutaciones con CSRF |
-| Inventory bodega detalle | `/app/inventory/warehouses/:id` | `PATCH /api/v1/modules/inventory/warehouses/{warehouseId}` | Requerida | Si | `tenant:modules:inventory:use` | Modulo `inventory` habilitado | |
-| Inventory lotes | `/app/inventory/lots` | `GET/POST /api/v1/modules/inventory/lots` | Requerida | Si | `tenant:modules:inventory:use` | Modulo `inventory` habilitado | Mutaciones con CSRF |
-| Inventory lote detalle | `/app/inventory/lots/:id` | `PATCH /api/v1/modules/inventory/lots/{lotId}` | Requerida | Si | `tenant:modules:inventory:use` | Modulo `inventory` habilitado | |
-| Inventory stocktakes | `/app/inventory/stocktakes` | `GET/POST /api/v1/modules/inventory/stocktakes` | Requerida | Si | `tenant:modules:inventory:use` | Modulo `inventory` habilitado | Mutaciones con CSRF |
-| Inventory stocktake detalle | `/app/inventory/stocktakes/:id` | `GET /api/v1/modules/inventory/stocktakes/{stocktakeId}` | Requerida | Si | `tenant:modules:inventory:use` | Modulo `inventory` habilitado | |
-| Inventory stocktake counts | `/app/inventory/stocktakes/:id` | `PUT /api/v1/modules/inventory/stocktakes/{stocktakeId}/counts` | Requerida | Si | `tenant:modules:inventory:use` | Modulo `inventory` habilitado | |
-| Inventory stocktake apply | `/app/inventory/stocktakes/:id` | `POST /api/v1/modules/inventory/stocktakes/{stocktakeId}/apply` | Requerida | Si | `tenant:modules:inventory:use` | Modulo `inventory` habilitado | |
-| Inventory stocktake cancel | `/app/inventory/stocktakes/:id` | `POST /api/v1/modules/inventory/stocktakes/{stocktakeId}/cancel` | Requerida | Si | `tenant:modules:inventory:use` | Modulo `inventory` habilitado | |
 | Inventory items | `/app/inventory/items` | `GET/POST /api/v1/modules/inventory/items` | Requerida | Si | `tenant:modules:inventory:use` | Modulo `inventory` habilitado | |
 | Inventory item detalle | `/app/inventory/items/:id` | `GET/PATCH/DELETE /api/v1/modules/inventory/items/{itemId}` | Requerida | Si | `tenant:modules:inventory:use` | Modulo `inventory` habilitado | |
 | Inventory stock | `/app/inventory/stock` | `GET/POST /api/v1/modules/inventory/stock-movements` | Requerida | Si | `tenant:modules:inventory:use` | Modulo `inventory` habilitado | Manejar `INV_STOCK_CONFLICT` |
