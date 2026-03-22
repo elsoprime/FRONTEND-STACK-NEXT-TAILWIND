@@ -65,7 +65,7 @@ const DEFAULT_FILTERS: ExpensesDashboardFilters = {
   categoryKey: "all",
 };
 
-const REQUEST_LIST_LIMIT = 200;
+const REQUEST_LIST_LIMIT = 100;
 
 export function useExpensesDashboard(tenantId: string): UseExpensesDashboardResult {
   const [filters, setFilters] = useState<ExpensesDashboardFilters>(DEFAULT_FILTERS);

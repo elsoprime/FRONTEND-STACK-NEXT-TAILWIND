@@ -20,7 +20,7 @@ export function ExpenseCategoryCatalogManager({ tenantId }: { tenantId: string }
     queryFn: async () =>
       listCategories(tenantId, {
         page: 1,
-        limit: 200,
+        limit: 100,
         includeInactive: true,
       }),
   });
