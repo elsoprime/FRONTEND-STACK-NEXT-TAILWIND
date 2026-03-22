@@ -182,6 +182,12 @@ Criterio de aceptacion:
 
 - Usuario recibe guia clara y estado consistente.
 
+Pendientes de cobertura explicita al retomar hardening Inventory:
+
+- validar que alertas de formulario en `warehouses`, `lots`, `stock-movements` y `stocktakes` se rendericen dentro del modal, no detras de la tabla
+- validar selector de filas por pagina y reset a pagina 1 al cambiar busqueda o filtros
+- validar comportamiento esperado de busqueda textual en listados donde hoy pueda seguir siendo local a la pagina cargada
+
 ### E2E-07 CRM pipeline
 
 1. Crear oportunidad.
