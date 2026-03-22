@@ -6,6 +6,9 @@ Centralizar documentos operativos de ejecucion, cierres por ola y runbooks del f
 
 ## Referencia activa de Expenses
 
+- `EXPENSES_HOTFIX_CREATE_REQUEST_CIERRE_2026-03-22.md`
+  Cierre vigente del hotfix de runtime para create-request y alineacion de `expenseDate` a ISO.
+
 - `EXPENSES_OLA5_METRICAS_NATIVAS_CIERRE_2026-03-22.md`
   Cierre vigente de Ola 5 para metricas nativas, dashboard backend y migracion del tab reports.
 
