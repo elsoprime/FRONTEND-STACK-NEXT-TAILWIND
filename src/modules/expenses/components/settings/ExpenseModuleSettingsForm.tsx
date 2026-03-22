@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,14 +22,16 @@ type SettingsDraft = {
 export function ExpenseModuleSettingsForm({ tenantId }: { tenantId: string }) {
   const queryClient = useQueryClient();
   const activeMembership = useTenantStore((state) => state.activeMembership);
-  const [draft, setDraft] = useState<SettingsDraft>({
+  const [localDraft, setLocalDraft] = useState<SettingsDraft | null>(null);
+  const [feedback, setFeedback] = useState<string | null>(null);
+
+  const defaultDraft: SettingsDraft = {
     allowedCurrencies: "USD",
     maxAmountWithoutReview: "0",
     approvalMode: "single_step",
     bulkMaxItemsPerOperation: "50",
     exportsEnabled: true,
-  });
-  const [feedback, setFeedback] = useState<string | null>(null);
+  };
 
   const canUpdateSettings = hasTenantPermission(
     activeMembership?.roleKey ?? "tenant:member",
@@ -41,19 +43,17 @@ export function ExpenseModuleSettingsForm({ tenantId }: { tenantId: string }) {
     queryFn: async () => getSettings(tenantId),
   });
 
-  useEffect(() => {
-    if (!settingsQuery.data) {
-      return;
-    }
-
-    setDraft({
+  const remoteDraft = settingsQuery.data
+    ? {
       allowedCurrencies: settingsQuery.data.allowedCurrencies.join(","),
       maxAmountWithoutReview: String(settingsQuery.data.maxAmountWithoutReview),
       approvalMode: settingsQuery.data.approvalMode,
       bulkMaxItemsPerOperation: String(settingsQuery.data.bulkMaxItemsPerOperation),
       exportsEnabled: settingsQuery.data.exportsEnabled,
-    });
-  }, [settingsQuery.data]);
+    }
+    : null;
+
+  const draft = localDraft ?? remoteDraft ?? defaultDraft;
 
   const mutation = useMutation({
     mutationFn: async () =>
@@ -69,6 +69,7 @@ export function ExpenseModuleSettingsForm({ tenantId }: { tenantId: string }) {
       }),
     onSuccess: async () => {
       setFeedback("Configuracion actualizada.");
+      setLocalDraft(null);
       await queryClient.invalidateQueries({ queryKey: queryKeys.expenseSettings(tenantId) });
     },
     onError: (error: unknown) => {
@@ -116,7 +117,10 @@ export function ExpenseModuleSettingsForm({ tenantId }: { tenantId: string }) {
           <Input
             value={draft.allowedCurrencies}
             onChange={(event) =>
-              setDraft((state) => ({ ...state, allowedCurrencies: event.target.value }))
+              setLocalDraft((state) => ({
+                ...(state ?? draft),
+                allowedCurrencies: event.target.value,
+              }))
             }
             disabled={!canUpdateSettings}
           />
@@ -128,7 +132,10 @@ export function ExpenseModuleSettingsForm({ tenantId }: { tenantId: string }) {
             min="0"
             value={draft.maxAmountWithoutReview}
             onChange={(event) =>
-              setDraft((state) => ({ ...state, maxAmountWithoutReview: event.target.value }))
+              setLocalDraft((state) => ({
+                ...(state ?? draft),
+                maxAmountWithoutReview: event.target.value,
+              }))
             }
             disabled={!canUpdateSettings}
           />
@@ -142,8 +149,8 @@ export function ExpenseModuleSettingsForm({ tenantId }: { tenantId: string }) {
             className="h-10 w-full rounded-md border border-border/80 bg-background/70 px-2 text-sm text-foreground"
             value={draft.approvalMode}
             onChange={(event) =>
-              setDraft((state) => ({
-                ...state,
+              setLocalDraft((state) => ({
+                ...(state ?? draft),
                 approvalMode: event.target.value as ExpenseApprovalMode,
               }))
             }
@@ -160,7 +167,10 @@ export function ExpenseModuleSettingsForm({ tenantId }: { tenantId: string }) {
             min="1"
             value={draft.bulkMaxItemsPerOperation}
             onChange={(event) =>
-              setDraft((state) => ({ ...state, bulkMaxItemsPerOperation: event.target.value }))
+              setLocalDraft((state) => ({
+                ...(state ?? draft),
+                bulkMaxItemsPerOperation: event.target.value,
+              }))
             }
             disabled={!canUpdateSettings}
           />
@@ -172,7 +182,10 @@ export function ExpenseModuleSettingsForm({ tenantId }: { tenantId: string }) {
           type="checkbox"
           checked={draft.exportsEnabled}
           onChange={(event) =>
-            setDraft((state) => ({ ...state, exportsEnabled: event.target.checked }))
+            setLocalDraft((state) => ({
+              ...(state ?? draft),
+              exportsEnabled: event.target.checked,
+            }))
           }
           disabled={!canUpdateSettings}
         />
