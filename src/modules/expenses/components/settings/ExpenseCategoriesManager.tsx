@@ -5,6 +5,11 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Pencil, Plus, Power } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+  InventoryCell,
+  InventoryDataTable,
+  InventoryRow,
+} from "@/components/ui/inventory-records-shell";
 import { hasTenantPermission, TENANT_PERMISSION_KEYS } from "@/features/tenant/tenant-permissions";
 import { ApiRequestError } from "@/lib/api/client";
 import {
@@ -178,39 +183,55 @@ export function ExpenseCategoriesManager({ tenantId }: { tenantId: string }) {
       ) : categoriesQuery.isError ? (
         <p className="text-sm text-destructive">No fue posible cargar categorias.</p>
       ) : (
-        <div className="space-y-2">
-          {items.map((category) => (
-            <CategoryRow
-              key={category.id}
-              category={category}
-              canUpdate={canUpdateSettings}
-              editing={editingCategoryId === category.id}
-              editName={editName}
-              setEditName={setEditName}
-              onStartEdit={(current) => {
-                setEditingCategoryId(current.id);
-                setEditName(current.name);
-              }}
-              onCancelEdit={() => {
-                setEditingCategoryId(null);
-                setEditName("");
-              }}
-              onSaveEdit={() =>
-                updateMutation.mutate({
-                  categoryId: category.id,
-                  patch: { name: editName.trim() },
-                })
-              }
-              onToggleActive={() =>
-                updateMutation.mutate({
-                  categoryId: category.id,
-                  patch: { isActive: !category.isActive },
-                })
-              }
-              saving={updateMutation.isPending && editingCategoryId === category.id}
-            />
-          ))}
-        </div>
+        <section className="overflow-hidden rounded-md border border-border/70 bg-background/85">
+          <InventoryDataTable
+            hasRows={items.length > 0}
+            empty="Sin categorias registradas."
+            columns={
+              <>
+                <InventoryCell header>Key</InventoryCell>
+                <InventoryCell header>Nombre</InventoryCell>
+                <InventoryCell header>Reglas</InventoryCell>
+                <InventoryCell header>Estado</InventoryCell>
+                <InventoryCell header className="text-right">
+                  Acciones
+                </InventoryCell>
+              </>
+            }
+          >
+            {items.map((category) => (
+              <CategoryRow
+                key={category.id}
+                category={category}
+                canUpdate={canUpdateSettings}
+                editing={editingCategoryId === category.id}
+                editName={editName}
+                setEditName={setEditName}
+                onStartEdit={(current) => {
+                  setEditingCategoryId(current.id);
+                  setEditName(current.name);
+                }}
+                onCancelEdit={() => {
+                  setEditingCategoryId(null);
+                  setEditName("");
+                }}
+                onSaveEdit={() =>
+                  updateMutation.mutate({
+                    categoryId: category.id,
+                    patch: { name: editName.trim() },
+                  })
+                }
+                onToggleActive={() =>
+                  updateMutation.mutate({
+                    categoryId: category.id,
+                    patch: { isActive: !category.isActive },
+                  })
+                }
+                saving={updateMutation.isPending && editingCategoryId === category.id}
+              />
+            ))}
+          </InventoryDataTable>
+        </section>
       )}
     </section>
   );
@@ -240,48 +261,64 @@ function CategoryRow({
   saving: boolean;
 }) {
   return (
-    <article className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-border/70 bg-background/60 px-3 py-2">
-      <div className="min-w-0">
-        <p className="text-sm font-semibold text-foreground">{category.key}</p>
+    <InventoryRow>
+      <InventoryCell>
+        <span className="font-semibold text-foreground">{category.key}</span>
+      </InventoryCell>
+      <InventoryCell>
         {editing ? (
           <Input value={editName} onChange={(event) => setEditName(event.target.value)} />
         ) : (
-          <p className="text-sm text-muted-foreground">{category.name}</p>
+          <span className="text-sm text-muted-foreground">{category.name}</span>
         )}
-      </div>
-      <div className="flex items-center gap-2 text-xs text-muted-foreground">
-        <span>{category.requiresAttachment ? "Adjunto obligatorio" : "Adjunto opcional"}</span>
-        <span>{category.isActive ? "Activo" : "Inactivo"}</span>
-        {canUpdate ? (
-          editing ? (
-            <>
-              <Button
-                type="button"
-                size="sm"
-                variant="secondary"
-                onClick={onSaveEdit}
-                disabled={saving || editName.trim().length === 0}
-              >
-                {saving ? "Guardando..." : "Guardar"}
-              </Button>
-              <Button type="button" size="sm" variant="outline" onClick={onCancelEdit}>
-                Cancelar
-              </Button>
-            </>
-          ) : (
-            <>
-              <Button type="button" size="sm" variant="outline" onClick={() => onStartEdit(category)}>
-                <Pencil className="size-3.5" />
-                Editar
-              </Button>
-              <Button type="button" size="sm" variant="outline" onClick={onToggleActive} disabled={saving}>
-                <Power className="size-3.5" />
-                {category.isActive ? "Desactivar" : "Reactivar"}
-              </Button>
-            </>
-          )
-        ) : null}
-      </div>
-    </article>
+      </InventoryCell>
+      <InventoryCell>
+        <span className="text-sm text-muted-foreground">
+          {category.requiresAttachment ? "Adjunto obligatorio" : "Adjunto opcional"}
+        </span>
+      </InventoryCell>
+      <InventoryCell>
+        <span className="text-sm text-muted-foreground">{category.isActive ? "Activo" : "Inactivo"}</span>
+      </InventoryCell>
+      <InventoryCell className="text-right">
+        <div className="flex flex-wrap justify-end gap-2">
+          {canUpdate ? (
+            editing ? (
+              <>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="secondary"
+                  onClick={onSaveEdit}
+                  disabled={saving || editName.trim().length === 0}
+                >
+                  {saving ? "Guardando..." : "Guardar"}
+                </Button>
+                <Button type="button" size="sm" variant="outline" onClick={onCancelEdit}>
+                  Cancelar
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button type="button" size="sm" variant="outline" onClick={() => onStartEdit(category)}>
+                  <Pencil className="size-3.5" />
+                  Editar
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  onClick={onToggleActive}
+                  disabled={saving}
+                >
+                  <Power className="size-3.5" />
+                  {category.isActive ? "Desactivar" : "Reactivar"}
+                </Button>
+              </>
+            )
+          ) : null}
+        </div>
+      </InventoryCell>
+    </InventoryRow>
   );
 }

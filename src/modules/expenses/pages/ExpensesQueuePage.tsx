@@ -3,13 +3,19 @@
 import Link from "next/link";
 import { startTransition, useDeferredValue, useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft, ArrowRight, Inbox, RotateCcw, Search, X } from "lucide-react";
+import { Inbox, RotateCcw, Search, X } from "lucide-react";
+import { InventoryPaginationControls } from "@/components/modules/inventory/inventory-pagination-controls";
 import { Button } from "@/components/ui/button";
+import {
+  InventoryCell,
+  InventoryDataTable,
+  InventoryRow,
+  inventorySelectClassName,
+} from "@/components/ui/inventory-records-shell";
 import { LoadingScreen } from "@/components/ui/loading-screen";
 import { ApiRequestError } from "@/lib/api/client";
 import { listQueue } from "@/lib/api/expenses.client";
 import type { ExpenseRequestStatus } from "@/lib/api/expenses.types";
-import { cn } from "@/lib/utils";
 import { ExpenseBulkActionsPanel } from "@/modules/expenses/components/bulk/ExpenseBulkActionsPanel";
 import {
   ExpenseStatusBadge,
@@ -88,6 +94,7 @@ export function ExpensesQueuePage({ tenantId }: { tenantId: string }) {
 
   const items = queueQuery.data?.items ?? [];
   const pagination = queueQuery.data?.pagination;
+  const hasFilters = queueFilters.status !== "all" || queueFilters.search.trim().length > 0;
 
   const toggleSelection = (requestId: string) => {
     setSelectedRequestIds((current) =>
@@ -110,8 +117,6 @@ export function ExpensesQueuePage({ tenantId }: { tenantId: string }) {
     setSelectedRequestIds([]);
   };
 
-  const hasFilters = queueFilters.status !== "all" || queueFilters.search.trim().length > 0;
-
   if (items.length === 0) {
     return (
       <section className="surface-card rounded-[1.5rem] border-border/90 bg-card/96 p-6">
@@ -120,8 +125,10 @@ export function ExpensesQueuePage({ tenantId }: { tenantId: string }) {
             Estado
             <select
               value={queueFilters.status}
-              onChange={(event) => setQueueStatusFilter(event.target.value as ExpenseRequestStatus | "all")}
-              className="rounded-md border border-border/80 bg-background/70 px-2 py-1 text-sm text-foreground"
+              onChange={(event) =>
+                setQueueStatusFilter(event.target.value as ExpenseRequestStatus | "all")
+              }
+              className={inventorySelectClassName}
             >
               {QUEUE_STATUS_OPTIONS.map((option) => (
                 <option key={option.value} value={option.value}>
@@ -136,7 +143,7 @@ export function ExpensesQueuePage({ tenantId }: { tenantId: string }) {
               value={queueFilters.search}
               onChange={(event) => setQueueSearchFilter(event.target.value)}
               placeholder="Buscar por numero, titulo o categoria"
-              className="w-72 rounded-md border border-border/80 bg-background/70 py-1 pl-8 pr-2 text-sm text-foreground placeholder:text-muted-foreground"
+              className="h-10 w-72 rounded-md border border-border/80 bg-background/70 py-1 pl-8 pr-2 text-sm text-foreground placeholder:text-muted-foreground"
             />
           </label>
           {hasFilters ? (
@@ -202,8 +209,10 @@ export function ExpensesQueuePage({ tenantId }: { tenantId: string }) {
             Estado
             <select
               value={queueFilters.status}
-              onChange={(event) => setQueueStatusFilter(event.target.value as ExpenseRequestStatus | "all")}
-              className="rounded-md border border-border/80 bg-background/70 px-2 py-1 text-sm text-foreground"
+              onChange={(event) =>
+                setQueueStatusFilter(event.target.value as ExpenseRequestStatus | "all")
+              }
+              className={inventorySelectClassName}
             >
               {QUEUE_STATUS_OPTIONS.map((option) => (
                 <option key={option.value} value={option.value}>
@@ -219,7 +228,7 @@ export function ExpensesQueuePage({ tenantId }: { tenantId: string }) {
               value={queueFilters.search}
               onChange={(event) => setQueueSearchFilter(event.target.value)}
               placeholder="Buscar por numero, titulo o categoria"
-              className="w-full rounded-md border border-border/80 bg-background/70 py-1 pl-8 pr-2 text-sm text-foreground placeholder:text-muted-foreground"
+              className="h-10 w-full rounded-md border border-border/80 bg-background/70 py-1 pl-8 pr-2 text-sm text-foreground placeholder:text-muted-foreground"
             />
           </label>
 
@@ -240,99 +249,88 @@ export function ExpensesQueuePage({ tenantId }: { tenantId: string }) {
         }}
       />
 
-      <div className="grid gap-4">
-        {items.map((request) => {
-          const checked = selectedRequestIds.includes(request.id);
+      <section className="surface-card overflow-hidden rounded-[1.25rem] border-border/90 bg-card/96 p-0">
+        <InventoryDataTable
+          hasRows={items.length > 0}
+          empty={
+            hasFilters
+              ? "Sin resultados para los filtros aplicados."
+              : "No hay solicitudes registradas."
+          }
+          columns={
+            <>
+              <InventoryCell header className="w-[72px] text-center">
+                Bulk
+              </InventoryCell>
+              <InventoryCell header>Solicitud</InventoryCell>
+              <InventoryCell header>Estado</InventoryCell>
+              <InventoryCell header className="text-right">
+                Monto
+              </InventoryCell>
+              <InventoryCell header>Fecha</InventoryCell>
+              <InventoryCell header className="text-right">
+                Accion
+              </InventoryCell>
+            </>
+          }
+        >
+          {items.map((request) => {
+            const checked = selectedRequestIds.includes(request.id);
 
-          return (
-            <article
-              key={request.id}
-              className={cn(
-                "surface-card rounded-[1.5rem] border-border/90 bg-card/96 p-5 transition-colors",
-                checked ? "border-primary/35" : "",
-              )}
-            >
-              <div className="mb-3 flex items-center justify-between">
-                <label className="inline-flex items-center gap-2 text-sm text-muted-foreground">
+            return (
+              <InventoryRow key={request.id}>
+                <InventoryCell className="text-center">
                   <input
                     type="checkbox"
                     checked={checked}
                     onChange={() => toggleSelection(request.id)}
+                    aria-label={`Seleccionar solicitud ${request.requestNumber}`}
                   />
-                  Seleccionar para bulk
-                </label>
-                <ExpenseStatusBadge status={request.status} />
-              </div>
-
-              <Link
-                href={`/app/expenses/${request.id}`}
-                onClick={() => setSelectedRequestId(request.id)}
-                className="group block"
-              >
-                <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-                  <div className="space-y-3">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <span className="rounded-full border border-border/80 bg-background/72 px-2.5 py-1 text-xs font-medium text-muted-foreground">
-                        {request.requestNumber}
-                      </span>
-                      <span className="rounded-full border border-border/80 bg-background/72 px-2.5 py-1 text-xs font-medium text-muted-foreground">
-                        {request.categoryKey}
-                      </span>
-                    </div>
-                    <div className="space-y-1">
-                      <h4 className="text-lg font-semibold tracking-tight text-foreground">
-                        {request.title}
-                      </h4>
-                      <p className="max-w-3xl text-sm text-muted-foreground">
-                        {request.description ?? "Sin descripcion"}
-                      </p>
-                    </div>
+                </InventoryCell>
+                <InventoryCell>
+                  <div className="space-y-1">
+                    <p className="font-semibold text-foreground">{request.requestNumber}</p>
+                    <p className="text-xs text-muted-foreground">{request.title}</p>
+                    <p className="text-xs text-muted-foreground">{request.categoryKey}</p>
                   </div>
-
-                  <div className="flex items-center gap-3">
-                    <div className="text-right">
-                      <p className="text-sm font-semibold text-foreground">
-                        {formatExpenseAmount(request.amount, request.currency)}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {formatExpenseDate(request.expenseDate)}
-                      </p>
-                    </div>
-                    <ArrowRight className="size-4 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
-                  </div>
-                </div>
-              </Link>
-            </article>
-          );
-        })}
-      </div>
+                </InventoryCell>
+                <InventoryCell>
+                  <ExpenseStatusBadge status={request.status} />
+                </InventoryCell>
+                <InventoryCell className="text-right">
+                  <span className="font-semibold text-foreground">
+                    {formatExpenseAmount(request.amount, request.currency)}
+                  </span>
+                </InventoryCell>
+                <InventoryCell>
+                  <span className="text-sm text-foreground/85">
+                    {formatExpenseDate(request.expenseDate)}
+                  </span>
+                </InventoryCell>
+                <InventoryCell className="text-right">
+                  <Link
+                    href={`/app/expenses/${request.id}`}
+                    onClick={() => setSelectedRequestId(request.id)}
+                    className="inline-flex items-center justify-center rounded-md border border-border/80 bg-background/70 px-3 py-1.5 text-sm font-medium text-foreground transition-colors hover:border-primary/30 hover:bg-background/90"
+                  >
+                    Abrir
+                  </Link>
+                </InventoryCell>
+              </InventoryRow>
+            );
+          })}
+        </InventoryDataTable>
+      </section>
 
       {pagination && pagination.totalPages > 1 ? (
-        <div className="flex flex-wrap items-center justify-between gap-3 rounded-[1.25rem] border border-border/80 bg-background/72 p-4">
-          <div className="text-sm text-muted-foreground">
-            Pagina {pagination.page} de {pagination.totalPages}
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              disabled={queuePage <= 1}
-              onClick={() => startTransition(() => setQueuePage(queuePage - 1))}
-            >
-              <ArrowLeft className="size-4" />
-              Anterior
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              disabled={queuePage >= pagination.totalPages}
-              onClick={() => startTransition(() => setQueuePage(queuePage + 1))}
-            >
-              Siguiente
-              <ArrowRight className="size-4" />
-            </Button>
-          </div>
-        </div>
+        <section className="rounded-[1.25rem] border border-border/80 bg-background/72 p-4">
+          <InventoryPaginationControls
+            page={pagination.page}
+            totalPages={pagination.totalPages}
+            total={pagination.total}
+            onPageChange={(nextPage) => startTransition(() => setQueuePage(nextPage))}
+          />
+        </section>
       ) : null}
     </section>
   );
