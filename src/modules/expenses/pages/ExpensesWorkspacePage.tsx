@@ -1,8 +1,9 @@
-"use client";
+﻿"use client";
 
-import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
-import { BadgeCheck, ChartColumn, CircleDollarSign, ClipboardList, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { LoadingScreen } from "@/components/ui/loading-screen";
 import { hasTenantPermission, TENANT_PERMISSION_KEYS } from "@/features/tenant/tenant-permissions";
 import { getCounters } from "@/lib/api/expenses.client";
@@ -18,25 +19,21 @@ type ExpensesWorkspacePageProps = {
 function CounterCard({
   label,
   value,
-  tone,
+  hint,
 }: {
   label: string;
   value: number;
-  tone: "default" | "warning" | "success" | "muted";
+  hint: string;
 }) {
-  const toneClass =
-    tone === "warning"
-      ? "border-amber-400/35 bg-amber-400/10"
-      : tone === "success"
-        ? "border-emerald-400/35 bg-emerald-400/10"
-        : tone === "muted"
-          ? "border-border/80 bg-background/65"
-          : "border-primary/25 bg-primary/10";
-
   return (
-    <article className={`rounded-2xl border p-4 ${toneClass}`}>
-      <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">{label}</p>
-      <p className="mt-2 text-2xl font-semibold text-foreground">{value.toLocaleString("es-CL")}</p>
+    <article className="surface-card rounded-[1.3rem] border-border/80 bg-background/82 p-4">
+      <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+        {label}
+      </p>
+      <p className="mt-2 text-2xl font-semibold tracking-tight text-foreground">
+        {value.toLocaleString("es-CL")}
+      </p>
+      <p className="mt-2 text-xs text-muted-foreground">{hint}</p>
     </article>
   );
 }
@@ -58,48 +55,36 @@ export function ExpensesWorkspacePage({ tenantId }: ExpensesWorkspacePageProps) 
 
   return (
     <section className="space-y-5">
-      <header className="surface-card rounded-[1.5rem] border-border/90 bg-card/96 p-6">
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div>
-            <p className="label-kicker text-primary/90">Workspace</p>
-            <h3 className="text-[1.6rem] font-semibold tracking-tight text-foreground">Control operativo de Expenses</h3>
-            <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
-              Gestiona solicitudes, aprobaciones y pagos desde una sola vista. El estado del flujo
-              se sincroniza con permisos y plan del tenant.
-            </p>
+      <section className="overflow-hidden rounded-xl border border-border/90 bg-card/96 p-5 shadow-sm sm:p-6">
+        <div className="flex flex-col gap-5 xl:flex-row xl:items-start xl:justify-between">
+          <div className="space-y-3">
+            <Badge
+              variant="outline"
+              className="rounded-lg border-primary/20 bg-primary/8 px-2.5 text-primary"
+            >
+              Workspace operativo
+            </Badge>
+            <div>
+              <h3 className="text-[1.7rem] font-semibold tracking-tight text-foreground">
+                Solicitudes, aprobaciones y pagos sin salir del modulo
+              </h3>
+              <p className="mt-2 max-w-3xl text-sm dashboard-text-muted">
+                La cola central mantiene el foco del operador y deja aprobaciones, pagos y reportes
+                dentro del mismo contexto del tenant.
+              </p>
+            </div>
           </div>
 
-          <div className="flex flex-wrap gap-2">
-            <Link
-              href="/app/expenses?tab=approvals"
-              className="inline-flex items-center gap-2 rounded-full border border-border/80 bg-background/70 px-4 py-2 text-sm font-medium text-foreground hover:border-primary/30"
-            >
-              <BadgeCheck className="size-4" />
-              Ir a aprobaciones
-            </Link>
-            <Link
-              href="/app/expenses?tab=payments"
-              className="inline-flex items-center gap-2 rounded-full border border-border/80 bg-background/70 px-4 py-2 text-sm font-medium text-foreground hover:border-primary/30"
-            >
-              <CircleDollarSign className="size-4" />
-              Ir a pagos
-            </Link>
-            <Link
-              href="/app/expenses?tab=reports"
-              className="inline-flex items-center gap-2 rounded-full border border-border/80 bg-background/70 px-4 py-2 text-sm font-medium text-foreground hover:border-primary/30"
-            >
-              <ChartColumn className="size-4" />
-              Ver reportes
-            </Link>
+          <div className="flex flex-wrap items-center gap-2">
             {canCreateRequest ? (
-              <button
+              <Button
                 type="button"
-                className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-4 py-2 text-sm font-semibold text-foreground hover:border-primary/45"
+                radius="full"
                 onClick={() => setRequestFormState({ open: true, mode: "create" })}
               >
                 <Plus className="size-4" />
                 Nueva solicitud
-              </button>
+              </Button>
             ) : null}
           </div>
         </div>
@@ -107,35 +92,41 @@ export function ExpensesWorkspacePage({ tenantId }: ExpensesWorkspacePageProps) 
         {countersQuery.isLoading ? (
           <LoadingScreen
             variant="inline"
-            className="mt-4"
+            className="mt-5"
             label="Cargando indicadores del workspace..."
             hint="Consultando contadores de expenses del tenant activo."
           />
         ) : countersQuery.isError || !countersQuery.data ? (
-          <article className="mt-4 rounded-xl border border-red-300/70 bg-red-100/60 p-4 text-sm text-red-900 dark:border-destructive/45 dark:bg-destructive/14 dark:text-red-200">
+          <article className="mt-5 rounded-xl border border-red-300/70 bg-red-100/60 p-4 text-sm text-red-900 dark:border-destructive/45 dark:bg-destructive/14 dark:text-red-200">
             No fue posible cargar los indicadores del workspace.
           </article>
         ) : (
-          <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-            <CounterCard label="Total" value={countersQuery.data.total} tone="default" />
+          <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+            <CounterCard
+              label="Total"
+              value={countersQuery.data.total}
+              hint="Solicitudes registradas para el tenant activo."
+            />
             <CounterCard
               label="Pendientes"
               value={countersQuery.data.submitted + countersQuery.data.returned}
-              tone="warning"
+              hint="Solicitudes esperando decision o correccion."
             />
-            <CounterCard label="Aprobadas" value={countersQuery.data.approved} tone="success" />
-            <CounterCard label="Pagadas" value={countersQuery.data.paid} tone="muted" />
+            <CounterCard
+              label="Aprobadas"
+              value={countersQuery.data.approved}
+              hint="Listas para continuar al tramo financiero."
+            />
+            <CounterCard
+              label="Pagadas"
+              value={countersQuery.data.paid}
+              hint="Cerradas con desembolso registrado."
+            />
           </div>
         )}
-      </header>
+      </section>
 
-      <article className="surface-card rounded-[1.5rem] border-border/90 bg-card/96 p-6">
-        <div className="mb-4 flex items-center gap-2">
-          <ClipboardList className="size-5 text-primary" />
-          <h4 className="text-lg font-semibold tracking-tight text-foreground">Queue de solicitudes</h4>
-        </div>
-        <ExpensesQueuePage tenantId={tenantId} />
-      </article>
+      <ExpensesQueuePage tenantId={tenantId} />
 
       <ExpenseRequestFormDrawer
         open={requestFormOpen && requestFormMode === "create"}
@@ -156,3 +147,6 @@ export function ExpensesWorkspacePage({ tenantId }: ExpensesWorkspacePageProps) 
     </section>
   );
 }
+
+
+

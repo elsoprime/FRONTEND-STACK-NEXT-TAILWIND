@@ -156,50 +156,65 @@ export function ExpenseRequestForm({
   const title = mode === "create" ? "Nueva solicitud de gasto" : "Editar solicitud de gasto";
 
   return (
-    <form className="space-y-4" onSubmit={onSubmit}>
-      <div className="space-y-1">
-        <h4 className="text-base font-semibold text-foreground">{title}</h4>
+    <form className="space-y-5" onSubmit={onSubmit}>
+      <header className="space-y-2">
+        <h4 className="text-base font-semibold tracking-tight text-foreground">{title}</h4>
         <p className="text-sm text-muted-foreground">
-          Completa los campos requeridos para guardar en borrador o enviar a revision.
+          Completa la informacion base y decide si deseas guardar en borrador o enviar al flujo.
         </p>
-      </div>
+      </header>
 
-      <FieldLabel htmlFor="expense-title" label="Titulo">
-        <Input id="expense-title" {...form.register("title")} placeholder="Ej: Hotel visita cliente" />
-        <FieldError message={form.formState.errors.title?.message} />
-      </FieldLabel>
+      <FormSection
+        title="Datos base"
+        description="Identificacion operativa de la solicitud y categoria contable."
+      >
+        <FieldLabel htmlFor="expense-title" label="Titulo">
+          <Input id="expense-title" {...form.register("title")} placeholder="Ej: Hotel visita cliente" />
+          <FieldError message={form.formState.errors.title?.message} />
+        </FieldLabel>
 
-      <div className="grid gap-3 sm:grid-cols-2">
-        <FieldLabel htmlFor="expense-category" label="Categoria">
-          <Input id="expense-category" {...form.register("categoryKey")} placeholder="travel" />
-          <FieldError message={form.formState.errors.categoryKey?.message} />
-        </FieldLabel>
-        <FieldLabel htmlFor="expense-currency" label="Moneda">
-          <Input id="expense-currency" {...form.register("currency")} placeholder="USD" />
-          <FieldError message={form.formState.errors.currency?.message} />
-        </FieldLabel>
-      </div>
+        <div className="grid gap-3 sm:grid-cols-2">
+          <FieldLabel htmlFor="expense-category" label="Categoria">
+            <Input id="expense-category" {...form.register("categoryKey")} placeholder="travel" />
+            <FieldError message={form.formState.errors.categoryKey?.message} />
+          </FieldLabel>
+          <FieldLabel htmlFor="expense-currency" label="Moneda">
+            <Input id="expense-currency" {...form.register("currency")} placeholder="USD" />
+            <FieldError message={form.formState.errors.currency?.message} />
+          </FieldLabel>
+        </div>
+      </FormSection>
 
-      <div className="grid gap-3 sm:grid-cols-2">
-      <FieldLabel htmlFor="expense-amount" label="Monto">
-          <Input id="expense-amount" type="number" step="0.01" min="0" {...form.register("amount")} />
-          <FieldError message={form.formState.errors.amount?.message} />
-        </FieldLabel>
-        <FieldLabel htmlFor="expense-date" label="Fecha de gasto">
-          <Input id="expense-date" type="date" {...form.register("expenseDate")} />
-          <FieldError message={form.formState.errors.expenseDate?.message} />
-        </FieldLabel>
-      </div>
+      <FormSection
+        title="Control financiero"
+        description="Monto y fecha efectiva del gasto para el workflow del modulo."
+      >
+        <div className="grid gap-3 sm:grid-cols-2">
+          <FieldLabel htmlFor="expense-amount" label="Monto">
+            <Input id="expense-amount" type="number" step="0.01" min="0" {...form.register("amount")} />
+            <FieldError message={form.formState.errors.amount?.message} />
+          </FieldLabel>
+          <FieldLabel htmlFor="expense-date" label="Fecha de gasto">
+            <Input id="expense-date" type="date" {...form.register("expenseDate")} />
+            <FieldError message={form.formState.errors.expenseDate?.message} />
+          </FieldLabel>
+        </div>
+      </FormSection>
 
-      <FieldLabel htmlFor="expense-description" label="Descripcion (opcional)">
-        <textarea
-          id="expense-description"
-          className="min-h-24 w-full rounded-xl border border-border/80 bg-background/75 px-3 py-2 text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground focus:border-primary/35"
-          placeholder="Detalle del gasto"
-          {...form.register("description")}
-        />
-        <FieldError message={form.formState.errors.description?.message} />
-      </FieldLabel>
+      <FormSection
+        title="Descripcion"
+        description="Contexto adicional para la revision y aprobacion de la solicitud."
+      >
+        <FieldLabel htmlFor="expense-description" label="Descripcion (opcional)">
+          <textarea
+            id="expense-description"
+            className="min-h-24 w-full rounded-xl border border-border/80 bg-background/75 px-3 py-2 text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground focus:border-primary/35"
+            placeholder="Detalle del gasto"
+            {...form.register("description")}
+          />
+          <FieldError message={form.formState.errors.description?.message} />
+        </FieldLabel>
+      </FormSection>
 
       {feedbackMessage ? (
         <ExpenseActionFeedback
@@ -232,6 +247,26 @@ export function ExpenseRequestForm({
         </Button>
       </div>
     </form>
+  );
+}
+
+function FormSection({
+  title,
+  description,
+  children,
+}: {
+  title: string;
+  description: string;
+  children: ReactNode;
+}) {
+  return (
+    <section className="rounded-[1.35rem] border border-border/80 bg-background/82 p-4">
+      <div className="space-y-1">
+        <h5 className="text-sm font-semibold text-foreground">{title}</h5>
+        <p className="text-sm text-muted-foreground">{description}</p>
+      </div>
+      <div className="mt-4 space-y-4">{children}</div>
+    </section>
   );
 }
 

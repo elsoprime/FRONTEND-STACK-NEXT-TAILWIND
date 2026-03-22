@@ -2,8 +2,10 @@
 
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { inventorySelectClassName } from "@/components/ui/inventory-records-shell";
 import { hasTenantPermission, TENANT_PERMISSION_KEYS } from "@/features/tenant/tenant-permissions";
 import { ApiRequestError } from "@/lib/api/client";
 import { getSettings, updateSettings } from "@/lib/api/expenses.client";
@@ -45,12 +47,12 @@ export function ExpenseModuleSettingsForm({ tenantId }: { tenantId: string }) {
 
   const remoteDraft = settingsQuery.data
     ? {
-      allowedCurrencies: settingsQuery.data.allowedCurrencies.join(","),
-      maxAmountWithoutReview: String(settingsQuery.data.maxAmountWithoutReview),
-      approvalMode: settingsQuery.data.approvalMode,
-      bulkMaxItemsPerOperation: String(settingsQuery.data.bulkMaxItemsPerOperation),
-      exportsEnabled: settingsQuery.data.exportsEnabled,
-    }
+        allowedCurrencies: settingsQuery.data.allowedCurrencies.join(","),
+        maxAmountWithoutReview: String(settingsQuery.data.maxAmountWithoutReview),
+        approvalMode: settingsQuery.data.approvalMode,
+        bulkMaxItemsPerOperation: String(settingsQuery.data.bulkMaxItemsPerOperation),
+        exportsEnabled: settingsQuery.data.exportsEnabled,
+      }
     : null;
 
   const draft = localDraft ?? remoteDraft ?? defaultDraft;
@@ -83,7 +85,7 @@ export function ExpenseModuleSettingsForm({ tenantId }: { tenantId: string }) {
 
   if (settingsQuery.isLoading) {
     return (
-      <section className="rounded-2xl border border-border/80 bg-card/95 p-5">
+      <section className="surface-card rounded-[1.5rem] border-border/90 bg-card/96 p-5">
         <p className="text-sm text-muted-foreground">Cargando configuracion de expenses...</p>
       </section>
     );
@@ -91,28 +93,46 @@ export function ExpenseModuleSettingsForm({ tenantId }: { tenantId: string }) {
 
   if (settingsQuery.isError || !settingsQuery.data) {
     return (
-      <section className="rounded-2xl border border-destructive/40 bg-destructive/10 p-5">
+      <section className="surface-card rounded-[1.5rem] border border-destructive/40 bg-destructive/10 p-5">
         <p className="text-sm text-destructive">No fue posible cargar configuracion del modulo.</p>
       </section>
     );
   }
 
   return (
-    <section className="space-y-4 rounded-2xl border border-border/80 bg-card/95 p-5">
-      <header className="space-y-2">
-        <h4 className="text-lg font-semibold tracking-tight text-foreground">Politicas del modulo</h4>
-        <p className="text-sm text-muted-foreground">
-          Define reglas globales de aprobacion, limites y exportacion.
-        </p>
-        {!canUpdateSettings ? (
-          <p className="text-sm text-amber-700 dark:text-amber-300">
-            Modo solo lectura: tu rol no tiene permiso de actualizacion.
+    <section className="surface-card rounded-[1.5rem] border-border/90 bg-card/96 p-5">
+      <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
+        <div className="space-y-2">
+          <h4 className="text-lg font-semibold tracking-tight text-foreground">Politicas del modulo</h4>
+          <p className="max-w-xl text-sm text-muted-foreground">
+            Reglas globales de aprobacion, limites operativos y exportacion del workspace.
           </p>
-        ) : null}
-      </header>
+        </div>
 
-      <div className="grid gap-3 sm:grid-cols-2">
-        <label className="space-y-1 text-sm">
+        <Badge
+          variant="outline"
+          className={canUpdateSettings ? "rounded-full border-primary/20 bg-primary/8 text-primary" : "rounded-full border-amber-300/35 bg-amber-400/10 text-amber-700 dark:text-amber-100"}
+        >
+          {canUpdateSettings ? "Editable" : "Solo lectura"}
+        </Badge>
+      </div>
+
+      <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+        <SettingsSummaryCard label="Monedas" value={settingsQuery.data.allowedCurrencies.join(", ")} />
+        <SettingsSummaryCard
+          label="Revision automatica"
+          value={String(settingsQuery.data.maxAmountWithoutReview)}
+        />
+        <SettingsSummaryCard label="Modo de aprobacion" value={settingsQuery.data.approvalMode} />
+        <SettingsSummaryCard
+          label="Bulk max"
+          value={String(settingsQuery.data.bulkMaxItemsPerOperation)}
+        />
+        <SettingsSummaryCard label="Exportaciones" value={settingsQuery.data.exportsEnabled ? "Activas" : "Bloqueadas"} />
+      </div>
+
+      <div className="mt-5 grid gap-4 sm:grid-cols-2">
+        <label className="space-y-2 text-sm">
           <span className="text-muted-foreground">Monedas permitidas (CSV)</span>
           <Input
             value={draft.allowedCurrencies}
@@ -125,7 +145,7 @@ export function ExpenseModuleSettingsForm({ tenantId }: { tenantId: string }) {
             disabled={!canUpdateSettings}
           />
         </label>
-        <label className="space-y-1 text-sm">
+        <label className="space-y-2 text-sm">
           <span className="text-muted-foreground">Monto maximo sin revision</span>
           <Input
             type="number"
@@ -140,13 +160,10 @@ export function ExpenseModuleSettingsForm({ tenantId }: { tenantId: string }) {
             disabled={!canUpdateSettings}
           />
         </label>
-      </div>
-
-      <div className="grid gap-3 sm:grid-cols-2">
-        <label className="space-y-1 text-sm">
+        <label className="space-y-2 text-sm">
           <span className="text-muted-foreground">Modo de aprobacion</span>
           <select
-            className="h-10 w-full rounded-md border border-border/80 bg-background/70 px-2 text-sm text-foreground"
+            className={inventorySelectClassName}
             value={draft.approvalMode}
             onChange={(event) =>
               setLocalDraft((state) => ({
@@ -160,7 +177,7 @@ export function ExpenseModuleSettingsForm({ tenantId }: { tenantId: string }) {
             <option value="multi_step">multi_step</option>
           </select>
         </label>
-        <label className="space-y-1 text-sm">
+        <label className="space-y-2 text-sm">
           <span className="text-muted-foreground">Maximo items por operacion bulk</span>
           <Input
             type="number"
@@ -177,7 +194,7 @@ export function ExpenseModuleSettingsForm({ tenantId }: { tenantId: string }) {
         </label>
       </div>
 
-      <label className="inline-flex items-center gap-2 rounded-md border border-border/70 px-3 py-2 text-sm text-foreground">
+      <label className="mt-4 inline-flex items-center gap-2 rounded-md border border-border/70 bg-background/82 px-3 py-2 text-sm text-foreground">
         <input
           type="checkbox"
           checked={draft.exportsEnabled}
@@ -192,7 +209,7 @@ export function ExpenseModuleSettingsForm({ tenantId }: { tenantId: string }) {
         Exportaciones habilitadas
       </label>
 
-      <div className="flex items-center justify-between gap-3">
+      <div className="mt-5 flex items-center justify-between gap-3 border-t border-border/70 pt-4">
         {feedback ? <p className="text-sm text-muted-foreground">{feedback}</p> : <span />}
         <Button
           type="button"
@@ -204,5 +221,16 @@ export function ExpenseModuleSettingsForm({ tenantId }: { tenantId: string }) {
         </Button>
       </div>
     </section>
+  );
+}
+
+function SettingsSummaryCard({ label, value }: { label: string; value: string }) {
+  return (
+    <article className="rounded-[1.2rem] border border-border/80 bg-background/82 p-4">
+      <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+        {label}
+      </p>
+      <p className="mt-2 text-sm font-semibold text-foreground">{value}</p>
+    </article>
   );
 }
