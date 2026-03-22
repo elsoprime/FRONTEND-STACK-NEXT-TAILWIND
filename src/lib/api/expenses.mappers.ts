@@ -13,6 +13,13 @@ import type {
   ExpenseCategoryListResult,
   ExpenseBulkOperationItemResult,
   ExpenseBulkOperationResult,
+  ExpenseDashboard,
+  ExpenseDashboardAlert,
+  ExpenseDashboardAvailableCategory,
+  ExpenseDashboardCategoryBreakdown,
+  ExpenseDashboardCurrencyTotals,
+  ExpenseDashboardKpis,
+  ExpenseDashboardTrendPoint,
   ExpenseExportRow,
   ExpenseRequest,
   ExpenseRequestListResult,
@@ -151,6 +158,123 @@ export function mapExpenseSummary(value: unknown): ExpenseSummary {
     totalRequestedAmount: Number(value.totalRequestedAmount),
     totalApprovedAmount: Number(value.totalApprovedAmount),
     totalPaidAmount: Number(value.totalPaidAmount),
+  };
+}
+
+function mapExpenseDashboardKpis(value: unknown): ExpenseDashboardKpis {
+  if (!isRecord(value)) {
+    throw new Error("Invalid expense dashboard KPI payload");
+  }
+
+  return {
+    totalRequests: Number(value.totalRequests),
+    pendingRequests: Number(value.pendingRequests),
+    approvedRequests: Number(value.approvedRequests),
+    rejectedRequests: Number(value.rejectedRequests),
+    totalAmount: Number(value.totalAmount),
+    pendingAmount: Number(value.pendingAmount),
+  };
+}
+
+function mapExpenseDashboardTrendPoint(value: unknown): ExpenseDashboardTrendPoint {
+  if (!isRecord(value)) {
+    throw new Error("Invalid expense dashboard trend payload");
+  }
+
+  return {
+    day: String(value.day),
+    requested: Number(value.requested),
+    approved: Number(value.approved),
+    rejected: Number(value.rejected),
+  };
+}
+
+function mapExpenseDashboardCategoryBreakdown(value: unknown): ExpenseDashboardCategoryBreakdown {
+  if (!isRecord(value)) {
+    throw new Error("Invalid expense dashboard category payload");
+  }
+
+  return {
+    categoryKey: String(value.categoryKey),
+    label: String(value.label),
+    totalAmount: Number(value.totalAmount),
+    requests: Number(value.requests),
+  };
+}
+
+function mapExpenseDashboardAlert(value: unknown): ExpenseDashboardAlert {
+  if (!isRecord(value)) {
+    throw new Error("Invalid expense dashboard alert payload");
+  }
+
+  return {
+    id: String(value.id),
+    severity: String(value.severity) as ExpenseDashboardAlert["severity"],
+    title: String(value.title),
+    description: String(value.description),
+  };
+}
+
+function mapExpenseDashboardAvailableCategory(value: unknown): ExpenseDashboardAvailableCategory {
+  if (!isRecord(value)) {
+    throw new Error("Invalid expense dashboard available category payload");
+  }
+
+  return {
+    key: String(value.key),
+    name: String(value.name),
+  };
+}
+
+function mapExpenseDashboardCurrencyTotals(value: unknown): ExpenseDashboardCurrencyTotals {
+  if (!isRecord(value)) {
+    throw new Error("Invalid expense dashboard currency totals payload");
+  }
+
+  return {
+    currency: String(value.currency),
+    requestCount: Number(value.requestCount),
+    totalAmount: Number(value.totalAmount),
+    pendingAmount: Number(value.pendingAmount),
+    approvedAmount: Number(value.approvedAmount),
+    paidAmount: Number(value.paidAmount),
+  };
+}
+
+export function mapExpenseDashboard(value: unknown): ExpenseDashboard {
+  if (!isRecord(value) || !isRecord(value.filters)) {
+    throw new Error("Invalid expense dashboard payload");
+  }
+
+  return {
+    filters: {
+      dateWindowDays: Number(value.filters.dateWindowDays) as ExpenseDashboard["filters"]["dateWindowDays"],
+      status:
+        value.filters.status === null || typeof value.filters.status === "string"
+          ? (value.filters.status as ExpenseDashboard["filters"]["status"])
+          : null,
+      categoryKey:
+        value.filters.categoryKey === null || typeof value.filters.categoryKey === "string"
+          ? value.filters.categoryKey
+          : null,
+    },
+    primaryCurrency:
+      value.primaryCurrency === null || typeof value.primaryCurrency === "string"
+        ? value.primaryCurrency
+        : null,
+    hasMixedCurrencies: Boolean(value.hasMixedCurrencies),
+    totalsByCurrency: Array.isArray(value.totalsByCurrency)
+      ? value.totalsByCurrency.map(mapExpenseDashboardCurrencyTotals)
+      : [],
+    availableCategories: Array.isArray(value.availableCategories)
+      ? value.availableCategories.map(mapExpenseDashboardAvailableCategory)
+      : [],
+    kpis: mapExpenseDashboardKpis(value.kpis),
+    trends: Array.isArray(value.trends) ? value.trends.map(mapExpenseDashboardTrendPoint) : [],
+    categories: Array.isArray(value.categories)
+      ? value.categories.map(mapExpenseDashboardCategoryBreakdown)
+      : [],
+    alerts: Array.isArray(value.alerts) ? value.alerts.map(mapExpenseDashboardAlert) : [],
   };
 }
 

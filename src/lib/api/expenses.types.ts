@@ -8,6 +8,8 @@ export type ExpenseRequestStatus =
   | "canceled";
 
 export type ExpenseApprovalMode = "single_step" | "multi_step";
+export type ExpenseDashboardDateWindow = 7 | 30 | 90;
+export type ExpenseDashboardAlertSeverity = "info" | "warning" | "critical";
 
 export interface ExpenseRequest {
   id: string;
@@ -48,6 +50,68 @@ export interface ExpenseSummary {
   totalRequestedAmount: number;
   totalApprovedAmount: number;
   totalPaidAmount: number;
+}
+
+export interface ExpenseDashboardFilters {
+  dateWindowDays: ExpenseDashboardDateWindow;
+  status: ExpenseRequestStatus | null;
+  categoryKey: string | null;
+}
+
+export interface ExpenseDashboardKpis {
+  totalRequests: number;
+  pendingRequests: number;
+  approvedRequests: number;
+  rejectedRequests: number;
+  totalAmount: number;
+  pendingAmount: number;
+}
+
+export interface ExpenseDashboardTrendPoint {
+  day: string;
+  requested: number;
+  approved: number;
+  rejected: number;
+}
+
+export interface ExpenseDashboardCategoryBreakdown {
+  categoryKey: string;
+  label: string;
+  totalAmount: number;
+  requests: number;
+}
+
+export interface ExpenseDashboardAlert {
+  id: string;
+  severity: ExpenseDashboardAlertSeverity;
+  title: string;
+  description: string;
+}
+
+export interface ExpenseDashboardAvailableCategory {
+  key: string;
+  name: string;
+}
+
+export interface ExpenseDashboardCurrencyTotals {
+  currency: string;
+  requestCount: number;
+  totalAmount: number;
+  pendingAmount: number;
+  approvedAmount: number;
+  paidAmount: number;
+}
+
+export interface ExpenseDashboard {
+  filters: ExpenseDashboardFilters;
+  primaryCurrency: string | null;
+  hasMixedCurrencies: boolean;
+  totalsByCurrency: ExpenseDashboardCurrencyTotals[];
+  availableCategories: ExpenseDashboardAvailableCategory[];
+  kpis: ExpenseDashboardKpis;
+  trends: ExpenseDashboardTrendPoint[];
+  categories: ExpenseDashboardCategoryBreakdown[];
+  alerts: ExpenseDashboardAlert[];
 }
 
 export interface ExpenseAttachment {
@@ -212,6 +276,12 @@ export interface ExpenseRequestListQuery {
   status?: ExpenseRequestStatus;
   categoryKey?: string;
   search?: string;
+}
+
+export interface ExpenseDashboardQuery {
+  dateWindowDays?: ExpenseDashboardDateWindow;
+  status?: ExpenseRequestStatus;
+  categoryKey?: string;
 }
 
 export interface ExpenseRequestListResult {
