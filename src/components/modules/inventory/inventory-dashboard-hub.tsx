@@ -153,8 +153,8 @@ export function InventoryDashboardHub({ tenantId }: InventoryDashboardHubProps) 
   const urgentAlerts = lowStockCount + expiringCount;
 
   return (
-    <div className="space-y-6">
-      <section className="border-b border-border/85 pb-6">
+    <div className="space-y-7">
+      <section className="border-b border-border/85 pb-7">
         {/** Grid de tarjetas de lanzamiento a sub modulos activos dentro del modulo de inventory */}
         <article>
           <div className="flex items-center justify-between gap-3">
@@ -166,7 +166,7 @@ export function InventoryDashboardHub({ tenantId }: InventoryDashboardHubProps) 
             </div>
           </div>
 
-          <div className="mt-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          <div className="mt-5 grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
             <MetricCard label="Bodegas activas" value={String(warehousesCount)} icon={Warehouse} />
             <MetricCard label="Lotes" value={String(lotsCount)} icon={Layers3} />
             <MetricCard label="Conteos" value={String(stocktakesCount)} icon={ClipboardCheck} />
@@ -180,9 +180,9 @@ export function InventoryDashboardHub({ tenantId }: InventoryDashboardHubProps) 
           </div>
         </article>
       </section>
-      {/* Las siguientes secciones de este dashboard son ejemplos estaticos para ilustrar el diseño y la experiencia, en una implementacion real se deberian conectar a datos reales y actualizar dinamicamente segun la operacion del tenant. Se recomienda priorizar la integracion de datos en la seccion de accesos rapidos y estado operativo, ya que son las mas criticas para la supervisión diaria. Las secciones de movimientos de la semana y salud del inventario pueden ser implementadas en fases posteriores una vez que los datos historicos y de trazabilidad esten disponibles. */}
+      {/* Las siguientes secciones de este dashboard son ejemplos estaticos para ilustrar el diseÃ±o y la experiencia, en una implementacion real se deberian conectar a datos reales y actualizar dinamicamente segun la operacion del tenant. Se recomienda priorizar la integracion de datos en la seccion de accesos rapidos y estado operativo, ya que son las mas criticas para la supervisiÃ³n diaria. Las secciones de movimientos de la semana y salud del inventario pueden ser implementadas en fases posteriores una vez que los datos historicos y de trazabilidad esten disponibles. */}
       <section className="grid gap-5 xl:grid-cols-3">
-        <article className="bg-card/92 rounded-lg shadow-md p-5">
+        <article className="surface-card rounded-2xl border-border/90 bg-card/92 p-6">
           <div className="flex items-center justify-between gap-3">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
@@ -220,7 +220,7 @@ export function InventoryDashboardHub({ tenantId }: InventoryDashboardHubProps) 
           </div>
         </article>
         {/* Grafico de stock por bodega, ideal para visualizar la distribucion del inventario y detectar posibles cuellos de botella o sobrecargas en ciertas ubicaciones */}
-        <article className="bg-card/92 rounded-lg shadow-md p-5">
+        <article className="surface-card rounded-2xl border-border/90 bg-card/92 p-6">
           <div className="flex items-center gap-2">
             <PieChartIcon className="size-4 text-primary" />
             <h2 className="text-sm font-semibold uppercase tracking-[0.14em] text-foreground">
@@ -270,7 +270,7 @@ export function InventoryDashboardHub({ tenantId }: InventoryDashboardHubProps) 
           </div>
         </article>
 
-        <article className="bg-card/92 rounded-lg shadow-md p-5">
+        <article className="surface-card rounded-2xl border-border/90 bg-card/92 p-6">
           <div className="flex items-center gap-2">
             <PieChartIcon className="size-4 text-primary" />
             <h2 className="text-sm font-semibold uppercase tracking-[0.14em] text-foreground">
@@ -333,7 +333,7 @@ export function InventoryDashboardHub({ tenantId }: InventoryDashboardHubProps) 
 
       <section className="grid gap-5 xl:grid-cols-[minmax(0,1.1fr)_minmax(320px,0.9fr)]">
         {/* Actividad reciente */}
-        <article className="bg-card/92 rounded-lg shadow-md p-5">
+        <article className="surface-card rounded-2xl border-border/90 bg-card/92 p-6">
           <div className="flex items-center gap-2">
             <ClipboardCheck className="size-4 text-primary" />
             <h2 className="text-sm font-semibold uppercase tracking-[0.14em] text-foreground">
@@ -376,7 +376,7 @@ export function InventoryDashboardHub({ tenantId }: InventoryDashboardHubProps) 
           </div>
         </article>
         {/* Estado operativo */}
-        <article className="bg-card/92 rounded-lg shadow-md p-5">
+        <article className="surface-card rounded-2xl border-border/90 bg-card/92 p-6">
           <div className="flex items-center gap-2">
             <ShieldCheck className="size-4 text-primary" />
             <h2 className="text-sm font-semibold uppercase tracking-[0.14em] text-foreground">

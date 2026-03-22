@@ -74,17 +74,17 @@ export function DashboardSection({
   contentClassName,
 }: SectionProps) {
   return (
-    <section className={cn("surface-card relative overflow-hidden p-5 sm:p-6", className)}>
+    <section className={cn("surface-card relative overflow-hidden p-6 sm:p-7", className)}>
       <div className="pointer-events-none absolute inset-x-0 top-0 h-16 bg-gradient-to-r from-primary/14 via-accent/8 to-transparent" />
-      <header className="relative flex flex-col gap-4 border-b border-border/82 pb-4 sm:flex-row sm:items-end sm:justify-between">
+      <header className="relative flex flex-col gap-5 border-b border-border/82 pb-5 sm:flex-row sm:items-end sm:justify-between">
         <div className="space-y-2">
           <p className="label-kicker text-primary/90">{eyebrow}</p>
-          <h2 className="text-2xl font-bold tracking-tight text-foreground">{title}</h2>
+          <h2 className="text-[1.7rem] font-bold tracking-tight text-foreground">{title}</h2>
           <p className="max-w-2xl text-sm leading-relaxed dashboard-text-muted">{description}</p>
         </div>
         {action ? <div className="relative flex shrink-0 flex-wrap gap-2">{action}</div> : null}
       </header>
-      <div className={cn("relative pt-4", contentClassName)}>{children}</div>
+      <div className={cn("relative pt-5", contentClassName)}>{children}</div>
     </section>
   );
 }
@@ -99,7 +99,7 @@ export function DashboardGridContainer({ columns = 2, children, className }: Gri
           ? "xl:grid-cols-2"
           : "grid-cols-1";
 
-  return <div className={cn("grid gap-4", columnClassName, className)}>{children}</div>;
+  return <div className={cn("grid gap-5", columnClassName, className)}>{children}</div>;
 }
 
 type DashboardMetricCardProps = {
@@ -122,7 +122,7 @@ export function DashboardMetricCard({
   return (
     <article
       className={cn(
-        "surface-card surface-card-hover relative flex h-full flex-col justify-between gap-5 overflow-hidden rounded-2xl p-4",
+        "surface-card surface-card-hover relative flex h-full flex-col justify-between gap-6 overflow-hidden rounded-2xl p-5",
         METRIC_TONE_CLASSNAMES[tone],
       )}
     >
@@ -135,7 +135,7 @@ export function DashboardMetricCard({
           <Icon className="size-4" />
         </div>
       </div>
-      <div className="space-y-1.5">
+      <div className="space-y-2">
         {isLoading ? (
           <div className="h-8 w-20 animate-pulse rounded bg-muted" />
         ) : (
@@ -175,7 +175,7 @@ export function DashboardModuleCard({
   accentClassName = "from-primary/35 via-primary/15 to-transparent",
 }: DashboardModuleCardProps) {
   return (
-    <article className="surface-card surface-card-hover relative isolate overflow-hidden p-5">
+    <article className="surface-card surface-card-hover relative isolate overflow-hidden p-6">
       <div
         className={cn(
           "pointer-events-none absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r",
@@ -193,7 +193,7 @@ export function DashboardModuleCard({
       <h3 className="mt-4 text-xl font-semibold tracking-tight text-foreground">{title}</h3>
       <p className="mt-2 text-sm leading-relaxed dashboard-text-muted">{description}</p>
 
-      <div className="mt-4 grid grid-cols-2 gap-2">
+      <div className="mt-5 grid grid-cols-2 gap-2.5">
         {metrics.map((metric) => (
           <div
             key={metric.label}
@@ -213,7 +213,7 @@ export function DashboardModuleCard({
         </p>
       ) : null}
 
-      <div className="mt-5 flex flex-wrap gap-2 border-t border-border/72 pt-4">
+      <div className="mt-6 flex flex-wrap gap-2 border-t border-border/72 pt-5">
         {state === "active" ? (
           <Link href={primaryHref}>
             <Button variant="primary">
@@ -257,7 +257,7 @@ export function DashboardQuickActionCard({
   children,
 }: DashboardQuickActionCardProps) {
   return (
-    <article className="surface-card surface-card-hover relative h-full overflow-hidden rounded-2xl p-4">
+    <article className="surface-card surface-card-hover relative h-full overflow-hidden rounded-2xl p-5">
       <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-accent/32 via-primary/12 to-transparent" />
       <div className="flex items-start gap-3">
         <div className="mt-0.5 flex size-10 items-center justify-center rounded-2xl border border-primary/24 bg-foreground/[0.03] text-primary">
@@ -268,7 +268,7 @@ export function DashboardQuickActionCard({
           <p className="text-sm leading-relaxed dashboard-text-muted">{description}</p>
         </div>
       </div>
-      <div className="mt-4">{children}</div>
+      <div className="mt-5">{children}</div>
     </article>
   );
 }

@@ -113,9 +113,9 @@ export function MembersWorkspace({
   }, [initialTab]);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-7">
       <MembersWorkspaceTabs activeTab={activeTab} onChange={setActiveTab} />
-      <section className="overflow-hidden sm:p-5">
+      <section className="overflow-hidden sm:p-6">
         {activeTab === "team" ? <MembersTeamTab tenant={tenant} membership={membership} /> : null}
         {activeTab === "invitations" ? (
           <MembersInvitationsTab tenant={tenant} membership={membership} />
@@ -137,11 +137,11 @@ function MembersWorkspaceTabs({
   onChange: (key: MembersTabKey) => void;
 }) {
   return (
-    <section className="overflow-hidden rounded-md border-border/90 bg-card/96 p-4 sm:p-5">
-      <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
+    <section className="overflow-hidden rounded-xl border-border/90 bg-card/96 p-5 sm:p-6">
+      <div className="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
         <div className="space-y-2">
           <p className="label-kicker text-primary/90">Workspace Members</p>
-          <h2 className="text-2xl font-semibold tracking-tight text-foreground">
+          <h2 className="text-[1.7rem] font-semibold tracking-tight text-foreground">
             Invitaciones, ownership y gobierno de acceso
           </h2>
           <p className="max-w-3xl text-sm dashboard-text-muted">
@@ -151,8 +151,8 @@ function MembersWorkspaceTabs({
         </div>
       </div>
 
-      <div role="tablist" aria-label="Tabs del modulo members" className="mt-5 overflow-x-auto">
-        <div className="flex min-w-max gap-1 border-b border-border/85 px-1">
+      <div role="tablist" aria-label="Tabs del modulo members" className="mt-6 overflow-x-auto">
+        <div className="flex min-w-max gap-1.5 border-b border-border/85 px-1">
           {MEMBERS_TABS.map((tab) => {
             const active = tab.key === activeTab;
             return (
@@ -166,7 +166,7 @@ function MembersWorkspaceTabs({
                 className={cn(
                   "group relative flex min-w-37.5 flex-col gap-1 px-4 py-3 text-left transition-colors",
                   active
-                    ? "rounded-t-md border-b border-primary bg-white/10 text-primary shadow-lg"
+                    ? "rounded-t-xl border-b border-primary bg-white/10 text-primary shadow-lg"
                     : "text-foreground/58 hover:text-foreground",
                 )}
               >
@@ -315,7 +315,7 @@ function MembersTeamTab({
     <div id="members-panel-team" role="tabpanel" className="space-y-5">
       <header className="space-y-2">
         <p className="label-kicker text-primary/90">Equipo</p>
-        <h3 className="text-2xl font-semibold tracking-tight text-foreground">
+        <h3 className="text-[1.7rem] font-semibold tracking-tight text-foreground">
           Miembros de acceso del tenant
         </h3>
         <p className="max-w-2xl text-sm dashboard-text-muted">
@@ -665,7 +665,7 @@ function MembersInvitationsTab({
     <div id="members-panel-invitations" role="tabpanel" className="space-y-5">
       <header className="space-y-2">
         <p className="label-kicker text-primary/90">Invitaciones</p>
-        <h3 className="text-2xl font-semibold tracking-tight text-foreground">
+        <h3 className="text-[1.7rem] font-semibold tracking-tight text-foreground">
           Onboarding de miembros del tenant
         </h3>
         <p className="max-w-2xl text-sm dashboard-text-muted">
@@ -835,7 +835,7 @@ function MembersOwnershipTab({
     <div id="members-panel-ownership" role="tabpanel" className="space-y-5">
       <header className="space-y-2">
         <p className="label-kicker text-primary/90">Ownership</p>
-        <h3 className="text-2xl font-semibold tracking-tight text-foreground">
+        <h3 className="text-[1.7rem] font-semibold tracking-tight text-foreground">
           Transferencia de titularidad del tenant
         </h3>
         <p className="max-w-2xl text-sm dashboard-text-muted">
@@ -918,7 +918,7 @@ function MembersRoadmapTab() {
     <div id="members-panel-roadmap" role="tabpanel" className="space-y-5">
       <header className="space-y-2">
         <p className="label-kicker text-primary/90">En desarrollo</p>
-        <h3 className="text-2xl font-semibold tracking-tight text-foreground">
+        <h3 className="text-[1.7rem] font-semibold tracking-tight text-foreground">
           Gobierno y acceso futuro del tenant
         </h3>
         <p className="max-w-2xl text-sm dashboard-text-muted">

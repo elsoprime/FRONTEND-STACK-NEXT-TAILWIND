@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useRef, useState } from "react";
 import { PencilLine, Plus, RotateCcw, Save, X } from "lucide-react";
@@ -132,13 +132,13 @@ function InventoryLotsContent({
   setErrorMessage,
 }: LotsContentProps) {
   const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(20);
   const [search, setSearch] = useState("");
   const [itemFilter, setItemFilter] = useState("");
   const [warehouseFilter, setWarehouseFilter] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [noticeMessage, setNoticeMessage] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
-  const limit = 20;
   const normalizedSearch = search.trim().toLowerCase();
 
   const itemsQuery = useQuery({
@@ -272,11 +272,6 @@ function InventoryLotsContent({
               {noticeMessage}
             </div>
           ) : null}
-          {errorMessage ? (
-            <div className="rounded-xl border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-red-200">
-              {errorMessage}
-            </div>
-          ) : null}
 
           <InventoryRecordsShell
             title="Lotes registrados"
@@ -285,7 +280,10 @@ function InventoryLotsContent({
             countLabel="Total visible"
             countValue={String(pagination?.total ?? lots.length)}
             searchValue={search}
-            onSearchChange={setSearch}
+            onSearchChange={(value) => {
+              setSearch(value);
+              setPage(1);
+            }}
             searchPlaceholder="Buscar por lote, item o bodega"
             filters={(
               <>
@@ -434,6 +432,11 @@ function InventoryLotsContent({
                   totalPages={pagination.totalPages}
                   total={pagination.total}
                   onPageChange={setPage}
+                  limit={limit}
+                  onLimitChange={(nextLimit) => {
+                    setLimit(nextLimit);
+                    setPage(1);
+                  }}
                 />
               ) : null
             }
@@ -478,6 +481,13 @@ function InventoryLotsContent({
         }}
         title={editingId ? "Editar lote" : "Nuevo lote"}
         description="Registra trazabilidad por item y bodega con estado operativo y fecha de vencimiento."
+        alert={
+          errorMessage ? (
+            <div className="rounded-md border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-red-200">
+              {errorMessage}
+            </div>
+          ) : null
+        }
         footer={(
           <>
             <Button

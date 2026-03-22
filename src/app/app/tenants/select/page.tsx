@@ -1,10 +1,10 @@
-﻿import { TenantSelectorPanel } from "@/components/tenant/tenant-selector-panel";
+import { TenantSelectorPanel } from "@/components/tenant/tenant-selector-panel";
 
 export default function TenantSelectPage() {
   return (
-    <main className="min-h-[calc(100dvh-4.5rem)] px-4 py-6 sm:px-6 lg:px-8">
-      <section className="mx-auto w-full max-w-[1320px] space-y-5">
-        <article className="surface-card relative overflow-hidden p-6 sm:p-7">
+    <main className="min-h-[calc(100dvh-4.5rem)] px-4 py-7 sm:px-6 xl:px-2">
+      <section className="mx-auto w-full max-w-[1320px] space-y-6">
+        <article className="surface-card relative overflow-hidden p-7 sm:p-8">
           <div className="pointer-events-none absolute inset-x-0 top-0 h-20 bg-gradient-to-r from-primary/20 via-accent/15 to-transparent" />
           <div className="relative space-y-2">
             <p className="label-kicker text-primary/90">Selector tenant</p>
@@ -18,7 +18,7 @@ export default function TenantSelectPage() {
           </div>
         </article>
 
-        <article className="surface-card p-5 sm:p-6">
+        <article className="surface-card p-6 sm:p-7">
           <TenantSelectorPanel />
         </article>
       </section>

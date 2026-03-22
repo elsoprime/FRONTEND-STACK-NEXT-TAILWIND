@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -111,11 +111,11 @@ function InventoryWarehousesContent({
   setErrorMessage,
 }: WarehousesContentProps) {
   const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(20);
   const [search, setSearch] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [noticeMessage, setNoticeMessage] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
-  const limit = 20;
   const normalizedSearch = search.trim();
 
   const warehousesQuery = useQuery({
@@ -205,11 +205,6 @@ function InventoryWarehousesContent({
           {noticeMessage ? (
             <div className="rounded-xl border border-primary/25 bg-primary/8 px-4 py-3 text-sm text-foreground/90">
               {noticeMessage}
-            </div>
-          ) : null}
-          {errorMessage ? (
-            <div className="rounded-xl border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-red-200">
-              {errorMessage}
             </div>
           ) : null}
 
@@ -307,6 +302,11 @@ function InventoryWarehousesContent({
                   totalPages={pagination.totalPages}
                   total={pagination.total}
                   onPageChange={setPage}
+                  limit={limit}
+                  onLimitChange={(nextLimit) => {
+                    setLimit(nextLimit);
+                    setPage(1);
+                  }}
                 />
               ) : null
             }
@@ -351,6 +351,13 @@ function InventoryWarehousesContent({
         }}
         title={editingId ? "Editar bodega" : "Nueva bodega"}
         description="Define ubicaciones operativas y su estado disponible dentro del tenant activo."
+        alert={
+          errorMessage ? (
+            <div className="rounded-md border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-red-200">
+              {errorMessage}
+            </div>
+          ) : null
+        }
         footer={(
           <>
             <Button

@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -116,12 +116,12 @@ function InventoryCategoriesContent({
   setActionErrorMessage,
 }: ContentProps) {
   const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(20);
   const [search, setSearch] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [noticeMessage, setNoticeMessage] = useState<string | null>(null);
   const [deleteCandidate, setDeleteCandidate] = useState<{ id: string; name: string } | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
-  const limit = 20;
   const normalizedSearch = search.trim();
 
   const categoriesQuery = useQuery({
@@ -349,6 +349,11 @@ function InventoryCategoriesContent({
                   totalPages={pagination.totalPages}
                   total={pagination.total}
                   onPageChange={setPage}
+                  limit={limit}
+                  onLimitChange={(nextLimit) => {
+                    setLimit(nextLimit);
+                    setPage(1);
+                  }}
                 />
               ) : null
             }

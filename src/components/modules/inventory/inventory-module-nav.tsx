@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
@@ -38,7 +38,7 @@ export function InventoryModuleNav() {
   const activeTab = searchParams.get("tab");
 
   return (
-    <nav className="flex flex-wrap gap-2" aria-label="Navegacion modulo inventory">
+    <nav className="flex flex-wrap gap-2.5" aria-label="Navegacion modulo inventory">
       {INVENTORY_NAV_ITEMS.map((item) => {
         const active = isActive(pathname, activeTab, item.tab);
 
