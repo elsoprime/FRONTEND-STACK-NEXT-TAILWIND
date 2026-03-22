@@ -1,0 +1,255 @@
+export type ExpenseRequestStatus =
+  | "draft"
+  | "submitted"
+  | "returned"
+  | "approved"
+  | "rejected"
+  | "paid"
+  | "canceled";
+
+export type ExpenseApprovalMode = "single_step" | "multi_step";
+
+export interface ExpenseRequest {
+  id: string;
+  tenantId: string;
+  requestNumber: string;
+  requesterUserId: string;
+  title: string;
+  description: string | null;
+  categoryKey: string;
+  amount: number;
+  currency: string;
+  expenseDate: string;
+  status: ExpenseRequestStatus;
+  submittedAt: string | null;
+  approvedAt: string | null;
+  paidAt: string | null;
+  canceledAt: string | null;
+  rejectionReasonCode: string | null;
+  paymentReference: string | null;
+  metadata: Record<string, unknown>;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ExpenseCounters {
+  total: number;
+  draft: number;
+  submitted: number;
+  returned: number;
+  approved: number;
+  rejected: number;
+  paid: number;
+  canceled: number;
+}
+
+export interface ExpenseSummary {
+  counters: ExpenseCounters;
+  totalRequestedAmount: number;
+  totalApprovedAmount: number;
+  totalPaidAmount: number;
+}
+
+export interface ExpenseAttachment {
+  id: string;
+  tenantId: string;
+  expenseRequestId: string;
+  storageProvider: string;
+  objectKey: string;
+  originalFilename: string;
+  mimeType: string;
+  sizeBytes: number;
+  checksumSha256: string;
+  uploadedByUserId: string;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ExpenseUploadPresign {
+  storageProvider: string;
+  objectKey: string;
+  uploadUrl: string;
+  method: "PUT";
+  requiredHeaders: Record<string, string>;
+  expiresInSeconds: number;
+}
+export interface ExpenseCategory {
+  id: string;
+  tenantId: string;
+  key: string;
+  name: string;
+  requiresAttachment: boolean;
+  isActive: boolean;
+  monthlyLimit: number | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ExpenseSettings {
+  tenantId: string;
+  allowedCurrencies: string[];
+  maxAmountWithoutReview: number;
+  approvalMode: ExpenseApprovalMode;
+  bulkMaxItemsPerOperation: number;
+  exportsEnabled: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ExpenseBulkOperationItemResult {
+  id: string;
+  success: boolean;
+  code?: string;
+  message?: string;
+}
+
+export interface ExpenseBulkOperationResult {
+  processed: number;
+  succeeded: number;
+  failed: number;
+  results: ExpenseBulkOperationItemResult[];
+}
+
+export interface ExpenseExportRow {
+  id: string;
+  requestNumber: string;
+  status: ExpenseRequestStatus;
+  categoryKey: string;
+  amount: number;
+  currency: string;
+  expenseDate: string;
+}
+
+export interface CreateExpenseRequestInput {
+  title: string;
+  categoryKey: string;
+  amount: number;
+  currency: string;
+  expenseDate: string;
+  description?: string | null;
+  metadata?: Record<string, unknown>;
+}
+
+export interface UpdateExpenseRequestInput {
+  title?: string;
+  categoryKey?: string;
+  amount?: number;
+  currency?: string;
+  expenseDate?: string;
+  description?: string | null;
+  metadata?: Record<string, unknown>;
+}
+
+export interface ReviewExpenseRequestInput {
+  comment: string;
+}
+
+export interface RejectExpenseRequestInput {
+  reasonCode: string;
+  comment?: string;
+}
+
+export interface CancelExpenseRequestInput {
+  reason?: string;
+}
+
+export interface MarkPaidExpenseRequestInput {
+  paymentReference?: string;
+}
+
+export interface CreateExpenseUploadPresignInput {
+  requestId: string;
+  originalFilename: string;
+  mimeType: string;
+  sizeBytes: number;
+}
+
+export interface CreateExpenseAttachmentInput {
+  storageProvider: string;
+  objectKey: string;
+  originalFilename: string;
+  mimeType: string;
+  sizeBytes: number;
+  checksumSha256: string;
+}
+
+export interface BulkApproveExpenseRequestsInput {
+  requestIds: string[];
+}
+
+export interface BulkRejectExpenseRequestsInput {
+  requestIds: string[];
+  reasonCode: string;
+  comment?: string;
+}
+
+export interface BulkMarkPaidExpenseRequestsInput {
+  requestIds: string[];
+  paymentReference?: string;
+}
+
+export interface BulkExportExpenseRequestsInput {
+  requestIds: string[];
+}
+
+export interface ExpenseRequestListQuery {
+  page?: number;
+  limit?: number;
+  status?: ExpenseRequestStatus;
+  categoryKey?: string;
+  search?: string;
+}
+
+export interface ExpenseRequestListResult {
+  items: ExpenseRequest[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+}
+
+export interface ExpenseAttachmentListResult {
+  items: ExpenseAttachment[];
+}
+
+export interface ExpenseCategoryListQuery {
+  page?: number;
+  limit?: number;
+  search?: string;
+  includeInactive?: boolean;
+}
+
+export interface ExpenseCategoryListResult {
+  items: ExpenseCategory[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+}
+
+export interface CreateExpenseCategoryInput {
+  key: string;
+  name: string;
+  requiresAttachment?: boolean;
+  monthlyLimit?: number | null;
+}
+
+export interface UpdateExpenseCategoryInput {
+  name?: string;
+  requiresAttachment?: boolean;
+  isActive?: boolean;
+  monthlyLimit?: number | null;
+}
+
+export interface UpdateExpenseSettingsInput {
+  allowedCurrencies?: string[];
+  maxAmountWithoutReview?: number;
+  approvalMode?: ExpenseApprovalMode;
+  bulkMaxItemsPerOperation?: number;
+  exportsEnabled?: boolean;
+}

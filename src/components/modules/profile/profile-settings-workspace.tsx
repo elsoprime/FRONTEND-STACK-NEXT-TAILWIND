@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import Link from "next/link";
 import { startTransition, useEffect, useMemo, useState } from "react";
@@ -163,7 +163,9 @@ function ProfileWorkspaceTabs({
                 )}
               >
                 <span className="inline-flex items-center gap-2 text-sm font-semibold">
-                  <tab.icon className={cn("size-4", active ? "text-primary" : "text-foreground/45")} />
+                  <tab.icon
+                    className={cn("size-4", active ? "text-primary" : "text-foreground/45")}
+                  />
                   {tab.label}
                 </span>
                 <span
@@ -188,7 +190,10 @@ function ProfileOverviewTab() {
   const sessionExpiresAt = useSessionStore((state) => state.sessionExpiresAt);
   const activeTenant = useTenantStore((state) => state.activeTenant);
   const activeMembership = useTenantStore((state) => state.activeMembership);
-  const formattedSessionExpiry = useMemo(() => formatSessionExpiry(sessionExpiresAt), [sessionExpiresAt]);
+  const formattedSessionExpiry = useMemo(
+    () => formatSessionExpiry(sessionExpiresAt),
+    [sessionExpiresAt],
+  );
 
   const initials = useMemo(
     () => resolveInitials(user?.firstName ?? null, user?.lastName ?? null),
@@ -310,7 +315,10 @@ function ProfileOverviewTab() {
 
 function ProfileSecurityTab() {
   const sessionExpiresAt = useSessionStore((state) => state.sessionExpiresAt);
-  const formattedSessionExpiry = useMemo(() => formatSessionExpiry(sessionExpiresAt), [sessionExpiresAt]);
+  const formattedSessionExpiry = useMemo(
+    () => formatSessionExpiry(sessionExpiresAt),
+    [sessionExpiresAt],
+  );
 
   return (
     <div id="profile-panel-security" role="tabpanel" className="space-y-5">
@@ -347,7 +355,7 @@ function ProfileSecurityTab() {
               <p>Activa 2FA antes de compartir acceso con equipos distribuidos.</p>
               <p>Guarda los recovery codes fuera del navegador.</p>
               <p>
-                Usa seguridad de plataforma para controles globales cuando el backend este listo.
+                Usa seguridad de plataforma para politicas globales ya conectadas a backend real.
               </p>
             </div>
           </article>

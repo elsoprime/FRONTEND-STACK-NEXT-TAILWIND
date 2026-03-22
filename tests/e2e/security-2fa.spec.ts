@@ -6,7 +6,7 @@ test.beforeEach(async ({ page }, testInfo) => {
   await setCsrfCookie(page, testInfo.project.use.baseURL);
 });
 
-test("2FA setup y confirmacion basicos en seguridad", async ({ page }) => {
+test("2FA setup y confirmacion basicos en perfil y seguridad", async ({ page }) => {
   await page.route("**/api/v1/auth/refresh/browser", async (route) => {
     await route.fulfill({
       status: 200,
@@ -133,9 +133,12 @@ test("2FA setup y confirmacion basicos en seguridad", async ({ page }) => {
   });
 
   attachTenantDashboardMocks(page);
-  await page.goto("/app/settings/security");
+  await page.goto("/app/settings/profile?tab=security");
 
-  await expect(page.getByRole("heading", { level: 1, name: "Seguridad" })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1, name: "Perfil y seguridad" })).toBeVisible();
+  await expect(
+    page.getByRole("heading", { level: 3, name: "Proteccion de acceso del usuario" }),
+  ).toBeVisible();
 
   await page.getByRole("button", { name: "Iniciar 2FA" }).click();
   await expect(page.getByText("Provision pendiente")).toBeVisible();
@@ -145,4 +148,3 @@ test("2FA setup y confirmacion basicos en seguridad", async ({ page }) => {
   await expect(page.getByText("2FA habilitado correctamente.")).toBeVisible();
   expect(confirmPayload).toEqual({ code: "123456" });
 });
-

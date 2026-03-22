@@ -135,6 +135,50 @@ paths:
     $ref: ./paths/modules/crm-activities.yaml
   /api/v1/modules/crm/counters:
     $ref: ./paths/modules/crm-counters.yaml
+  /api/v1/modules/expenses/requests:
+    $ref: ./paths/modules/expenses-requests.yaml
+  /api/v1/modules/expenses/requests/{requestId}:
+    $ref: ./paths/modules/expenses-request-by-id.yaml
+  /api/v1/modules/expenses/requests/{requestId}/submit:
+    $ref: ./paths/modules/expenses-submit.yaml
+  /api/v1/modules/expenses/requests/{requestId}/review:
+    $ref: ./paths/modules/expenses-review.yaml
+  /api/v1/modules/expenses/requests/{requestId}/approve:
+    $ref: ./paths/modules/expenses-approve.yaml
+  /api/v1/modules/expenses/requests/{requestId}/reject:
+    $ref: ./paths/modules/expenses-reject.yaml
+  /api/v1/modules/expenses/requests/{requestId}/cancel:
+    $ref: ./paths/modules/expenses-cancel.yaml
+  /api/v1/modules/expenses/requests/{requestId}/mark-paid:
+    $ref: ./paths/modules/expenses-mark-paid.yaml
+  /api/v1/modules/expenses/queue:
+    $ref: ./paths/modules/expenses-queue.yaml
+  /api/v1/modules/expenses/counters:
+    $ref: ./paths/modules/expenses-counters.yaml
+  /api/v1/modules/expenses/requests/bulk/approve:
+    $ref: ./paths/modules/expenses-bulk-approve.yaml
+  /api/v1/modules/expenses/requests/bulk/reject:
+    $ref: ./paths/modules/expenses-bulk-reject.yaml
+  /api/v1/modules/expenses/requests/bulk/mark-paid:
+    $ref: ./paths/modules/expenses-bulk-mark-paid.yaml
+  /api/v1/modules/expenses/requests/bulk/export:
+    $ref: ./paths/modules/expenses-bulk-export.yaml
+  /api/v1/modules/expenses/reports/summary:
+    $ref: ./paths/modules/expenses-reports-summary.yaml
+  /api/v1/modules/expenses/exports/requests.csv:
+    $ref: ./paths/modules/expenses-exports-requests-csv.yaml
+  /api/v1/modules/expenses/categories:
+    $ref: ./paths/modules/expenses-categories.yaml
+  /api/v1/modules/expenses/categories/{categoryId}:
+    $ref: ./paths/modules/expenses-category-by-id.yaml
+  /api/v1/modules/expenses/settings:
+    $ref: ./paths/modules/expenses-settings.yaml
+  /api/v1/modules/expenses/uploads/presign:
+    $ref: ./paths/modules/expenses-uploads-presign.yaml
+  /api/v1/modules/expenses/requests/{requestId}/attachments:
+    $ref: ./paths/modules/expenses-request-attachments.yaml
+  /api/v1/modules/expenses/requests/{requestId}/attachments/{attachmentId}:
+    $ref: ./paths/modules/expenses-request-attachment-by-id.yaml
   /api/v1/modules/hr/employees:
     $ref: ./paths/modules/hr-employees.yaml
   /api/v1/modules/hr/employees/{employeeId}:
@@ -150,6 +194,8 @@ components:
     $ref: ./components/parameters/_index.yaml
   securitySchemes:
     $ref: ./components/securitySchemes/_index.yaml
+
+
 
 
 

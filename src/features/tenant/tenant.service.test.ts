@@ -1,19 +1,23 @@
-﻿import { HttpResponse, http } from "msw";
+import { HttpResponse, http } from "msw";
 import { describe, expect, it } from "vitest";
 import {
   acceptTenantInvitation,
   createTenant,
   createTenantInvitation,
+  deleteTenantMembership,
   getMyTenantsNormalized,
+  listTenantMemberships,
   revokeTenantInvitation,
   switchActiveTenant,
   transferTenantOwnership,
+  updateTenantMembership,
 } from "@/features/tenant/tenant.service";
 import { server } from "@/mocks/server";
 
 const TENANT_ID = "507f191e810c19729de860ea";
 const INVITATION_ID = "507f191e810c19729de860eb";
 const TARGET_USER_ID = "507f191e810c19729de860ec";
+const MEMBERSHIP_ID = "507f191e810c19729de860ed";
 
 describe("tenant.service", () => {
   it("creates tenant with trimmed payload", async () => {
@@ -103,6 +107,123 @@ describe("tenant.service", () => {
 
     expect(requestBody).toEqual({ tenantId: TENANT_ID });
     expect(response.traceId).toBe("trace-tenant-switch-ok");
+  });
+
+  it("lists tenant memberships with tenant header and query params", async () => {
+    server.use(
+      http.get("*/api/v1/tenant/memberships", ({ request }) => {
+        const url = new URL(request.url);
+        expect(request.headers.get("X-Tenant-Id")).toBe(TENANT_ID);
+        expect(url.searchParams.get("page")).toBe("2");
+        expect(url.searchParams.get("limit")).toBe("5");
+        expect(url.searchParams.get("search")).toBe("ana");
+        expect(url.searchParams.get("roleKey")).toBe("tenant:admin");
+        expect(url.searchParams.get("status")).toBe("active");
+
+        return HttpResponse.json({
+          success: true,
+          data: {
+            items: [
+              {
+                membershipId: MEMBERSHIP_ID,
+                userId: TARGET_USER_ID,
+                fullName: "Ana Admin",
+                email: "ana@acme.dev",
+                roleKey: "tenant:admin",
+                status: "active",
+                joinedAt: "2026-03-20T10:00:00.000Z",
+                createdAt: "2026-03-19T10:00:00.000Z",
+                isEffectiveOwner: false,
+              },
+            ],
+            page: 2,
+            limit: 5,
+            total: 6,
+            totalPages: 2,
+          },
+          traceId: "trace-memberships-list-ok",
+        });
+      }),
+    );
+
+    const response = await listTenantMemberships(TENANT_ID, {
+      page: 2,
+      limit: 5,
+      search: "ana",
+      roleKey: "tenant:admin",
+      status: "active",
+    });
+
+    expect(response.data.items[0]?.fullName).toBe("Ana Admin");
+    expect(response.traceId).toBe("trace-memberships-list-ok");
+  });
+
+  it("updates tenant membership with tenant header", async () => {
+    let requestBody: Record<string, unknown> | null = null;
+
+    server.use(
+      http.patch(`*/api/v1/tenant/memberships/${MEMBERSHIP_ID}`, async ({ request }) => {
+        requestBody = (await request.json()) as Record<string, unknown>;
+        expect(request.headers.get("X-Tenant-Id")).toBe(TENANT_ID);
+
+        return HttpResponse.json({
+          success: true,
+          data: {
+            membership: {
+              membershipId: MEMBERSHIP_ID,
+              userId: TARGET_USER_ID,
+              fullName: "Ana Admin",
+              email: "ana@acme.dev",
+              roleKey: "tenant:member",
+              status: "suspended",
+              joinedAt: "2026-03-20T10:00:00.000Z",
+              createdAt: "2026-03-19T10:00:00.000Z",
+              isEffectiveOwner: false,
+            },
+          },
+          traceId: "trace-membership-update-ok",
+        });
+      }),
+    );
+
+    const response = await updateTenantMembership(TENANT_ID, MEMBERSHIP_ID, {
+      roleKey: "tenant:member",
+      status: "suspended",
+    });
+
+    expect(requestBody).toEqual({ roleKey: "tenant:member", status: "suspended" });
+    expect(response.data.membership.status).toBe("suspended");
+  });
+
+  it("deletes tenant membership with tenant header", async () => {
+    server.use(
+      http.delete(`*/api/v1/tenant/memberships/${MEMBERSHIP_ID}`, ({ request }) => {
+        expect(request.headers.get("X-Tenant-Id")).toBe(TENANT_ID);
+
+        return HttpResponse.json({
+          success: true,
+          data: {
+            membership: {
+              membershipId: MEMBERSHIP_ID,
+              userId: TARGET_USER_ID,
+              fullName: "Ana Admin",
+              email: "ana@acme.dev",
+              roleKey: "tenant:member",
+              status: "suspended",
+              joinedAt: "2026-03-20T10:00:00.000Z",
+              createdAt: "2026-03-19T10:00:00.000Z",
+              isEffectiveOwner: false,
+            },
+          },
+          traceId: "trace-membership-delete-ok",
+        });
+      }),
+    );
+
+    const response = await deleteTenantMembership(TENANT_ID, MEMBERSHIP_ID);
+
+    expect(response.data.membership.membershipId).toBe(MEMBERSHIP_ID);
+    expect(response.traceId).toBe("trace-membership-delete-ok");
   });
 
   it("creates tenant invitation with tenant header", async () => {

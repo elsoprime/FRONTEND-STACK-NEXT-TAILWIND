@@ -1,6 +1,4 @@
-import { ShieldAlert } from "lucide-react";
-import { buttonVariants } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+import { AccessStatePanel } from "@/components/ui/access-state-panel";
 
 type AccessDeniedPanelProps = {
   title?: string;
@@ -20,32 +18,20 @@ export function AccessDeniedPanel({
   className,
 }: AccessDeniedPanelProps) {
   return (
-    <article
-      className={cn(
-        "rounded-xl border border-red-300/80 bg-red-100/70 p-4 text-red-900 dark:border-destructive/45 dark:bg-destructive/14 dark:text-red-200",
-        className,
-      )}
-    >
-      <div className="flex items-start gap-3">
-        <ShieldAlert className="mt-0.5 size-4" />
-        <div className="space-y-2">
-          <p className="text-sm font-semibold">{title}</p>
-          <p className="text-sm">{message}</p>
-          {code ? <p className="text-xs opacity-75">Codigo: {code}</p> : null}
-          {actionHref && actionLabel ? (
-            <a
-              href={actionHref}
-              className={cn(
-                buttonVariants({ size: "sm", variant: "outline" }),
-                "rounded-lg border-current/35",
-              )}
-            >
-              {actionLabel}
-            </a>
-          ) : null}
-        </div>
-      </div>
-    </article>
+    <AccessStatePanel
+      title={title}
+      description={message}
+      code={code}
+      primaryAction={
+        actionHref && actionLabel
+          ? {
+              href: actionHref,
+              label: actionLabel,
+              variant: "outline",
+            }
+          : undefined
+      }
+      className={className}
+    />
   );
 }
-

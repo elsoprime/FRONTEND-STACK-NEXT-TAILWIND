@@ -2,6 +2,7 @@ import { z } from "zod";
 import {
   membershipViewSchema,
   tenantMembershipSummarySchema,
+  tenantMemberStatusSchema,
   tenantViewSchema,
 } from "@/features/tenant/tenant.schemas";
 
@@ -23,10 +24,7 @@ export const createTenantInputSchema = z.object({
 export type CreateTenantInput = z.infer<typeof createTenantInputSchema>;
 
 export const switchActiveTenantInputSchema = z.object({
-  tenantId: z
-    .string()
-    .trim()
-    .regex(objectIdRegex, "Selecciona un tenant valido"),
+  tenantId: z.string().trim().regex(objectIdRegex, "Selecciona un tenant valido"),
 });
 
 export type SwitchActiveTenantInput = z.infer<typeof switchActiveTenantInputSchema>;
@@ -45,22 +43,37 @@ export const acceptTenantInvitationInputSchema = z.object({
 export type AcceptTenantInvitationInput = z.infer<typeof acceptTenantInvitationInputSchema>;
 
 export const revokeTenantInvitationInputSchema = z.object({
-  invitationId: z
-    .string()
-    .trim()
-    .regex(objectIdRegex, "Invitacion invalida"),
+  invitationId: z.string().trim().regex(objectIdRegex, "Invitacion invalida"),
 });
 
 export type RevokeTenantInvitationInput = z.infer<typeof revokeTenantInvitationInputSchema>;
 
 export const transferTenantOwnershipInputSchema = z.object({
-  targetUserId: z
-    .string()
-    .trim()
-    .regex(objectIdRegex, "Usuario destino invalido"),
+  targetUserId: z.string().trim().regex(objectIdRegex, "Usuario destino invalido"),
 });
 
 export type TransferTenantOwnershipInput = z.infer<typeof transferTenantOwnershipInputSchema>;
+
+export const listTenantMembershipsInputSchema = z.object({
+  page: z.number().int().min(1).optional(),
+  limit: z.number().int().min(1).max(100).optional(),
+  search: z.string().trim().optional(),
+  roleKey: tenantRoleKeySchema.optional(),
+  status: tenantMemberStatusSchema.optional(),
+});
+
+export type ListTenantMembershipsInput = z.infer<typeof listTenantMembershipsInputSchema>;
+
+export const updateTenantMembershipInputSchema = z
+  .object({
+    roleKey: tenantRoleKeySchema.optional(),
+    status: tenantMemberStatusSchema.optional(),
+  })
+  .refine((value) => value.roleKey !== undefined || value.status !== undefined, {
+    message: "Debes actualizar al menos un campo de la membresia.",
+  });
+
+export type UpdateTenantMembershipInput = z.infer<typeof updateTenantMembershipInputSchema>;
 
 export const activeTenantContextSchema = z.object({
   tenant: tenantViewSchema,
@@ -97,4 +110,3 @@ export type TenantShellBootstrapResult =
       switched: boolean;
       items: z.infer<typeof tenantMembershipSummarySchema>[];
     };
-

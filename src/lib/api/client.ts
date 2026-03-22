@@ -21,6 +21,7 @@ type ApiPath = "/health" | `/api/v1/${string}`;
 type TenantScopedPath =
   | `/api/v1/audit${string}`
   | `/api/v1/tenant/settings${string}`
+  | `/api/v1/tenant/memberships${string}`
   | `/api/v1/modules/${string}`
   | "/api/v1/tenant/invitations"
   | "/api/v1/tenant/invitations/revoke"
@@ -114,6 +115,7 @@ function isTenantScopedPath(pathname: string): pathname is TenantScopedPath {
   return (
     pathname.startsWith("/api/v1/audit") ||
     pathname.startsWith("/api/v1/tenant/settings") ||
+    pathname.startsWith("/api/v1/tenant/memberships") ||
     pathname.startsWith("/api/v1/modules/") ||
     pathname === "/api/v1/tenant/invitations" ||
     pathname === "/api/v1/tenant/invitations/revoke" ||

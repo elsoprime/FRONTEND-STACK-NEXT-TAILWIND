@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import type { ComponentType } from "react";
 import Link from "next/link";
@@ -10,6 +10,7 @@ import {
   CreditCard,
   GemIcon,
   LayoutGrid,
+  Receipt,
   ScrollText,
   Settings,
   Users,
@@ -34,6 +35,7 @@ type AppRoute =
   | "/app/inventory/stock"
   | "/app/crm"
   | "/app/hr"
+  | "/app/expenses"
   | "/app/audit"
   | "/app/settings/billing"
   | "/app/settings/profile"
@@ -41,7 +43,7 @@ type AppRoute =
   | "/app/settings/tenant"
   | "/app/members";
 
-type ModuleKey = "inventory" | "crm" | "hr" | "audit";
+type ModuleKey = "inventory" | "crm" | "hr" | "expenses" | "audit";
 
 type NavItem = {
   label: string;
@@ -118,6 +120,15 @@ const navSections: readonly NavSection[] = [
         tenantRequired: true,
       },
       {
+        label: "Expenses",
+        href: "/app/expenses",
+        icon: Receipt,
+        match: "prefix",
+        moduleKey: "expenses",
+        permissionKey: TENANT_PERMISSION_KEYS.MODULE_EXPENSES_USE,
+        tenantRequired: true,
+      },
+      {
         label: "Audit",
         href: "/app/audit",
         icon: ScrollText,
@@ -136,7 +147,7 @@ const navSections: readonly NavSection[] = [
         href: "/app/members",
         icon: Users,
         match: "prefix",
-        permissionKey: TENANT_PERMISSION_KEYS.INVITATIONS_CREATE,
+        permissionKey: TENANT_PERMISSION_KEYS.MEMBERSHIPS_READ,
         tenantRequired: true,
       },
     ],
@@ -290,9 +301,14 @@ export function TenantSidebar({ isOpen, collapsed, onClose }: TenantSidebarProps
                           )
                         : true;
 
-                      const isDisabled =
-                        (item.moduleKey && moduleState !== "active") ||
-                        (item.permissionKey && !hasPermission);
+                      const isModuleDisabled = Boolean(item.moduleKey && moduleState !== "active");
+                      const isPermissionDenied = Boolean(item.permissionKey && !hasPermission);
+                      const isDisabled = isModuleDisabled || isPermissionDenied;
+                      const disabledReason = isModuleDisabled
+                        ? "No incluido en tu plan activo"
+                        : isPermissionDenied
+                          ? "Tu rol no tiene permisos para este modulo"
+                          : item.label;
 
                       const baseClass = cn(
                         "group flex items-center border text-sm font-medium transition-all duration-200",
@@ -307,7 +323,7 @@ export function TenantSidebar({ isOpen, collapsed, onClose }: TenantSidebarProps
 
                       if (isDisabled) {
                         return (
-                          <div key={item.href} className="space-y-1" title={item.label}>
+                          <div key={item.href} className="space-y-1" title={`${item.label}: ${disabledReason}`}>
                             <div aria-disabled="true" className={baseClass}>
                               <item.icon className="size-4" />
                               {!collapsed ? <span>{item.label}</span> : null}
