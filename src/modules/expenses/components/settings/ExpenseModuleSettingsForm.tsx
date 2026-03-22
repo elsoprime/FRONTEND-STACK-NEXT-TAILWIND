@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { CircleHelp } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -117,13 +118,25 @@ export function ExpenseModuleSettingsForm({ tenantId }: { tenantId: string }) {
         </Badge>
       </div>
 
+      <article className="mt-5 rounded-[1.1rem] border border-border/80 bg-background/82 p-4">
+        <div className="flex items-start gap-3 text-sm text-muted-foreground">
+          <CircleHelp className="mt-0.5 size-4 text-primary" />
+          <div className="space-y-1">
+            <p className="font-semibold text-foreground">Guia rapida de politicas</p>
+            <p>1. Define monedas permitidas separadas por coma (ej: CLP,USD).</p>
+            <p>2. Ajusta el modo de aprobacion segun nivel de control requerido.</p>
+            <p>3. Limita operaciones bulk para controlar riesgo operativo.</p>
+          </div>
+        </div>
+      </article>
+
       <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
         <SettingsSummaryCard label="Monedas" value={settingsQuery.data.allowedCurrencies.join(", ")} />
         <SettingsSummaryCard
           label="Revision automatica"
           value={String(settingsQuery.data.maxAmountWithoutReview)}
         />
-        <SettingsSummaryCard label="Modo de aprobacion" value={settingsQuery.data.approvalMode} />
+        <SettingsSummaryCard label="Modo de aprobacion" value={approvalModeLabel(settingsQuery.data.approvalMode)} />
         <SettingsSummaryCard
           label="Bulk max"
           value={String(settingsQuery.data.bulkMaxItemsPerOperation)}
@@ -133,7 +146,7 @@ export function ExpenseModuleSettingsForm({ tenantId }: { tenantId: string }) {
 
       <div className="mt-5 grid gap-4 sm:grid-cols-2">
         <label className="space-y-2 text-sm">
-          <span className="text-muted-foreground">Monedas permitidas (CSV)</span>
+          <span className="block py-2 text-muted-foreground">Monedas permitidas (CSV)</span>
           <Input
             value={draft.allowedCurrencies}
             onChange={(event) =>
@@ -146,7 +159,7 @@ export function ExpenseModuleSettingsForm({ tenantId }: { tenantId: string }) {
           />
         </label>
         <label className="space-y-2 text-sm">
-          <span className="text-muted-foreground">Monto maximo sin revision</span>
+          <span className="block py-2 text-muted-foreground">Monto maximo sin revision</span>
           <Input
             type="number"
             min="0"
@@ -161,7 +174,7 @@ export function ExpenseModuleSettingsForm({ tenantId }: { tenantId: string }) {
           />
         </label>
         <label className="space-y-2 text-sm">
-          <span className="text-muted-foreground">Modo de aprobacion</span>
+          <span className="block py-2 text-muted-foreground">Modo de aprobacion</span>
           <select
             className={inventorySelectClassName}
             value={draft.approvalMode}
@@ -173,12 +186,12 @@ export function ExpenseModuleSettingsForm({ tenantId }: { tenantId: string }) {
             }
             disabled={!canUpdateSettings}
           >
-            <option value="single_step">single_step</option>
-            <option value="multi_step">multi_step</option>
+            <option value="single_step">Aprobacion en un paso</option>
+            <option value="multi_step">Aprobacion en multiples pasos</option>
           </select>
         </label>
         <label className="space-y-2 text-sm">
-          <span className="text-muted-foreground">Maximo items por operacion bulk</span>
+          <span className="block py-2 text-muted-foreground">Maximo items por operacion bulk</span>
           <Input
             type="number"
             min="1"
@@ -222,6 +235,14 @@ export function ExpenseModuleSettingsForm({ tenantId }: { tenantId: string }) {
       </div>
     </section>
   );
+}
+
+function approvalModeLabel(mode: ExpenseApprovalMode): string {
+  if (mode === "single_step") {
+    return "Aprobacion en un paso";
+  }
+
+  return "Aprobacion en multiples pasos";
 }
 
 function SettingsSummaryCard({ label, value }: { label: string; value: string }) {

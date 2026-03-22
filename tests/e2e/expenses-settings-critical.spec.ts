@@ -168,10 +168,11 @@ test("manages categories and updates expense settings", async ({ page }) => {
     }
 
     const body = route.request().postDataJSON() as Record<string, unknown>;
+    const nextId = `507f191e810c19729de86${(100 + categories.length).toString().padStart(3, "0")}`;
     categories = [
       ...categories,
       {
-        id: "507f191e810c19729de860f3",
+        id: nextId,
         tenantId: TENANT_ID,
         key: String(body.key),
         name: String(body.name),
@@ -275,21 +276,40 @@ test("manages categories and updates expense settings", async ({ page }) => {
   await page.goto("/app/expenses?tab=settings");
 
   await expect(page.getByRole("heading", { name: "Categorias" })).toBeVisible();
-  await page.getByPlaceholder("key").nth(1).fill("office");
-  await page.getByPlaceholder("nombre").nth(1).fill("Office");
-  await page.getByRole("button", { name: "Crear" }).click();
+  await page.getByRole("button", { name: "Nueva categoria" }).click();
+  await page.getByTestId("expenses-category-key-input").fill("office");
+  await page.getByTestId("expenses-category-name-input").fill("Office");
+  await page.getByRole("button", { name: "Crear categoria", exact: true }).click();
   await expect(page.getByText("Categoria creada.")).toBeVisible();
   await expect(page.getByText("office", { exact: true })).toBeVisible();
 
-  const row = page.locator("article", { hasText: "office" }).first();
+  const row = page.locator("tr", { hasText: "office" }).first();
   await row.getByRole("button", { name: "Editar" }).click();
   await row.getByRole("textbox").fill("Office Updated");
   await row.getByRole("button", { name: "Guardar" }).click();
   await expect(page.getByText("Categoria actualizada.")).toBeVisible();
 
+  const csvPayload = [
+    "key,name,requiresAttachment,monthlyLimit",
+    "meals,Meals,si,100000",
+    "transport,Transport,no,",
+  ].join("\n");
+
+  await page.getByRole("button", { name: "Importar CSV" }).click();
+  await expect(page.getByRole("heading", { name: "Importar categorias desde CSV" })).toBeVisible();
+  await page.getByTestId("expenses-categories-csv-input").setInputFiles({
+    name: "expenses-categories.csv",
+    mimeType: "text/csv",
+    buffer: Buffer.from(csvPayload, "utf8"),
+  });
+  await page.getByRole("button", { name: "Ejecutar import" }).click();
+  await expect(page.getByText("Importacion finalizada. Exitos: 2. Fallos: 0.")).toBeVisible();
+  await page.getByRole("button", { name: "Cerrar", exact: true }).click();
+  await expect(page.getByText("Importacion masiva finalizada. Procesadas: 2. Exitos: 2. Fallos: 0.")).toBeVisible();
+  await expect(page.getByText("meals", { exact: true })).toBeVisible();
+  await expect(page.getByText("transport", { exact: true })).toBeVisible();
+
   await page.getByLabel("Monedas permitidas (CSV)").fill("USD,CLP");
   await page.getByRole("button", { name: "Guardar settings" }).click();
   await expect(page.getByText("Configuracion actualizada.")).toBeVisible();
 });
-
-
