@@ -10,7 +10,7 @@ export default function DemoPage() {
         badge="Evaluación Gratuita"
         icon={Zap}
         title="Comience su Transformación Digital."
-        description="Obtenga acceso prioritario a nuestro sandbox y descubra cómo ERP Solutions Media puede escalar su infraestructura operativa en tiempo récord."
+        description="Obtenga acceso prioritario a nuestro sandbox y descubra cómo ELSOMEDIA One puede escalar su infraestructura operativa en tiempo récord."
       >
         <FormField label="Nombre Completo" placeholder="Ej. Juan Pérez" />
         <FormField label="Correo Corporativo" placeholder="juan@empresa.com" type="email" />

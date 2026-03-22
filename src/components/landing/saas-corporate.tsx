@@ -301,7 +301,7 @@ export function SaasCorporate() {
               </div>
 
               <div className="rounded-2xl bg-blue-700 p-12 text-white shadow-xl lg:p-16">
-                <h3 className="text-3xl font-bold mb-6">Pruebe ERP Solutions Media hoy mismo</h3>
+                <h3 className="text-3xl font-bold mb-6">Pruebe ELSOMEDIA One hoy mismo</h3>
                 <p className="text-blue-100 text-lg mb-8">
                   Descubra por qué los CTOs de las empresas Fortune 500 confían en nuestra
                   infraestructura para sus operaciones críticas.

@@ -10,7 +10,7 @@ export default function StrategyPage() {
         badge="Reunión Estratégica"
         icon={Users}
         title="Hablemos de su Visión Empresarial."
-        description="Agende una sesión con nuestros consultores expertos para alinear ERP Solutions Media con sus objetivos de negocio a largo plazo."
+        description="Agende una sesión con nuestros consultores expertos para alinear ELSOMEDIA One con sus objetivos de negocio a largo plazo."
       >
         <FormField label="Nombre y Cargo" placeholder="Ej. Juan Pérez - CTO" />
         <FormField label="Correo Corporativo" placeholder="juan@empresa.com" type="email" />

@@ -231,7 +231,7 @@ export const integrationCategories = [
     name: "Operaciones y datos",
     icon: Database,
     integrations: [
-      { name: "SAP S/4HANA", acronym: "SA", description: "Conector para procesos ERP core." },
+      { name: "SAP S/4HANA", acronym: "SA", description: "Conector para procesos core de operacion." },
       { name: "Snowflake", acronym: "SN", description: "Data warehouse para analitica avanzada." },
       { name: "Datadog", acronym: "DD", description: "Monitoreo y observabilidad de sistema." },
     ],

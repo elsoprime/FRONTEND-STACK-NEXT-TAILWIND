@@ -60,10 +60,10 @@ export function CorporatePortalHeader() {
             </div>
             <div className="flex flex-col leading-tight">
               <span className="text-lg font-bold tracking-tight text-foreground transition-colors group-hover:text-primary">
-                ERP Solutions
+                ELSOMEDIA One
               </span>
               <span className="text-[10px] font-bold tracking-[0.2em] text-muted-foreground uppercase opacity-70">
-                Media Hub
+                SaaS Platform
               </span>
             </div>
           </Link>
