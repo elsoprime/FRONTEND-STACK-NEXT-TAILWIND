@@ -14,6 +14,11 @@ Centralizar documentos operativos de ejecucion, cierres por ola y runbooks del f
 - `EXPENSES_CHECKLIST_MAESTRO_INTEGRACION_2026-03-22.md`
   Plan maestro y checklist de control para futuras olas, dependencias cruzadas y protocolo de retoma sin mezclarlo con cierres operativos.
 
+## Propuesta de Refactor de Expenses
+
+- `EXPENSES_PROPUESTA_REFACTORIZACION_TAXONOMIA_Y_RUNTIME_2026-03-22.md`
+  Propuesta ejecutable para corregir la brecha de create-request y evolucionar a categorias/subcategorias reales sin deuda tecnica.
+
 ## Secuencia recomendada para retomar Expenses
 
 1. `EXPENSES_PROPUESTA_IMPLEMENTACION_SAAS_2026-03-21.md`
@@ -23,12 +28,13 @@ Centralizar documentos operativos de ejecucion, cierres por ola y runbooks del f
 5. `EXPENSES_OLA4_CATALOGO_GOBERNANZA_CIERRE_2026-03-22.md`
 6. `EXPENSES_OLA5_METRICAS_NATIVAS_CIERRE_2026-03-22.md`
 7. `EXPENSES_CHECKLIST_MAESTRO_INTEGRACION_2026-03-22.md`
-8. `EXPENSES_WORKSPACE_OLA_CIERRE_2026-03-21.md`
-9. `EXPENSES_OLA_REQUESTS_CIERRE_2026-03-21.md`
-10. `EXPENSES_OLA_SETTINGS_CIERRE_2026-03-21.md`
-11. `EXPENSES_OLA_SETTINGS_HARDENING_CIERRE_2026-03-21.md`
-12. `EXPENSES_OLA5_FRONTEND_CIERRE_2026-03-21.md`
-13. `EXPENSES_OLA7_MIRROR_AND_RELEASE_CHECK_2026-03-21.md`
+8. `EXPENSES_PROPUESTA_REFACTORIZACION_TAXONOMIA_Y_RUNTIME_2026-03-22.md`
+9. `EXPENSES_WORKSPACE_OLA_CIERRE_2026-03-21.md`
+10. `EXPENSES_OLA_REQUESTS_CIERRE_2026-03-21.md`
+11. `EXPENSES_OLA_SETTINGS_CIERRE_2026-03-21.md`
+12. `EXPENSES_OLA_SETTINGS_HARDENING_CIERRE_2026-03-21.md`
+13. `EXPENSES_OLA5_FRONTEND_CIERRE_2026-03-21.md`
+14. `EXPENSES_OLA7_MIRROR_AND_RELEASE_CHECK_2026-03-21.md`
 
 ## Regla de espejo
 
