@@ -74,12 +74,12 @@ const STATUS_META: Record<ExpenseRequestStatus, StatusMeta> = {
 };
 
 const STATUS_TONE_CLASSES: Record<StatusMeta["tone"], string> = {
-  slate: "border-slate-500/20 bg-slate-500/10 text-slate-100",
-  amber: "border-amber-300/20 bg-amber-300/12 text-amber-100",
-  cyan: "border-cyan-300/20 bg-cyan-300/12 text-cyan-100",
-  emerald: "border-emerald-300/20 bg-emerald-300/12 text-emerald-100",
-  rose: "border-rose-300/20 bg-rose-300/12 text-rose-100",
-  zinc: "border-zinc-300/20 bg-zinc-300/12 text-zinc-100",
+  slate: "border-slate-400/25 bg-slate-500/10 text-slate-700 dark:text-slate-100",
+  amber: "border-amber-300/35 bg-amber-400/10 text-amber-700 dark:text-amber-100",
+  cyan: "border-cyan-300/35 bg-cyan-400/10 text-cyan-700 dark:text-cyan-100",
+  emerald: "border-emerald-300/35 bg-emerald-400/10 text-emerald-700 dark:text-emerald-100",
+  rose: "border-rose-300/35 bg-rose-400/10 text-rose-700 dark:text-rose-100",
+  zinc: "border-zinc-300/35 bg-zinc-400/10 text-zinc-700 dark:text-zinc-100",
 };
 
 export function getExpenseStatusMeta(status: ExpenseRequestStatus): StatusMeta {
@@ -180,10 +180,7 @@ export function ExpenseWorkflowStateCard({ request }: { request: ExpenseRequest 
 
       <div className="mt-4 grid gap-3 sm:grid-cols-2">
         <ExpenseStateField label="Cancelada" value={request.canceledAt ? formatExpenseDate(request.canceledAt) : "No"} />
-        <ExpenseStateField
-          label="Motivo rechazo"
-          value={request.rejectionReasonCode ?? "Sin rechazo"}
-        />
+        <ExpenseStateField label="Motivo rechazo" value={request.rejectionReasonCode ?? "Sin rechazo"} />
       </div>
     </article>
   );
@@ -199,5 +196,3 @@ function ExpenseStateField({ label, value }: { label: string; value: string }) {
     </article>
   );
 }
-
-

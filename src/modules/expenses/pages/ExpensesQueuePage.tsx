@@ -3,9 +3,10 @@
 import Link from "next/link";
 import { startTransition, useDeferredValue, useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Inbox, RotateCcw, Search, X } from "lucide-react";
+import { CheckCheck, FilterX } from "lucide-react";
 import { InventoryPaginationControls } from "@/components/modules/inventory/inventory-pagination-controls";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   InventoryCell,
   InventoryDataTable,
@@ -16,6 +17,7 @@ import { LoadingScreen } from "@/components/ui/loading-screen";
 import { ApiRequestError } from "@/lib/api/client";
 import { listQueue } from "@/lib/api/expenses.client";
 import type { ExpenseRequestStatus } from "@/lib/api/expenses.types";
+import { cn } from "@/lib/utils";
 import { ExpenseBulkActionsPanel } from "@/modules/expenses/components/bulk/ExpenseBulkActionsPanel";
 import {
   ExpenseStatusBadge,
@@ -117,220 +119,176 @@ export function ExpensesQueuePage({ tenantId }: { tenantId: string }) {
     setSelectedRequestIds([]);
   };
 
-  if (items.length === 0) {
-    return (
-      <section className="surface-card rounded-[1.5rem] border-border/90 bg-card/96 p-6">
-        <header className="mb-4 flex flex-wrap items-center gap-3">
-          <label className="inline-flex items-center gap-2 text-sm text-muted-foreground">
-            Estado
-            <select
-              value={queueFilters.status}
-              onChange={(event) =>
-                setQueueStatusFilter(event.target.value as ExpenseRequestStatus | "all")
-              }
-              className={inventorySelectClassName}
-            >
-              {QUEUE_STATUS_OPTIONS.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="relative inline-flex items-center">
-            <Search className="pointer-events-none absolute left-2 size-4 text-muted-foreground" />
-            <input
-              value={queueFilters.search}
-              onChange={(event) => setQueueSearchFilter(event.target.value)}
-              placeholder="Buscar por numero, titulo o categoria"
-              className="h-10 w-72 rounded-md border border-border/80 bg-background/70 py-1 pl-8 pr-2 text-sm text-foreground placeholder:text-muted-foreground"
-            />
-          </label>
-          {hasFilters ? (
-            <Button type="button" variant="outline" onClick={clearFilters}>
-              <X className="size-4" />
-              Limpiar filtros
-            </Button>
-          ) : null}
-        </header>
-
-        <div className="flex items-start gap-4">
-          <div className="flex size-11 items-center justify-center rounded-2xl border border-border/80 bg-background/75 text-primary">
-            <Inbox className="size-5" />
-          </div>
-          <div className="space-y-2">
-            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
-              Cola vacia
-            </p>
-            <h3 className="text-lg font-semibold tracking-tight text-foreground">
-              No hay solicitudes con los filtros actuales
-            </h3>
-            <p className="max-w-2xl text-sm text-muted-foreground">
-              Ajusta filtros o espera nuevas solicitudes en estado operativo para continuar el flujo.
-            </p>
-          </div>
-        </div>
-      </section>
-    );
-  }
-
   return (
-    <section className="space-y-5">
-      <header className="flex flex-wrap items-end justify-between gap-3">
-        <div className="space-y-2">
-          <p className="label-kicker text-primary/90">Queue operativa</p>
-          <h3 className="text-[1.7rem] font-semibold tracking-tight text-foreground">
-            Solicitudes de gasto
-          </h3>
-          <p className="max-w-2xl text-sm dashboard-text-muted">
-            Revisa solicitudes disponibles, entra al detalle y ejecuta acciones de workflow desde
-            una sola superficie.
-          </p>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <Button type="button" variant="outline" onClick={selectAllVisible}>
-            Seleccionar visibles
-          </Button>
-          <Button type="button" variant="outline" onClick={clearSelection}>
-            Limpiar seleccion
-          </Button>
-          {pagination ? (
-            <div className="rounded-full border border-border/80 bg-background/70 px-3 py-1 text-xs font-medium text-muted-foreground">
-              {pagination.total} solicitudes
+    <section className="overflow-hidden rounded-xl border border-border/80 bg-card/96 shadow-sm">
+      <div className="border-b border-border/70 bg-linear-to-r from-background via-background to-muted/35 px-5 py-5 sm:px-6">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+          <div className="space-y-3">
+            <span className="inline-flex w-fit rounded-lg border border-primary/20 bg-primary/8 px-2.5 py-1 text-xs font-semibold text-primary">
+              Queue operativa
+            </span>
+            <div>
+              <h3 className="text-xl font-semibold tracking-tight text-foreground">
+                Solicitudes de gasto
+              </h3>
+              <p className="mt-1 max-w-2xl text-sm leading-relaxed text-muted-foreground">
+                Tabla principal del modulo para revisar solicitudes, aplicar seleccion masiva y abrir el detalle sin salir del flujo.
+              </p>
             </div>
-          ) : null}
+          </div>
+
+          <div className="min-w-[180px] rounded-2xl border border-border/70 bg-background/80 px-4 py-3 shadow-sm">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+              Total visible
+            </p>
+            <p className="mt-2 text-2xl font-semibold tracking-tight text-foreground">
+              {String(pagination?.total ?? items.length)}
+            </p>
+          </div>
         </div>
-      </header>
 
-      <section className="surface-card rounded-[1.25rem] border-border/90 bg-card/96 p-4">
-        <div className="grid gap-3 lg:grid-cols-[220px_minmax(0,1fr)_auto]">
-          <label className="inline-flex items-center gap-2 text-sm text-muted-foreground">
-            Estado
-            <select
-              value={queueFilters.status}
-              onChange={(event) =>
-                setQueueStatusFilter(event.target.value as ExpenseRequestStatus | "all")
-              }
-              className={inventorySelectClassName}
-            >
-              {QUEUE_STATUS_OPTIONS.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </label>
-
-          <label className="relative inline-flex items-center">
-            <Search className="pointer-events-none absolute left-2 size-4 text-muted-foreground" />
-            <input
+        <div className="mt-5 flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
+          <div className="flex flex-1 flex-col gap-3 lg:flex-row lg:items-center">
+            <Input
               value={queueFilters.search}
               onChange={(event) => setQueueSearchFilter(event.target.value)}
               placeholder="Buscar por numero, titulo o categoria"
-              className="h-10 w-full rounded-md border border-border/80 bg-background/70 py-1 pl-8 pr-2 text-sm text-foreground placeholder:text-muted-foreground"
+              className="h-10 w-full rounded-md bg-background/85 lg:max-w-sm"
             />
-          </label>
+            <div className="flex flex-1 flex-wrap items-center gap-2">
+              <select
+                value={queueFilters.status}
+                onChange={(event) =>
+                  setQueueStatusFilter(event.target.value as ExpenseRequestStatus | "all")
+                }
+                className={cn(inventorySelectClassName, "lg:max-w-[220px]")}
+              >
+                {QUEUE_STATUS_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+              <Button
+                type="button"
+                variant="toolbar"
+                onClick={clearFilters}
+                disabled={!hasFilters}
+              >
+                <FilterX className="size-4" />
+                Limpiar filtros
+              </Button>
+            </div>
+          </div>
 
-          <Button type="button" variant="outline" onClick={clearFilters} disabled={!hasFilters}>
-            <X className="size-4" />
-            Reset
-          </Button>
+          <div className="flex flex-wrap items-center gap-2">
+            <Button type="button" variant="toolbar" onClick={selectAllVisible} disabled={items.length === 0}>
+              <CheckCheck className="size-4" />
+              Seleccionar visibles
+            </Button>
+            <Button type="button" variant="toolbar" onClick={clearSelection} disabled={selectedRequestIds.length === 0}>
+              Limpiar seleccion
+            </Button>
+          </div>
         </div>
-      </section>
+      </div>
 
-      <ExpenseBulkActionsPanel
-        tenantId={tenantId}
-        requests={items}
-        selectedRequestIds={selectedRequestIds}
-        onCompleted={() => {
-          setSelectedRequestIds([]);
-          void queueQuery.refetch();
-        }}
-      />
+      <div className="border-b border-border/70 px-5 py-4 sm:px-6">
+        <ExpenseBulkActionsPanel
+          tenantId={tenantId}
+          requests={items}
+          selectedRequestIds={selectedRequestIds}
+          onCompleted={() => {
+            setSelectedRequestIds([]);
+            void queueQuery.refetch();
+          }}
+        />
+      </div>
 
-      <section className="surface-card overflow-hidden rounded-[1.25rem] border-border/90 bg-card/96 p-0">
-        <InventoryDataTable
-          hasRows={items.length > 0}
-          empty={
-            hasFilters
-              ? "Sin resultados para los filtros aplicados."
-              : "No hay solicitudes registradas."
-          }
-          columns={
-            <>
-              <InventoryCell header className="w-[72px] text-center">
-                Bulk
-              </InventoryCell>
-              <InventoryCell header>Solicitud</InventoryCell>
-              <InventoryCell header>Estado</InventoryCell>
-              <InventoryCell header className="text-right">
-                Monto
-              </InventoryCell>
-              <InventoryCell header>Fecha</InventoryCell>
-              <InventoryCell header className="text-right">
-                Accion
-              </InventoryCell>
-            </>
-          }
-        >
-          {items.map((request) => {
-            const checked = selectedRequestIds.includes(request.id);
+      <div className="px-3 py-3 sm:px-4">
+        <div className="overflow-hidden rounded-xl border border-border/70 bg-background/88 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
+          <InventoryDataTable
+            hasRows={items.length > 0}
+            empty={
+              hasFilters
+                ? "Sin resultados para los filtros aplicados."
+                : "No hay solicitudes registradas."
+            }
+            columns={
+              <>
+                <InventoryCell header className="w-[72px] text-center">
+                  Bulk
+                </InventoryCell>
+                <InventoryCell header>Solicitud</InventoryCell>
+                <InventoryCell header>Estado</InventoryCell>
+                <InventoryCell header className="text-right">
+                  Monto
+                </InventoryCell>
+                <InventoryCell header>Fecha</InventoryCell>
+                <InventoryCell header className="text-right">
+                  Accion
+                </InventoryCell>
+              </>
+            }
+          >
+            {items.map((request) => {
+              const checked = selectedRequestIds.includes(request.id);
 
-            return (
-              <InventoryRow key={request.id}>
-                <InventoryCell className="text-center">
-                  <input
-                    type="checkbox"
-                    checked={checked}
-                    onChange={() => toggleSelection(request.id)}
-                    aria-label={`Seleccionar solicitud ${request.requestNumber}`}
-                  />
-                </InventoryCell>
-                <InventoryCell>
-                  <div className="space-y-1">
-                    <p className="font-semibold text-foreground">{request.requestNumber}</p>
-                    <p className="text-xs text-muted-foreground">{request.title}</p>
-                    <p className="text-xs text-muted-foreground">{request.categoryKey}</p>
-                  </div>
-                </InventoryCell>
-                <InventoryCell>
-                  <ExpenseStatusBadge status={request.status} />
-                </InventoryCell>
-                <InventoryCell className="text-right">
-                  <span className="font-semibold text-foreground">
-                    {formatExpenseAmount(request.amount, request.currency)}
-                  </span>
-                </InventoryCell>
-                <InventoryCell>
-                  <span className="text-sm text-foreground/85">
-                    {formatExpenseDate(request.expenseDate)}
-                  </span>
-                </InventoryCell>
-                <InventoryCell className="text-right">
-                  <Link
-                    href={`/app/expenses/${request.id}`}
-                    onClick={() => setSelectedRequestId(request.id)}
-                    className="inline-flex items-center justify-center rounded-md border border-border/80 bg-background/70 px-3 py-1.5 text-sm font-medium text-foreground transition-colors hover:border-primary/30 hover:bg-background/90"
-                  >
-                    Abrir
-                  </Link>
-                </InventoryCell>
-              </InventoryRow>
-            );
-          })}
-        </InventoryDataTable>
-      </section>
+              return (
+                <InventoryRow key={request.id}>
+                  <InventoryCell className="text-center">
+                    <input
+                      type="checkbox"
+                      checked={checked}
+                      onChange={() => toggleSelection(request.id)}
+                      aria-label={`Seleccionar solicitud ${request.requestNumber}`}
+                    />
+                  </InventoryCell>
+                  <InventoryCell>
+                    <div className="space-y-1">
+                      <p className="font-semibold text-foreground">{request.requestNumber}</p>
+                      <p className="text-xs text-muted-foreground">{request.title}</p>
+                      <p className="text-xs text-muted-foreground">{request.categoryKey}</p>
+                    </div>
+                  </InventoryCell>
+                  <InventoryCell>
+                    <ExpenseStatusBadge status={request.status} />
+                  </InventoryCell>
+                  <InventoryCell className="text-right">
+                    <span className="font-semibold text-foreground">
+                      {formatExpenseAmount(request.amount, request.currency)}
+                    </span>
+                  </InventoryCell>
+                  <InventoryCell>
+                    <span className="text-sm text-foreground/85">
+                      {formatExpenseDate(request.expenseDate)}
+                    </span>
+                  </InventoryCell>
+                  <InventoryCell className="text-right">
+                    <Link
+                      href={`/app/expenses/${request.id}`}
+                      onClick={() => setSelectedRequestId(request.id)}
+                      className="inline-flex items-center justify-center rounded-md border border-border/80 bg-background/70 px-3 py-1.5 text-sm font-medium text-foreground transition-colors hover:border-primary/30 hover:bg-background/90"
+                    >
+                      Abrir
+                    </Link>
+                  </InventoryCell>
+                </InventoryRow>
+              );
+            })}
+          </InventoryDataTable>
+        </div>
+      </div>
 
       {pagination && pagination.totalPages > 1 ? (
-        <section className="rounded-[1.25rem] border border-border/80 bg-background/72 p-4">
+        <div className="border-t border-border/70 px-5 py-4 sm:px-6">
           <InventoryPaginationControls
             page={pagination.page}
             totalPages={pagination.totalPages}
             total={pagination.total}
             onPageChange={(nextPage) => startTransition(() => setQueuePage(nextPage))}
           />
-        </section>
+        </div>
       ) : null}
     </section>
   );
@@ -359,7 +317,7 @@ function ExpensesInlineError({
     <article className="surface-card rounded-[1.5rem] border border-red-300/80 bg-red-100/70 p-5 text-red-900 dark:border-destructive/45 dark:bg-destructive/14 dark:text-red-200">
       <div className="flex items-start gap-3">
         <div className="flex size-10 items-center justify-center rounded-xl border border-red-300/70 bg-red-50/80 dark:border-destructive/45 dark:bg-destructive/20">
-          <RotateCcw className="size-4" />
+          <CheckCheck className="size-4" />
         </div>
         <div className="space-y-2">
           <h3 className="text-base font-semibold tracking-tight">No se pudo cargar la cola</h3>

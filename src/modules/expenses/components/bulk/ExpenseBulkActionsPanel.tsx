@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { CheckCheck, Download, ShieldCheck, XCircle } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DecisionDialog } from "@/components/ui/decision-dialog";
 import { ApiRequestError } from "@/lib/api/client";
@@ -13,6 +14,7 @@ import {
   bulkReject,
 } from "@/lib/api/expenses.client";
 import type { ExpenseRequest } from "@/lib/api/expenses.types";
+import { resolveExpensesErrorMessage } from "@/features/expenses/error-code-map";
 import {
   downloadExpenseBulkExportCsv,
   toExpenseBulkFeedbackItems,
@@ -20,7 +22,6 @@ import {
   toExpenseBulkSummary,
 } from "@/modules/expenses/components/bulk/expense-bulk-utils";
 import { ExpenseActionFeedback } from "@/modules/expenses/components/shared/ExpenseActionFeedback";
-import { resolveExpensesErrorMessage } from "@/features/expenses/error-code-map";
 
 type Props = {
   tenantId: string;
@@ -59,7 +60,7 @@ export function ExpenseBulkActionsPanel({
   const labelsById = useMemo(() => {
     const map = new Map<string, string>();
     for (const request of requests) {
-      map.set(request.id, `${request.requestNumber} · ${request.title}`);
+      map.set(request.id, `${request.requestNumber} - ${request.title}`);
     }
     return map;
   }, [requests]);
@@ -156,47 +157,60 @@ export function ExpenseBulkActionsPanel({
   const isPending = runBulkMutation.isPending || exportMutation.isPending;
 
   return (
-    <section className="space-y-3 rounded-2xl border border-border/80 bg-background/70 p-4">
-      <div className="space-y-1">
-        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">Bulk actions</p>
-        <p className="text-sm text-foreground">
-          {selectedRequestIds.length} seleccionadas
-        </p>
-      </div>
+    <section className="space-y-4">
+      <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
+        <div className="space-y-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <Badge variant="outline" className="rounded-lg border-primary/20 bg-primary/8 text-primary">
+              Bulk actions
+            </Badge>
+            <Badge variant="outline" className="rounded-full border-border/80 bg-background/80">
+              {selectedRequestIds.length} seleccionadas
+            </Badge>
+          </div>
+          <p className="text-sm text-muted-foreground">
+            Ejecuta aprobacion, rechazo, pago o exportacion sobre la seleccion actual sin abandonar la queue.
+          </p>
+        </div>
 
-      <div className="flex flex-wrap gap-2">
-        <Button
-          type="button"
-          variant="default"
-          disabled={isPending || selectedRequestIds.length === 0}
-          onClick={() => runBulkMutation.mutate("approve")}
-        >
-          <ShieldCheck className="size-4" /> Aprobar
-        </Button>
-        <Button
-          type="button"
-          variant="secondary"
-          disabled={isPending || selectedRequestIds.length === 0}
-          onClick={() => setConfirmReject(true)}
-        >
-          <XCircle className="size-4" /> Rechazar
-        </Button>
-        <Button
-          type="button"
-          variant="outline"
-          disabled={isPending || selectedRequestIds.length === 0}
-          onClick={() => runBulkMutation.mutate("markPaid")}
-        >
-          <CheckCheck className="size-4" /> Marcar pagadas
-        </Button>
-        <Button
-          type="button"
-          variant="outline"
-          disabled={isPending || selectedRequestIds.length === 0}
-          onClick={() => exportMutation.mutate()}
-        >
-          <Download className="size-4" /> Exportar
-        </Button>
+        <div className="flex flex-wrap items-center gap-2">
+          <Button
+            type="button"
+            variant="toolbar"
+            disabled={isPending || selectedRequestIds.length === 0}
+            onClick={() => runBulkMutation.mutate("approve")}
+          >
+            <ShieldCheck className="size-4" />
+            Aprobar
+          </Button>
+          <Button
+            type="button"
+            variant="toolbar"
+            disabled={isPending || selectedRequestIds.length === 0}
+            onClick={() => setConfirmReject(true)}
+          >
+            <XCircle className="size-4" />
+            Rechazar
+          </Button>
+          <Button
+            type="button"
+            variant="toolbar"
+            disabled={isPending || selectedRequestIds.length === 0}
+            onClick={() => runBulkMutation.mutate("markPaid")}
+          >
+            <CheckCheck className="size-4" />
+            Marcar pagadas
+          </Button>
+          <Button
+            type="button"
+            variant="toolbar"
+            disabled={isPending || selectedRequestIds.length === 0}
+            onClick={() => exportMutation.mutate()}
+          >
+            <Download className="size-4" />
+            Exportar
+          </Button>
+        </div>
       </div>
 
       {feedback ? (
@@ -215,7 +229,8 @@ export function ExpenseBulkActionsPanel({
         title="Confirmar rechazo masivo"
         description="Se rechazaran las solicitudes seleccionadas. Esta accion quedara auditada."
         confirmLabel="Rechazar solicitudes"
-        cancelLabel="Cancelar"        onConfirm={() => {
+        cancelLabel="Cancelar"
+        onConfirm={() => {
           setConfirmReject(false);
           runBulkMutation.mutate("reject");
         }}
@@ -225,6 +240,4 @@ export function ExpenseBulkActionsPanel({
     </section>
   );
 }
-
-
 
