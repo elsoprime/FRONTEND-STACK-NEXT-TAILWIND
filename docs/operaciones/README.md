@@ -1,4 +1,4 @@
-﻿# Operaciones Frontend
+# Operaciones Frontend
 
 ## Proposito
 
@@ -6,6 +6,8 @@ Centralizar documentos operativos de ejecucion, cierres por ola y runbooks del f
 
 ## Referencia activa de Expenses
 
+- `RETOMADA_CHECKLIST.md`
+  Checklist corto para decidir si retomar desde `main`, `wip/*` o una rama `feat/*`.
 - `EXPENSES_OLA7_MIRROR_AND_RELEASE_CHECK_2026-03-21.md`
   Cierre espejo backend/frontend y checklist de release/handoff vigente para Expenses.
 
