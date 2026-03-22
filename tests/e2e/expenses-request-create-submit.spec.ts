@@ -161,6 +161,26 @@ test("creates expense request and submits from workspace form", async ({ page })
     });
   });
 
+  page.route("**/api/v1/modules/expenses/settings", async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        success: true,
+        data: {
+          settings: {
+            allowedCurrencies: ["CLP", "USD"],
+            maxAmountWithoutReview: 500000,
+            approvalMode: "single_step",
+            bulkMaxItemsPerOperation: 50,
+            exportsEnabled: true,
+          },
+        },
+        traceId: "trace-expenses-settings",
+      }),
+    });
+  });
+
   page.route("**/api/v1/modules/expenses/categories**", async (route) => {
     await route.fulfill({
       status: 200,
@@ -277,6 +297,7 @@ test("creates expense request and submits from workspace form", async ({ page })
   await page.getByLabel("Categoria").selectOption("travel");
   await page.getByLabel("Monto").fill("120");
   await expect(page.getByLabel("Moneda")).toHaveValue("CLP");
+  await expect(page.getByLabel("Moneda")).toBeDisabled();
   await page.getByLabel("Fecha de gasto").fill("2026-03-21");
   await page.getByLabel("Descripcion (opcional)").fill("Viaje de ventas");
 

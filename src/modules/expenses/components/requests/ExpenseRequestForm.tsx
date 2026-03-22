@@ -1,6 +1,6 @@
 ﻿"use client";
 
-import { type ReactNode, useMemo, useState } from "react";
+import { type ReactNode, useEffect, useMemo, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
@@ -11,6 +11,7 @@ import { inventorySelectClassName } from "@/components/ui/inventory-records-shel
 import { ApiRequestError } from "@/lib/api/client";
 import {
   createRequest,
+  getSettings,
   listCategories,
   submitRequest,
   updateRequest,
@@ -107,6 +108,10 @@ export function ExpenseRequestForm({
       }),
   });
 
+  const settingsQuery = useQuery({
+    queryKey: ["tenant", tenantId, "expenses", "settings", "request-form"],
+    queryFn: async () => getSettings(tenantId),
+  });
   const defaultValues = useMemo<ExpenseRequestFormValues>(
     () => ({
       title: initialData?.title ?? "",
@@ -141,6 +146,20 @@ export function ExpenseRequestForm({
     resolver: zodResolver(expenseRequestFormSchema),
     defaultValues,
   });
+
+  const policyCurrency = (settingsQuery.data?.allowedCurrencies[0] ?? "CLP").toUpperCase();
+
+  useEffect(() => {
+    if (mode !== "create") {
+      return;
+    }
+
+    form.setValue("currency", policyCurrency, {
+      shouldDirty: false,
+      shouldValidate: true,
+      shouldTouch: false,
+    });
+  }, [form, mode, policyCurrency]);
 
   const mutation = useMutation({
     mutationFn: async (values: ExpenseRequestFormValues) => {
@@ -226,7 +245,12 @@ export function ExpenseRequestForm({
             <FieldError message={form.formState.errors.categoryKey?.message} />
           </FieldLabel>
           <FieldLabel htmlFor="expense-currency" label="Moneda">
-            <Input id="expense-currency" {...form.register("currency")} placeholder="CLP" />
+            <Input id="expense-currency" {...form.register("currency")} placeholder="CLP" disabled readOnly />
+            {settingsQuery.isError ? (
+              <p className="text-xs text-amber-700 dark:text-amber-300">
+                No se pudo resolver politicas del modulo. Se aplica fallback CLP.
+              </p>
+            ) : null}
             <FieldError message={form.formState.errors.currency?.message} />
           </FieldLabel>
         </div>
@@ -328,7 +352,7 @@ function FieldLabel({
 }) {
   return (
     <label htmlFor={htmlFor} className="space-y-2 text-sm font-medium text-foreground">
-      <span>{label}</span>
+      <span className="block py-2">{label}</span>
       {children}
     </label>
   );
@@ -341,4 +365,5 @@ function FieldError({ message }: { message?: string }) {
 
   return <p className="text-xs text-destructive">{message}</p>;
 }
+
 
