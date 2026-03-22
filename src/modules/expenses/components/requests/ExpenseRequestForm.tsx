@@ -65,12 +65,14 @@ function toDateInputValue(value: string | null | undefined): string {
 }
 
 function toCreatePayload(input: ExpenseRequestFormValues): CreateExpenseRequestInput {
+  const normalizedDate = `${input.expenseDate}T00:00:00.000Z`;
+
   return {
     title: input.title.trim(),
     categoryKey: input.categoryKey.trim(),
     amount: Number(input.amount),
     currency: input.currency.trim().toUpperCase(),
-    expenseDate: input.expenseDate,
+    expenseDate: normalizedDate,
     description: input.description?.trim().length ? input.description.trim() : null,
   };
 }

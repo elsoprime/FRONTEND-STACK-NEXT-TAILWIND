@@ -1,4 +1,4 @@
-﻿import { expect, type Page, test } from "@playwright/test";
+import { expect, type Page, test } from "@playwright/test";
 import { setCsrfCookie } from "./helpers/csrf";
 
 const TENANT_ID = "507f191e810c19729de860ea";
@@ -117,6 +117,7 @@ test("creates expense request and submits from workspace form", async ({ page })
   attachBaseExpensesAuthMocks(page);
 
   const queueItems: Array<Record<string, unknown>> = [];
+  let capturedCreatePayload: Record<string, unknown> | null = null;
 
   page.route("**/api/v1/modules/expenses/counters", async (route) => {
     await route.fulfill({
@@ -219,6 +220,8 @@ test("creates expense request and submits from workspace form", async ({ page })
       return;
     }
 
+    capturedCreatePayload = route.request().postDataJSON() as Record<string, unknown>;
+
     await route.fulfill({
       status: 201,
       contentType: "application/json",
@@ -305,4 +308,5 @@ test("creates expense request and submits from workspace form", async ({ page })
 
   await expect(page.getByRole("heading", { name: "Solicitudes de gasto" })).toBeVisible();
   await expect(page.getByText("Hotel cliente")).toBeVisible();
+  expect(capturedCreatePayload?.expenseDate).toBe("2026-03-21T00:00:00.000Z");
 });
