@@ -1,8 +1,15 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowRight, CheckCircle2, Code2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { methodologyHighlights, methodologyPhases } from "@/lib/marketing.content";
 import { MarketingShell } from "../_marketing-shell";
+
+export const metadata: Metadata = {
+  title: "Metodologia",
+  description:
+    "Metodologia de implementacion por fases para desplegar ELSOMEDIA One con continuidad operativa y control tecnico.",
+};
 
 export default function MethodologyPage() {
   return (
@@ -15,7 +22,7 @@ export default function MethodologyPage() {
           Despliegue de grado <span className="text-blue-700">enterprise.</span>
         </h1>
         <p className="text-xl leading-relaxed text-slate-600 dark:text-slate-400">
-          Cinco fases para transicion segura hacia ERP Solutions Media, priorizando continuidad
+          Cinco fases para transicion segura hacia ELSOMEDIA One, priorizando continuidad
           operativa y control tecnico.
         </p>
       </header>

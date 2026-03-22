@@ -31,7 +31,7 @@ export function AuthPageShell({
                 <Cloud className="size-6" />
               </div>
               <span className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
-                ERP Solutions Media
+                ELSOMEDIA One
               </span>
             </Link>
 
@@ -106,7 +106,7 @@ export function AuthPageShell({
               <div className="absolute inset-0 bg-blue-600/5 blur-3xl transition-colors group-hover:bg-blue-600/10" />
               <Image
                 src="/backgrounds/login-illustration.svg"
-                alt="Gestion de datos ERP"
+                alt="Gestion de operaciones SaaS"
                 fill
                 className="object-contain transition-transform duration-500 group-hover:scale-105"
               />
@@ -121,7 +121,7 @@ export function AuthPageShell({
                     <Cloud className="size-6" />
                   </div>
                   <span className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
-                    ERP Solutions Media
+                    ELSOMEDIA One
                   </span>
                 </Link>
               </div>
