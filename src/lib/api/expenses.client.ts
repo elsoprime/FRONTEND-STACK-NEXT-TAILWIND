@@ -6,6 +6,7 @@ import {
   mapExpenseCategory,
   mapExpenseCategoryList,
   mapExpenseBulkOperationResult,
+  mapExpenseDashboard,
   mapExpenseExportRows,
   mapExpenseRequest,
   mapExpenseRequestList,
@@ -44,6 +45,8 @@ import type {
   ExpenseCategoryListQuery,
   ExpenseCategoryListResult,
   ExpenseBulkOperationResult,
+  ExpenseDashboard,
+  ExpenseDashboardQuery,
   ExpenseExportRow,
   ExpenseRequest,
   ExpenseRequestListQuery,
@@ -110,6 +113,17 @@ function buildCategoryListQuery(params: ExpenseCategoryListQuery = {}): string {
   return query.length > 0 ? `?${query}` : "";
 }
 
+function buildDashboardQuery(params: ExpenseDashboardQuery = {}): string {
+  const searchParams = new URLSearchParams();
+
+  if (params.dateWindowDays !== undefined) searchParams.set("dateWindowDays", String(params.dateWindowDays));
+  if (params.status !== undefined) searchParams.set("status", params.status);
+  if (params.categoryKey !== undefined) searchParams.set("categoryKey", params.categoryKey);
+
+  const query = searchParams.toString();
+  return query.length > 0 ? `?${query}` : "";
+}
+
 export async function listQueue(
   tenantId: string,
   params: Pick<ExpenseRequestListQuery, "page" | "limit" | "status" | "search"> = {},
@@ -137,6 +151,17 @@ export async function getSummary(tenantId: string): Promise<ExpenseSummary> {
   const response = await apiRequest(`${EXPENSES_BASE}/reports/summary`, { tenantId });
   const data = getEnvelopeData(response);
   return mapExpenseSummary(data.summary);
+}
+
+export async function getDashboard(
+  tenantId: string,
+  params: ExpenseDashboardQuery = {},
+): Promise<ExpenseDashboard> {
+  const response = await apiRequest(`${EXPENSES_BASE}/reports/dashboard${buildDashboardQuery(params)}`, {
+    tenantId,
+  });
+  const data = getEnvelopeData(response);
+  return mapExpenseDashboard(data.dashboard);
 }
 
 export async function listRequests(
@@ -464,3 +489,5 @@ export async function updateSettings(
   const data = getEnvelopeData(response);
   return mapExpenseSettings(data.settings);
 }
+
+

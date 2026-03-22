@@ -203,14 +203,20 @@ function ReportsWorkspace({ tenantId }: { tenantId: string }) {
         </label>
       </section>
 
-      <ExpensesKpiStrip kpis={dashboard.kpis} />
+      {dashboard.hasMixedCurrencies ? (
+        <p className="text-sm text-muted-foreground">
+          Los montos del panel se muestran en {dashboard.primaryCurrency ?? "CLP"} como moneda principal del rango seleccionado.
+        </p>
+      ) : null}
+
+      <ExpensesKpiStrip kpis={dashboard.kpis} currency={dashboard.primaryCurrency ?? "CLP"} />
 
       <div className="grid gap-4 xl:grid-cols-[minmax(0,1.3fr)_minmax(280px,0.7fr)]">
         <ExpensesTrendsPanel trends={dashboard.trends} />
         <ExpensesOperationalAlerts alerts={dashboard.alerts} />
       </div>
 
-      <ExpensesCategoryDistribution categories={dashboard.categories} />
+      <ExpensesCategoryDistribution categories={dashboard.categories} currency={dashboard.primaryCurrency ?? "CLP"} />
     </section>
   );
 }
@@ -283,3 +289,4 @@ export function ExpensesWorkspace({
 
   return <SettingsWorkspace tenantId={tenantId} />;
 }
+

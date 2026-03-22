@@ -115,99 +115,91 @@ test.beforeEach(async ({ page }, testInfo) => {
 test("renders expenses reports dashboard with filters", async ({ page }) => {
   attachBaseExpensesAuthMocks(page);
 
-  page.route("**/api/v1/modules/expenses/requests**", async (route) => {
-    await route.fulfill({
-      status: 200,
-      contentType: "application/json",
-      body: JSON.stringify({
-        success: true,
-        data: {
-          items: [
-            {
-              id: "507f191e810c19729de860f1",
-              tenantId: TENANT_ID,
-              requestNumber: "EXP-001",
-              requesterUserId: "usr_owner_01",
-              title: "Taxi aeropuerto",
-              description: null,
-              categoryKey: "travel",
-              amount: 180000,
-              currency: "CLP",
-              expenseDate: "2026-03-20T10:00:00.000Z",
-              status: "submitted",
-              submittedAt: "2026-03-20T11:00:00.000Z",
-              approvedAt: null,
-              paidAt: null,
-              canceledAt: null,
-              rejectionReasonCode: null,
-              paymentReference: null,
-              metadata: {},
-              createdAt: "2026-03-20T10:00:00.000Z",
-              updatedAt: "2026-03-20T10:00:00.000Z",
-            },
-            {
-              id: "507f191e810c19729de860f2",
-              tenantId: TENANT_ID,
-              requestNumber: "EXP-002",
-              requesterUserId: "usr_owner_01",
-              title: "Hotel cliente",
-              description: null,
-              categoryKey: "travel",
-              amount: 320000,
-              currency: "CLP",
-              expenseDate: "2026-03-19T10:00:00.000Z",
-              status: "approved",
-              submittedAt: "2026-03-19T11:00:00.000Z",
-              approvedAt: "2026-03-19T12:00:00.000Z",
-              paidAt: null,
-              canceledAt: null,
-              rejectionReasonCode: null,
-              paymentReference: null,
-              metadata: {},
-              createdAt: "2026-03-19T10:00:00.000Z",
-              updatedAt: "2026-03-19T12:00:00.000Z",
-            },
-          ],
-        },
-        pagination: {
-          page: 1,
-          limit: 200,
-          total: 2,
-          totalPages: 1,
-        },
-        traceId: "trace-expenses-requests-dashboard",
-      }),
-    });
-  });
+  page.route("**/api/v1/modules/expenses/reports/dashboard**", async (route) => {
+    const url = new URL(route.request().url());
+    const status = url.searchParams.get("status");
+    const categoryKey = url.searchParams.get("categoryKey");
 
-  page.route("**/api/v1/modules/expenses/categories**", async (route) => {
     await route.fulfill({
       status: 200,
       contentType: "application/json",
       body: JSON.stringify({
         success: true,
         data: {
-          items: [
-            {
-              id: "507f191e810c19729de860c1",
-              tenantId: TENANT_ID,
-              key: "travel",
-              name: "Travel",
-              requiresAttachment: true,
-              isActive: true,
-              monthlyLimit: null,
-              createdAt: "2026-03-19T10:00:00.000Z",
-              updatedAt: "2026-03-19T10:00:00.000Z",
+          dashboard: {
+            filters: {
+              dateWindowDays: Number(url.searchParams.get("dateWindowDays") ?? 30),
+              status,
+              categoryKey,
             },
-          ],
+            primaryCurrency: "CLP",
+            hasMixedCurrencies: false,
+            totalsByCurrency: [
+              {
+                currency: "CLP",
+                requestCount: 2,
+                totalAmount: 500000,
+                pendingAmount: 180000,
+                approvedAmount: 320000,
+                paidAmount: 0,
+              },
+            ],
+            availableCategories: [
+              {
+                key: "travel",
+                name: "Travel",
+              },
+            ],
+            kpis: {
+              totalRequests: 2,
+              pendingRequests: 1,
+              approvedRequests: status === "approved" ? 1 : 1,
+              rejectedRequests: 0,
+              totalAmount: status === "approved" ? 320000 : 500000,
+              pendingAmount: status === "approved" ? 0 : 180000,
+            },
+            trends: [
+              {
+                day: "19/03",
+                requested: 1,
+                approved: 1,
+                rejected: 0,
+              },
+              {
+                day: "20/03",
+                requested: status === "approved" ? 0 : 1,
+                approved: 0,
+                rejected: 0,
+              },
+            ],
+            categories: categoryKey === "travel"
+              ? [
+                  {
+                    categoryKey: "travel",
+                    label: "Travel",
+                    totalAmount: status === "approved" ? 320000 : 500000,
+                    requests: status === "approved" ? 1 : 2,
+                  },
+                ]
+              : [
+                  {
+                    categoryKey: "travel",
+                    label: "Travel",
+                    totalAmount: status === "approved" ? 320000 : 500000,
+                    requests: status === "approved" ? 1 : 2,
+                  },
+                ],
+            alerts: [
+              {
+                id: "healthy",
+                severity: "info",
+                title: "Operacion estable",
+                description: "No se detectaron alertas operativas para el rango seleccionado.",
+              },
+            ],
+          },
         },
-        pagination: {
-          page: 1,
-          limit: 100,
-          total: 1,
-          totalPages: 1,
-        },
-        traceId: "trace-expenses-categories-dashboard",
+        traceId: "trace-expenses-dashboard-native",
       }),
     });
   });
