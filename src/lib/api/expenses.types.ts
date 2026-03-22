@@ -86,6 +86,19 @@ export interface ExpenseCategory {
   updatedAt: string;
 }
 
+export interface ExpenseCategorySubcategoryDraft {
+  parentCategoryKey: string;
+  subcategoryKey: string;
+  name: string;
+}
+
+export interface ExpenseCategoryGovernanceLineInput {
+  key: string;
+  name: string;
+  requiresAttachment?: boolean;
+  monthlyLimit?: number | null;
+}
+
 export interface ExpenseSettings {
   tenantId: string;
   allowedCurrencies: string[];

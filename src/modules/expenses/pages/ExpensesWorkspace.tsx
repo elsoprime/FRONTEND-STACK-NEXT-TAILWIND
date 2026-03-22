@@ -8,7 +8,7 @@ import { LoadingScreen } from "@/components/ui/loading-screen";
 import { inventorySelectClassName } from "@/components/ui/inventory-records-shell";
 import { listRequests } from "@/lib/api/expenses.client";
 import { type ExpenseRequestStatus } from "@/lib/api/expenses.types";
-import { ExpenseCategoriesManager } from "@/modules/expenses/components/settings/ExpenseCategoriesManager";
+import { ExpenseCategoryCatalogManager } from "@/modules/expenses/components/settings/ExpenseCategoryCatalogManager";
 import { ExpenseModuleSettingsForm } from "@/modules/expenses/components/settings/ExpenseModuleSettingsForm";
 import { formatExpenseAmount } from "@/modules/expenses/components/workflow/ExpenseWorkflowStateCard";
 import { ExpensesCategoryDistribution } from "@/modules/expenses/components/dashboard/ExpensesCategoryDistribution";
@@ -229,7 +229,7 @@ function SettingsWorkspace({ tenantId }: { tenantId: string }) {
       </header>
 
       <div className="grid gap-4 xl:grid-cols-[minmax(0,1.2fr)_minmax(320px,0.8fr)]">
-        <ExpenseCategoriesManager tenantId={tenantId} />
+        <ExpenseCategoryCatalogManager tenantId={tenantId} />
         <ExpenseModuleSettingsForm tenantId={tenantId} />
       </div>
     </section>
