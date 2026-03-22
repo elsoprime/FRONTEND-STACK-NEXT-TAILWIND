@@ -108,10 +108,10 @@ export function ProfileSettingsWorkspace({
   }, [initialTab]);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-7">
       <ProfileWorkspaceTabs activeTab={activeTab} onChange={setActiveTab} />
 
-      <section className="overflow-hidden sm:p-5">
+      <section className="overflow-hidden sm:p-6">
         {activeTab === "profile" ? <ProfileOverviewTab /> : null}
         {activeTab === "security" ? <ProfileSecurityTab /> : null}
         {activeTab === "roadmap" ? <ProfileRoadmapTab /> : null}
@@ -128,11 +128,11 @@ function ProfileWorkspaceTabs({
   onChange: (key: ProfileTabKey) => void;
 }) {
   return (
-    <section className="overflow-hidden rounded-md border-border/90 bg-card/96 p-4 sm:p-5">
-      <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
+    <section className="overflow-hidden rounded-xl border-border/90 bg-card/96 p-5 sm:p-6">
+      <div className="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
         <div className="space-y-2">
           <p className="label-kicker text-primary/90">Workspace Profile</p>
-          <h2 className="text-2xl font-semibold tracking-tight text-foreground">
+          <h2 className="text-[1.7rem] font-semibold tracking-tight text-foreground">
             Perfil, seguridad y vistas escalables
           </h2>
           <p className="max-w-3xl text-sm dashboard-text-muted">
@@ -142,8 +142,8 @@ function ProfileWorkspaceTabs({
         </div>
       </div>
 
-      <div role="tablist" aria-label="Tabs del modulo profile" className="mt-5 overflow-x-auto">
-        <div className="flex min-w-max gap-1 border-b border-border/85 px-1">
+      <div role="tablist" aria-label="Tabs del modulo profile" className="mt-6 overflow-x-auto">
+        <div className="flex min-w-max gap-1.5 border-b border-border/85 px-1">
           {PROFILE_TABS.map((tab) => {
             const active = tab.key === activeTab;
 
@@ -158,7 +158,7 @@ function ProfileWorkspaceTabs({
                 className={cn(
                   "group relative flex min-w-37.5 flex-col gap-1 px-4 py-3 text-left transition-colors",
                   active
-                    ? "rounded-t-md border-b border-primary bg-white/10 text-primary shadow-lg"
+                    ? "rounded-t-xl border-b border-primary bg-white/10 text-primary shadow-lg"
                     : "text-foreground/58 hover:text-foreground",
                 )}
               >
@@ -204,7 +204,7 @@ function ProfileOverviewTab() {
     <div id="profile-panel-profile" role="tabpanel" className="space-y-5">
       <header className="space-y-2">
         <p className="label-kicker text-primary/90">Perfil</p>
-        <h3 className="text-2xl font-semibold tracking-tight text-foreground">
+        <h3 className="text-[1.7rem] font-semibold tracking-tight text-foreground">
           Identidad operativa del usuario
         </h3>
         <p className="max-w-2xl text-sm dashboard-text-muted">
@@ -324,7 +324,7 @@ function ProfileSecurityTab() {
     <div id="profile-panel-security" role="tabpanel" className="space-y-5">
       <header className="space-y-2">
         <p className="label-kicker text-primary/90">Seguridad</p>
-        <h3 className="text-2xl font-semibold tracking-tight text-foreground">
+        <h3 className="text-[1.7rem] font-semibold tracking-tight text-foreground">
           Proteccion de acceso del usuario
         </h3>
         <p className="max-w-2xl text-sm dashboard-text-muted">
@@ -370,7 +370,7 @@ function ProfileRoadmapTab() {
     <div id="profile-panel-roadmap" role="tabpanel" className="space-y-5">
       <header className="space-y-2">
         <p className="label-kicker text-primary/90">En desarrollo</p>
-        <h3 className="text-2xl font-semibold tracking-tight text-foreground">
+        <h3 className="text-[1.7rem] font-semibold tracking-tight text-foreground">
           Superficies escalables del modulo personal
         </h3>
         <p className="max-w-2xl text-sm dashboard-text-muted">

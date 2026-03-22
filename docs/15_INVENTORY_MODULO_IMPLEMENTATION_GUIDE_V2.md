@@ -1,8 +1,8 @@
 # Guia de Implementacion Frontend - Modulo Inventario Escalable V2
 
-Version: 1.0.0
+Version: 1.1.0
 Estado: Activo
-Ultima actualizacion: 2026-03-16
+Ultima actualizacion: 2026-03-20
 
 ## 1. Objetivo
 
@@ -169,6 +169,26 @@ Estado actual de version avanzada:
 - `reconciliation` y `settings` implementados en frontend con rutas dedicadas.
 - Alertas extendidas con lotes proximos a vencer (`expiring-lots`).
 - Integracion live ready documentada en `docs/frontend/inventory-live-integration-guide.md`.
+
+## 12. Hardening pendiente documentado
+
+Pendientes ya identificados para retomarse sin abrir un plan paralelo nuevo:
+
+- consolidar revision funcional modulo por modulo con foco en `warehouses`, `lots`, `stock-movements` y `stocktakes`
+- mantener errores de formulario dentro del modal y separar errores operativos/listados cuando correspondan
+- completar paginacion avanzada compartida en tablas inventory y validar reset de pagina al cambiar filtros
+- revisar consistencia entre paginacion backend y busqueda frontend en listados donde la busqueda textual aun opere solo sobre la pagina cargada
+- seguir endureciendo consistencia visual de tablas sin romper el tema actual
+
+Matiz operativo confirmado:
+
+- los listados backend de Inventory ya exponen `page` y `limit`
+- en `lots`, `stock-movements` y `stocktakes` la busqueda textual puede seguir siendo local a la pagina cargada si el backend no expone un filtro server-side equivalente
+
+Politica documental:
+
+- este hardening se mantiene en esta guia y en `70_E2E_CRITICAL_FLOWS.md`
+- no crear un `plan` o `roadmap` adicional mientras siga siendo una sola linea de hardening del modulo
 
 
 

@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useMemo, useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
@@ -33,6 +33,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { formatAuditActionLabel, formatAuditResourceLabel, formatTraceIdShort } from "@/features/audit/audit-ui-labels";
 import { listTenantAuditLogs } from "@/features/audit/audit.service";
 import { getBillingPlans } from "@/features/billing/billing.service";
 import { getCrmCounters } from "@/features/crm/crm.service";
@@ -99,15 +100,6 @@ function resolveUnknownError(error: unknown): { code: string; message: string } 
 
 function isBlockedByAccessControl(error: unknown): boolean {
   return error instanceof ApiRequestError && ACCESS_BLOCKING_CODES.has(error.code);
-}
-
-function formatAuditAction(action: string): string {
-  const normalized = action.replace(/[._:]/g, " ").replace(/\s+/g, " ").trim();
-  if (normalized.length === 0) {
-    return "Evento";
-  }
-
-  return normalized.charAt(0).toUpperCase() + normalized.slice(1);
 }
 
 function formatAuditTimestamp(value: string): string {
@@ -370,13 +362,13 @@ function DashboardMarketplaceContent({
   };
 
   return (
-    <section className="w-full space-y-6 px-4 pb-10 pt-6 sm:px-6 xl:px-8 2xl:px-10">
-      <article className="surface-card reveal-up relative overflow-hidden p-6 sm:p-7 [--reveal-delay:40ms]">
+    <section className="mx-auto w-full max-w-[1320px] space-y-7 px-4 pb-12 pt-7 sm:px-6 xl:px-2">
+      <article className="surface-card reveal-up relative overflow-hidden p-7 sm:p-8 [--reveal-delay:40ms]">
         <div className="pointer-events-none absolute inset-x-0 top-0 h-28 bg-gradient-to-r from-primary/16 via-accent/10 to-transparent" />
         <div className="pointer-events-none absolute -left-20 -top-16 size-64 rounded-full bg-primary/12 blur-3xl" />
 
-        <div className="relative space-y-5">
-          <div className="grid gap-4 lg:grid-cols-[1fr_auto] lg:items-start">
+        <div className="relative space-y-6">
+          <div className="grid gap-5 lg:grid-cols-[1fr_auto] lg:items-start">
             <div className="space-y-3">
               <Badge variant="outline" className="border-primary/25 bg-primary/10 text-primary">
                 Tenant Control Center
@@ -420,7 +412,7 @@ function DashboardMarketplaceContent({
             </div>
           </div>
 
-          <div className="grid gap-3 md:grid-cols-3">
+          <div className="grid gap-4 md:grid-cols-3">
             {dependencyCards.map((dependency) => (
               <article
                 key={dependency.label}
@@ -443,7 +435,7 @@ function DashboardMarketplaceContent({
         description="Tarjetas concentradas y simetricas para lectura rapida en cualquier viewport."
         className="reveal-up [--reveal-delay:90ms]"
       >
-        <DashboardGridContainer columns={4}>
+        <DashboardGridContainer columns={4} className="2xl:gap-6">
           <DashboardMetricCard
             title="Usuarios activos"
             value={hrState === "active" ? String(activeEmployees) : "N/A"}
@@ -490,13 +482,13 @@ function DashboardMarketplaceContent({
         </DashboardGridContainer>
       </DashboardSection>
 
-      <div className="grid items-start gap-5 xl:auto-rows-fr xl:grid-cols-2">
+      <div className="grid items-start gap-6 xl:auto-rows-fr xl:grid-cols-2">
         <DashboardSection
           eyebrow="Actividades Recientes"
           title="Eventos operativos"
           description="Bloque simetrico con scroll independiente para no romper el ritmo visual."
-          className="reveal-up min-h-[420px] [--reveal-delay:140ms]"
-          contentClassName="max-h-[330px] space-y-2 overflow-y-auto pr-1"
+          className="reveal-up min-h-[450px] [--reveal-delay:140ms]"
+          contentClassName="max-h-[350px] space-y-2.5 overflow-y-auto pr-1"
         >
           {auditRecentQuery.isLoading ? (
             <div className="space-y-2">
@@ -538,11 +530,10 @@ function DashboardMarketplaceContent({
                   <div className="flex flex-wrap items-start justify-between gap-2">
                     <div>
                       <p className="text-sm font-semibold text-foreground">
-                        {formatAuditAction(event.action)}
+                        {formatAuditActionLabel(event.action)}
                       </p>
                       <p className="text-xs dashboard-text-muted">
-                        {event.resource.type}
-                        {event.resource.label ? ` - ${event.resource.label}` : ""}
+                        {formatAuditResourceLabel(event.resource.type, event.resource.label)}
                       </p>
                     </div>
                     <span
@@ -556,7 +547,7 @@ function DashboardMarketplaceContent({
                   </div>
                   <div className="mt-1 flex items-center justify-between gap-2 text-xs dashboard-text-muted">
                     <span>{formatAuditTimestamp(event.createdAt)}</span>
-                    <span className="font-mono">trace: {event.traceId}</span>
+                    <span className="font-mono" title={event.traceId}>trace: {formatTraceIdShort(event.traceId)}</span>
                   </div>
                 </li>
               ))}
@@ -568,9 +559,9 @@ function DashboardMarketplaceContent({
           eyebrow="Senales Criticas"
           title="Stock y oportunidades"
           description="Segundo bloque simetrico para monitoreo rapido de riesgo comercial y operativo."
-          className="reveal-up min-h-[420px] [--reveal-delay:190ms]"
+          className="reveal-up min-h-[450px] [--reveal-delay:190ms]"
         >
-          <div className="grid gap-3 sm:grid-cols-2">
+          <div className="grid gap-4 sm:grid-cols-2">
             <article className="rounded-2xl border border-border/76 bg-white/56 p-4 shadow-[0_14px_28px_-24px_oklch(0.24_0.02_55/0.2)] dark:bg-card/52">
               <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
                 Alertas de stock
@@ -600,7 +591,7 @@ function DashboardMarketplaceContent({
             </article>
           </div>
 
-          <div className="mt-3 grid gap-3 sm:grid-cols-2">
+          <div className="mt-4 grid gap-3 sm:grid-cols-2">
             <Link href="/app/inventory?tab=alerts" className="block">
               <Button
                 type="button"
@@ -904,6 +895,8 @@ export function TenantDashboardMarketplace() {
     </main>
   );
 }
+
+
 
 
 
