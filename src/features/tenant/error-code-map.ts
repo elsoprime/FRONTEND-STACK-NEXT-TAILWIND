@@ -7,6 +7,10 @@ const TENANT_ERROR_COPY: Record<string, string> = {
   TENANT_ACCESS_DENIED: "No tienes acceso al tenant solicitado.",
   TENANT_MEMBER_LIMIT_REACHED:
     "Se alcanzo el limite de miembros del plan. Actualiza el plan o libera cupos antes de invitar.",
+  TENANT_MEMBERSHIP_NOT_FOUND:
+    "No pudimos encontrar la membresia solicitada dentro del tenant activo.",
+  TENANT_MEMBERSHIP_OWNER_PROTECTED:
+    "El owner efectivo del tenant no puede removerse ni modificarse desde esta superficie.",
   TENANT_SUBSCRIPTION_PAYMENT_REQUIRED:
     "La suscripcion del tenant requiere pago para habilitar esta funcionalidad. Ve a Billing para regularizar.",
   TENANT_SCOPE_MISMATCH: "Tu contexto tenant actual no coincide con el recurso solicitado.",

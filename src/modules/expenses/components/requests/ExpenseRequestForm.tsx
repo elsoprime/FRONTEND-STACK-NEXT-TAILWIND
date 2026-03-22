@@ -1,0 +1,261 @@
+"use client";
+
+import { type ReactNode, useMemo, useState } from "react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { ApiRequestError } from "@/lib/api/client";
+import {
+  createRequest,
+  submitRequest,
+  updateRequest,
+} from "@/lib/api/expenses.client";
+import {
+  type CreateExpenseRequestInput,
+  type ExpenseRequest,
+  type UpdateExpenseRequestInput,
+} from "@/lib/api/expenses.types";
+import { ExpenseActionFeedback } from "@/modules/expenses/components/shared/ExpenseActionFeedback";
+
+const expenseRequestFormSchema = z.object({
+  title: z.string().trim().min(3, "El titulo debe tener al menos 3 caracteres."),
+  categoryKey: z.string().trim().min(2, "Debes indicar una categoria."),
+  amount: z
+    .string()
+    .trim()
+    .refine((value) => {
+      const parsed = Number(value);
+      return Number.isFinite(parsed) && parsed > 0;
+    }, "El monto debe ser mayor a 0."),
+  currency: z
+    .string()
+    .trim()
+    .toUpperCase()
+    .regex(/^[A-Z]{3}$/, "La moneda debe tener formato ISO de 3 letras."),
+  expenseDate: z.string().trim().min(1, "Debes indicar la fecha del gasto."),
+  description: z.string().trim().max(2_000, "La descripcion excede el maximo permitido.").optional(),
+});
+
+type ExpenseRequestFormValues = z.infer<typeof expenseRequestFormSchema>;
+type ExpenseRequestFormMode = "create" | "update";
+type SaveIntent = "save" | "submit";
+
+export type ExpenseRequestFormInitialData = {
+  requestId?: string;
+  title?: string;
+  categoryKey?: string;
+  amount?: number;
+  currency?: string;
+  expenseDate?: string;
+  description?: string | null;
+};
+
+function toDateInputValue(value: string | null | undefined): string {
+  if (!value) {
+    return "";
+  }
+
+  return value.slice(0, 10);
+}
+
+function toCreatePayload(input: ExpenseRequestFormValues): CreateExpenseRequestInput {
+  return {
+    title: input.title.trim(),
+    categoryKey: input.categoryKey.trim(),
+    amount: Number(input.amount),
+    currency: input.currency.trim().toUpperCase(),
+    expenseDate: input.expenseDate,
+    description: input.description?.trim().length ? input.description.trim() : null,
+  };
+}
+
+function toUpdatePayload(input: ExpenseRequestFormValues): UpdateExpenseRequestInput {
+  return toCreatePayload(input);
+}
+
+type ExpenseRequestFormProps = {
+  tenantId: string;
+  mode: ExpenseRequestFormMode;
+  initialData?: ExpenseRequestFormInitialData;
+  onCompleted: (request: ExpenseRequest) => void;
+  onCancel: () => void;
+};
+
+export function ExpenseRequestForm({
+  tenantId,
+  mode,
+  initialData,
+  onCompleted,
+  onCancel,
+}: ExpenseRequestFormProps) {
+  const queryClient = useQueryClient();
+  const [saveIntent, setSaveIntent] = useState<SaveIntent>("save");
+  const [feedbackMessage, setFeedbackMessage] = useState<string | null>(null);
+
+  const defaultValues = useMemo<ExpenseRequestFormValues>(
+    () => ({
+      title: initialData?.title ?? "",
+      categoryKey: initialData?.categoryKey ?? "",
+      amount: initialData?.amount !== undefined ? String(initialData.amount) : "",
+      currency: (initialData?.currency ?? "USD").toUpperCase(),
+      expenseDate: toDateInputValue(initialData?.expenseDate),
+      description: initialData?.description ?? "",
+    }),
+    [initialData],
+  );
+
+  const form = useForm<ExpenseRequestFormValues>({
+    resolver: zodResolver(expenseRequestFormSchema),
+    defaultValues,
+  });
+
+  const mutation = useMutation({
+    mutationFn: async (values: ExpenseRequestFormValues) => {
+      let request: ExpenseRequest;
+
+      if (mode === "create") {
+        request = await createRequest(tenantId, toCreatePayload(values));
+      } else {
+        const requestId = initialData?.requestId;
+        if (!requestId) {
+          throw new Error("No se encontro el id de la solicitud a actualizar.");
+        }
+
+        request = await updateRequest(tenantId, requestId, toUpdatePayload(values));
+      }
+
+      if (saveIntent === "submit") {
+        return submitRequest(tenantId, request.id);
+      }
+
+      return request;
+    },
+    onSuccess: async (request) => {
+      await queryClient.invalidateQueries({ queryKey: ["tenant", tenantId, "expenses"] });
+      setFeedbackMessage(
+        saveIntent === "submit"
+          ? "Solicitud enviada a revision."
+          : "Solicitud guardada en borrador.",
+      );
+      onCompleted(request);
+    },
+    onError: (error: unknown) => {
+      if (error instanceof ApiRequestError || error instanceof Error) {
+        setFeedbackMessage(error.message);
+        return;
+      }
+
+      setFeedbackMessage("No fue posible guardar la solicitud.");
+    },
+  });
+
+  const onSubmit = form.handleSubmit((values) => mutation.mutate(values));
+  const title = mode === "create" ? "Nueva solicitud de gasto" : "Editar solicitud de gasto";
+
+  return (
+    <form className="space-y-4" onSubmit={onSubmit}>
+      <div className="space-y-1">
+        <h4 className="text-base font-semibold text-foreground">{title}</h4>
+        <p className="text-sm text-muted-foreground">
+          Completa los campos requeridos para guardar en borrador o enviar a revision.
+        </p>
+      </div>
+
+      <FieldLabel htmlFor="expense-title" label="Titulo">
+        <Input id="expense-title" {...form.register("title")} placeholder="Ej: Hotel visita cliente" />
+        <FieldError message={form.formState.errors.title?.message} />
+      </FieldLabel>
+
+      <div className="grid gap-3 sm:grid-cols-2">
+        <FieldLabel htmlFor="expense-category" label="Categoria">
+          <Input id="expense-category" {...form.register("categoryKey")} placeholder="travel" />
+          <FieldError message={form.formState.errors.categoryKey?.message} />
+        </FieldLabel>
+        <FieldLabel htmlFor="expense-currency" label="Moneda">
+          <Input id="expense-currency" {...form.register("currency")} placeholder="USD" />
+          <FieldError message={form.formState.errors.currency?.message} />
+        </FieldLabel>
+      </div>
+
+      <div className="grid gap-3 sm:grid-cols-2">
+      <FieldLabel htmlFor="expense-amount" label="Monto">
+          <Input id="expense-amount" type="number" step="0.01" min="0" {...form.register("amount")} />
+          <FieldError message={form.formState.errors.amount?.message} />
+        </FieldLabel>
+        <FieldLabel htmlFor="expense-date" label="Fecha de gasto">
+          <Input id="expense-date" type="date" {...form.register("expenseDate")} />
+          <FieldError message={form.formState.errors.expenseDate?.message} />
+        </FieldLabel>
+      </div>
+
+      <FieldLabel htmlFor="expense-description" label="Descripcion (opcional)">
+        <textarea
+          id="expense-description"
+          className="min-h-24 w-full rounded-xl border border-border/80 bg-background/75 px-3 py-2 text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground focus:border-primary/35"
+          placeholder="Detalle del gasto"
+          {...form.register("description")}
+        />
+        <FieldError message={form.formState.errors.description?.message} />
+      </FieldLabel>
+
+      {feedbackMessage ? (
+        <ExpenseActionFeedback
+          title="Resultado de la operacion"
+          description={feedbackMessage}
+          status={mutation.isError ? "error" : "success"}
+          className="mt-1"
+        />
+      ) : null}
+
+      <div className="flex flex-wrap justify-end gap-2 border-t border-border/70 pt-3">
+        <Button type="button" variant="outline" onClick={onCancel} disabled={mutation.isPending}>
+          Cancelar
+        </Button>
+        <Button
+          type="submit"
+          variant="secondary"
+          disabled={mutation.isPending}
+          onClick={() => setSaveIntent("save")}
+        >
+          {mutation.isPending && saveIntent === "save" ? "Guardando..." : "Guardar borrador"}
+        </Button>
+        <Button
+          type="submit"
+          variant="primary"
+          disabled={mutation.isPending}
+          onClick={() => setSaveIntent("submit")}
+        >
+          {mutation.isPending && saveIntent === "submit" ? "Enviando..." : "Guardar y enviar"}
+        </Button>
+      </div>
+    </form>
+  );
+}
+
+function FieldLabel({
+  htmlFor,
+  label,
+  children,
+}: {
+  htmlFor: string;
+  label: string;
+  children: ReactNode;
+}) {
+  return (
+    <label htmlFor={htmlFor} className="space-y-2 text-sm font-medium text-foreground">
+      <span>{label}</span>
+      {children}
+    </label>
+  );
+}
+
+function FieldError({ message }: { message?: string }) {
+  if (!message) {
+    return null;
+  }
+
+  return <p className="text-xs text-destructive">{message}</p>;
+}

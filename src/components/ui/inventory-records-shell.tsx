@@ -48,7 +48,7 @@ export function InventoryRecordsShell({
   className,
 }: InventoryRecordsShellProps) {
   return (
-    <section className={cn("surface-card overflow-hidden border-border/80 p-0", className)}>
+    <section className={cn("surface-card overflow-hidden border-border/80 p-0 shadow-sm", className)}>
       <div className="border-b border-border/70 bg-linear-to-r from-background via-background to-muted/35 px-5 py-5 sm:px-6">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div className="space-y-3">
@@ -111,7 +111,7 @@ export function InventoryRecordsShell({
       </div>
 
       <div className="px-3 py-3 sm:px-4">
-        <div className="overflow-hidden rounded-md border border-border/70 bg-background/85">
+        <div className="overflow-hidden rounded-xl border border-border/70 bg-background/88 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
           {table}
         </div>
       </div>
@@ -142,7 +142,7 @@ export function InventoryDataTable({ columns, children, empty, hasRows }: Invent
   return (
     <div className="overflow-x-auto">
       <table className="min-w-full border-collapse text-sm">
-        <thead className="bg-muted/45 text-left text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+        <thead className="sticky top-0 z-10 bg-muted/72 text-left text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground backdrop-blur-sm">
           <tr>{columns}</tr>
         </thead>
         <tbody className="[&_tr:last-child_td]:border-b-0">{children}</tbody>
@@ -157,7 +157,7 @@ type InventoryRowProps = {
 
 export function InventoryRow({ children }: InventoryRowProps) {
   return (
-    <tr className="bg-background/80 transition-colors duration-200 hover:bg-muted/25">
+    <tr className="bg-background/82 transition-[background-color,transform] duration-200 odd:bg-muted/[0.045] hover:bg-primary/[0.06]">
       {children}
     </tr>
   );
@@ -174,7 +174,7 @@ export function InventoryCell({ children, className, header = false }: Inventory
   return (
     <Tag
       className={cn(
-        "border-b border-border/65 px-4 py-3 align-middle",
+        "border-b border-border/60 px-4 py-3.5 align-middle",
         header ? "font-semibold text-foreground" : "text-foreground/90",
         className,
       )}

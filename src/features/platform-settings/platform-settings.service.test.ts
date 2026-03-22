@@ -1,4 +1,4 @@
-﻿import { HttpResponse, http } from "msw";
+import { HttpResponse, http } from "msw";
 import { describe, expect, it } from "vitest";
 import {
   getPlatformSettings,
@@ -8,8 +8,32 @@ import { server } from "@/mocks/server";
 
 const PLATFORM_SETTINGS_PATH = "*/api/v1/platform/settings";
 
+function buildSecurity() {
+  return {
+    allowUserRegistration: true,
+    requireEmailVerification: true,
+    requireTwoFactorForPrivilegedUsers: true,
+    passwordPolicy: {
+      minLength: 14,
+      preventReuseCount: 8,
+      requireUppercase: true,
+      requireLowercase: true,
+      requireNumber: true,
+      requireSpecialChar: true,
+    },
+    sessionPolicy: {
+      browserSessionTtlMinutes: 720,
+      idleTimeoutMinutes: 30,
+    },
+    riskControls: {
+      allowRecoveryCodes: true,
+      enforceVerifiedEmailForPrivilegedAccess: true,
+    },
+  };
+}
+
 describe("platform-settings.service", () => {
-  it("reads platform settings singleton", async () => {
+  it("reads platform settings singleton with expanded security", async () => {
     server.use(
       http.get(PLATFORM_SETTINGS_PATH, ({ request }) => {
         expect(request.headers.get("X-Tenant-Id")).toBeNull();
@@ -30,10 +54,7 @@ describe("platform-settings.service", () => {
                 defaultCurrency: "USD",
                 defaultLanguage: "es",
               },
-              security: {
-                allowUserRegistration: true,
-                requireEmailVerification: true,
-              },
+              security: buildSecurity(),
               operations: {
                 maintenanceMode: false,
               },
@@ -53,11 +74,12 @@ describe("platform-settings.service", () => {
     const result = await getPlatformSettings();
 
     expect(result.success).toBe(true);
-    expect(result.data.settings.singletonKey).toBe("platform_settings");
+    expect(result.data.settings.security.requireTwoFactorForPrivilegedUsers).toBe(true);
+    expect(result.data.settings.security.passwordPolicy.minLength).toBe(14);
     expect(result.traceId).toBe("trace-platform-settings-read");
   });
 
-  it("updates platform settings singleton", async () => {
+  it("updates platform settings singleton with nested security policy", async () => {
     let capturedPayload: Record<string, unknown> | null = null;
 
     server.use(
@@ -82,8 +104,17 @@ describe("platform-settings.service", () => {
                 defaultLanguage: "es",
               },
               security: {
-                allowUserRegistration: true,
-                requireEmailVerification: true,
+                ...buildSecurity(),
+                requireTwoFactorForPrivilegedUsers: false,
+                passwordPolicy: {
+                  ...buildSecurity().passwordPolicy,
+                  minLength: 12,
+                  requireSpecialChar: false,
+                },
+                sessionPolicy: {
+                  browserSessionTtlMinutes: 1440,
+                  idleTimeoutMinutes: null,
+                },
               },
               operations: {
                 maintenanceMode: true,
@@ -102,6 +133,17 @@ describe("platform-settings.service", () => {
     );
 
     const result = await updatePlatformSettings({
+      security: {
+        requireTwoFactorForPrivilegedUsers: false,
+        passwordPolicy: {
+          minLength: 12,
+          requireSpecialChar: false,
+        },
+        sessionPolicy: {
+          browserSessionTtlMinutes: 1440,
+          idleTimeoutMinutes: null,
+        },
+      },
       operations: {
         maintenanceMode: true,
       },
@@ -114,6 +156,17 @@ describe("platform-settings.service", () => {
     });
 
     expect(capturedPayload).toEqual({
+      security: {
+        requireTwoFactorForPrivilegedUsers: false,
+        passwordPolicy: {
+          minLength: 12,
+          requireSpecialChar: false,
+        },
+        sessionPolicy: {
+          browserSessionTtlMinutes: 1440,
+          idleTimeoutMinutes: null,
+        },
+      },
       operations: {
         maintenanceMode: true,
       },
@@ -124,7 +177,7 @@ describe("platform-settings.service", () => {
         disabledFeatureFlagKeys: ["crm:new-pipeline"],
       },
     });
-    expect(result.data.settings.operations.maintenanceMode).toBe(true);
+    expect(result.data.settings.security.sessionPolicy.idleTimeoutMinutes).toBeNull();
     expect(result.traceId).toBe("trace-platform-settings-update");
   });
 });

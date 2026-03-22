@@ -1,8 +1,8 @@
 # Guia de Implementacion Frontend - Modulo Inventario Escalable V2
 
-Version: 1.0.0
+Version: 1.1.0
 Estado: Activo
-Ultima actualizacion: 2026-03-16
+Ultima actualizacion: 2026-03-20
 
 ## 1. Objetivo
 
@@ -50,7 +50,7 @@ Fuente de verdad API: `openapi/openapi.yaml` y `openapi/paths/modules/inventory-
 
 ## 4.2 API client
 
-Usar cliente estandar de `docs/30_API_CLIENT_STANDARD.md`.
+Usar cliente estandar de `docs/frontend/30_API_CLIENT_STANDARD.md`.
 
 Reglas obligatorias:
 
@@ -60,7 +60,7 @@ Reglas obligatorias:
 
 ## 4.3 Estado y cache
 
-Usar politica de `docs/40_STATE_AND_CACHE_POLICY.md`.
+Usar politica de `docs/frontend/40_STATE_AND_CACHE_POLICY.md`.
 
 Query keys sugeridas:
 
@@ -146,30 +146,32 @@ Query keys sugeridas:
 - [ ] Sin fugas cross-tenant en cache
 - [ ] Errores criticos mapeados y probados
 - [ ] E2E critico en verde
-- [ ] Documentacion actualizada en `docs/*`
+- [ ] Documentacion actualizada en `docs/frontend/*`
 
-## 10. Sincronizacion con backend
+## 10. Sincronizacion con repositorio frontend
 
-- Revisar en cada release del backend:
-  - `docs/operaciones/INVENTARIO_RELEASE_PACKAGE_*.md`
-  - `docs/checklists/INVENTARIO_GO_LIVE_CHECKLIST_*.md`
-- Mantener versionado de esta guia con fecha de corte y commit backend de referencia.
+Objetivo posterior:
 
-## 11. Estado de implementacion actual (UI pilot -> hardening)
+- Replicar esta guia en `FRONTEND-STACK-NEXT-TAILWIND/docs/*`
+- Mantener mismo versionado y fecha de corte
+- Validar enlaces cruzados y rutas reales del frontend repo
 
-Implementado en frontend actual:
-- Navegacion modular de inventory con submenu (`Panel principal`, `Items`, `Categorias`, `Stock`, `Alertas`).
-- Dashboard de inventory con tarjetas de contexto y ayuda operacional.
-- CRUD operativo de categorias/bodegas/lotes/items + stocktakes y registro de movimientos de stock.
-- Listados con paginacion y filtros para operacion diaria.
-- Alertas de low-stock integradas con endpoint backend.
-- Pruebas unitarias de primitives inventory y smoke e2e de modulo.
+## 11. Hardening pendiente documentado
 
-Estado actual de version avanzada:
-- `reconciliation` y `settings` implementados en frontend con rutas dedicadas.
-- Alertas extendidas con lotes proximos a vencer (`expiring-lots`).
-- Integracion live ready documentada en `docs/frontend/inventory-live-integration-guide.md`.
+Pendientes ya identificados para retomarse sin abrir un plan paralelo nuevo:
 
+- consolidar revision funcional modulo por modulo con foco en `warehouses`, `lots`, `stock-movements` y `stocktakes`
+- mantener errores de formulario dentro del modal y separar errores operativos/listados cuando correspondan
+- completar paginacion avanzada compartida en tablas inventory y validar reset de pagina al cambiar filtros
+- revisar consistencia entre paginacion backend y busqueda frontend en listados donde la busqueda textual aun opere solo sobre la pagina cargada
+- seguir endureciendo consistencia visual de tablas sin romper el tema actual
 
+Matiz operativo confirmado:
 
+- los listados backend de Inventory ya exponen `page` y `limit`
+- en `lots`, `stock-movements` y `stocktakes` la busqueda textual puede seguir siendo local a la pagina cargada si el backend no expone un filtro server-side equivalente
 
+Politica documental:
+
+- este hardening se mantiene en esta guia y en `70_E2E_CRITICAL_FLOWS.md`
+- no crear un `plan` o `roadmap` adicional mientras siga siendo una sola linea de hardening del modulo

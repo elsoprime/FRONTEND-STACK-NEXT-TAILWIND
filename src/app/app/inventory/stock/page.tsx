@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useRef, useState } from "react";
 import { ArrowRightLeft, Copy, RotateCcw, X } from "lucide-react";
@@ -104,12 +104,12 @@ function StockContent({
   setErrorMessage,
 }: StockContentProps) {
   const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(20);
   const [search, setSearch] = useState("");
   const [movementItemFilter, setMovementItemFilter] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [noticeMessage, setNoticeMessage] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
-  const limit = 20;
   const normalizedMovementItemFilter = movementItemFilter.trim();
   const normalizedSearch = search.trim().toLowerCase();
 
@@ -226,11 +226,6 @@ function StockContent({
               {noticeMessage}
             </div>
           ) : null}
-          {errorMessage ? (
-            <div className="rounded-xl border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-red-200">
-              {errorMessage}
-            </div>
-          ) : null}
 
           <InventoryRecordsShell
             title="Movimientos recientes"
@@ -239,7 +234,10 @@ function StockContent({
             countLabel="Total visible"
             countValue={String(pagination?.total ?? movements.length)}
             searchValue={search}
-            onSearchChange={setSearch}
+            onSearchChange={(value) => {
+              setSearch(value);
+              setPage(1);
+            }}
             searchPlaceholder="Buscar por motivo o item"
             filters={(
               <>
@@ -360,6 +358,11 @@ function StockContent({
                   totalPages={pagination.totalPages}
                   total={pagination.total}
                   onPageChange={setPage}
+                  limit={limit}
+                  onLimitChange={(nextLimit) => {
+                    setLimit(nextLimit);
+                    setPage(1);
+                  }}
                 />
               ) : null
             }
@@ -404,6 +407,13 @@ function StockContent({
         }}
         title="Nuevo movimiento"
         description="Registra entradas o salidas con motivo trazable y reutiliza movimientos frecuentes."
+        alert={
+          errorMessage ? (
+            <div className="rounded-md border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-red-200">
+              {errorMessage}
+            </div>
+          ) : null
+        }
         footer={(
           <>
             <Button

@@ -1,8 +1,16 @@
-﻿# 85_IMPLEMENTATION_STATUS
+# 85_IMPLEMENTATION_STATUS
 
 ## 1. Estado actual (sincronizado con backend)
+Nota de vigencia (2026-03-20):
 
-Fecha de corte: 2026-03-10
+- Este documento se mantiene como snapshot historico de la ola de implementacion previa.
+- Para el estado operativo vigente de tenant workspaces, memberships, `settings/security` y cobertura E2E, usar como fuente principal:
+  - `docs/10_IMPLEMENTATION_GUIDE_V2.md`
+  - `docs/20_ACCESS_MATRIX.md`
+  - `docs/70_E2E_CRITICAL_FLOWS.md`
+  - `docs/80_BACKEND_DEPENDENCIES.md`
+
+Fecha de corte base: 2026-03-10
 
 - OpenAPI frontend: sincronizado desde `API-REST-STACK-NODE/openapi`.
 - Documentacion `docs/10`, `docs/50` y `docs/80`: alineada con snapshot local vigente y sincronizable con backend cuando este disponible.

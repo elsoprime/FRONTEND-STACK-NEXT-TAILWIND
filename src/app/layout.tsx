@@ -14,9 +14,12 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "ERP Solutions Media | Gestión Empresarial Inteligente",
+  title: {
+    default: "ELSOMEDIA One | Business Operations Platform",
+    template: "%s | ELSOMEDIA One",
+  },
   description:
-    "Plataforma líder en soluciones ERP y gestión de datos para empresas modernas. Desarrollado por ELSOMEDIA.",
+    "Enterprise SaaS platform for modular operations, analytics, and governance across modern businesses.",
 };
 
 export default function RootLayout({

@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import Link from "next/link";
 import { startTransition, useEffect, useState } from "react";
@@ -182,10 +182,10 @@ export function InventoryWorkspace({
   }, [initialTab]);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-7">
       <InventoryWorkspaceTabs activeTab={activeTab} onChange={setActiveTab} />
 
-      <section className="overflow-hidden sm:p-5">
+      <section className="overflow-hidden sm:p-6">
         {activeTab === "principal" ? <InventoryDashboardHub tenantId={tenantId} /> : null}
         {activeTab === "submodules" ? <InventorySubmodulesTab /> : null}
         {activeTab === "reconciliation" ? <InventoryReconciliationTab tenantId={tenantId} /> : null}
@@ -204,11 +204,11 @@ function InventoryWorkspaceTabs({
   onChange: (key: InventoryTabKey) => void;
 }) {
   return (
-    <section className="overflow-hidden rounded-md border-border/90 bg-card/96 p-4 sm:p-5">
-      <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
+    <section className="overflow-hidden rounded-xl border-border/90 bg-card/96 p-5 sm:p-6">
+      <div className="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
         <div className="space-y-2">
           <p className="label-kicker text-primary/90">Workspace Inventory</p>
-          <h2 className="text-2xl font-semibold tracking-tight text-foreground">
+          <h2 className="text-[1.7rem] font-semibold tracking-tight text-foreground">
             Navegacion interna del modulo
           </h2>
           <p className="max-w-3xl text-sm dashboard-text-muted">
@@ -219,7 +219,7 @@ function InventoryWorkspaceTabs({
       </div>
 
       {/** Tabs de navegacion interna del workspace, con enfoque en lectura y continuidad del contexto */}
-      <div role="tablist" aria-label="Tabs del modulo inventory" className="mt-5 overflow-x-auto">
+      <div role="tablist" aria-label="Tabs del modulo inventory" className="mt-6 overflow-x-auto">
         <div className="flex min-w-max gap-1 px-1 border-b border-border/85">
           {INVENTORY_TABS.map((tab) => {
             const active = tab.key === activeTab;
@@ -235,7 +235,7 @@ function InventoryWorkspaceTabs({
                 className={cn(
                   "group relative flex min-w-37.5 flex-col gap-1 px-4 py-3 text-left transition-colors",
                   active
-                    ? "rounded-t-md border-b border-primary text-primary bg-white/10 shadow-lg"
+                    ? "rounded-t-xl border-b border-primary text-primary bg-white/10 shadow-lg"
                     : "text-foreground/58 hover:text-foreground",
                 )}
               >
@@ -267,7 +267,7 @@ function InventorySubmodulesTab() {
     <div id="inventory-panel-submodules" role="tabpanel" className="space-y-5">
       <header className="space-y-2">
         <p className="label-kicker text-primary/90">Sub Modulos</p>
-        <h3 className="text-2xl font-semibold tracking-tight text-foreground">
+        <h3 className="text-[1.7rem] font-semibold tracking-tight text-foreground">
           Grid de accesos activos
         </h3>
         <p className="max-w-2xl text-sm dashboard-text-muted">
@@ -340,7 +340,7 @@ function InventoryReconciliationTab({ tenantId }: { tenantId: string }) {
     <div id="inventory-panel-reconciliation" role="tabpanel" className="space-y-5">
       <header className="space-y-2">
         <p className="label-kicker text-primary/90">Reconciliacion</p>
-        <h3 className="text-2xl font-semibold tracking-tight text-foreground">
+        <h3 className="text-[1.7rem] font-semibold tracking-tight text-foreground">
           Balance operativo y drift
         </h3>
         <p className="max-w-2xl text-sm dashboard-text-muted">
@@ -469,7 +469,7 @@ function InventoryAlertsTab({ tenantId }: { tenantId: string }) {
     <div id="inventory-panel-alerts" role="tabpanel" className="space-y-5">
       <header className="space-y-2">
         <p className="label-kicker text-primary/90">Alertas</p>
-        <h3 className="text-2xl font-semibold tracking-tight text-foreground">
+        <h3 className="text-[1.7rem] font-semibold tracking-tight text-foreground">
           Riesgos de continuidad operativa
         </h3>
         <p className="max-w-2xl text-sm dashboard-text-muted">
@@ -571,7 +571,7 @@ function InventorySettingsTab({ tenantId }: { tenantId: string }) {
     <div id="inventory-panel-settings" role="tabpanel" className="space-y-5">
       <header className="space-y-2">
         <p className="label-kicker text-primary/90">Configuracion</p>
-        <h3 className="text-2xl font-semibold tracking-tight text-foreground">
+        <h3 className="text-[1.7rem] font-semibold tracking-tight text-foreground">
           Politicas y capacidades del modulo
         </h3>
         <p className="max-w-2xl text-sm dashboard-text-muted">
