@@ -98,6 +98,7 @@ export function ExpenseRequestDetailPage({
     TENANT_PERMISSION_KEYS.EXPENSES_REQUEST_UPDATE_OWN,
   );
   const canEditRequest = canUpdateOwn && (request.status === "draft" || request.status === "returned");
+  const taxonomy = resolveTaxonomyMetadata(request.metadata);
 
   return (
     <section className="space-y-5">
@@ -237,10 +238,12 @@ export function ExpenseRequestDetailPage({
             requestId: request.id,
             title: request.title,
             categoryKey: request.categoryKey,
+            subcategoryId: taxonomy.subcategoryId ?? undefined,
             amount: request.amount,
             currency: request.currency,
             expenseDate: request.expenseDate,
             description: request.description,
+            metadata: request.metadata,
           }}
           onOpenChange={setEditDrawerOpen}
           onCompleted={() => {
@@ -283,6 +286,22 @@ function renderMetadataValue(value: unknown): string {
   } catch {
     return String(value);
   }
+}
+
+function resolveTaxonomyMetadata(
+  metadata: Record<string, unknown>,
+): {
+  subcategoryId: string | null;
+} {
+  const taxonomyRaw = metadata.taxonomy;
+  if (typeof taxonomyRaw !== "object" || taxonomyRaw === null) {
+    return { subcategoryId: null };
+  }
+
+  const taxonomy = taxonomyRaw as Record<string, unknown>;
+  return {
+    subcategoryId: typeof taxonomy.subcategoryId === "string" ? taxonomy.subcategoryId : null,
+  };
 }
 
 function RequestInfoCard({
