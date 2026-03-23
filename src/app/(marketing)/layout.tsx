@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { MarketingHeader } from "./_marketing-header";
+import { MarketingThemeProvider } from "./marketing-theme-provider";
 
 export const metadata: Metadata = {
   title: {
@@ -33,9 +34,9 @@ export const metadata: Metadata = {
 
 export default function MarketingLayout({ children }: { children: React.ReactNode }) {
   return (
-    <>
+    <MarketingThemeProvider>
       <MarketingHeader />
       {children}
-    </>
+    </MarketingThemeProvider>
   );
 }
