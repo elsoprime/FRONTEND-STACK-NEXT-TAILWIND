@@ -1,4 +1,4 @@
-import { expect, Page, test } from "@playwright/test";
+﻿import { expect, Page, test } from "@playwright/test";
 import { setCsrfCookie } from "./helpers/csrf";
 
 const TENANT_ID = "507f191e810c19729de860ea";
@@ -332,11 +332,14 @@ test("approves request and uploads attachment from detail view", async ({ page }
 
   await page.goto("/app/expenses");
   await expect(page.getByRole("heading", { name: "Solicitudes de gasto" })).toBeVisible();
-  await page.getByRole("link", { name: "Taxi aeropuerto" }).click();
+  await page.getByRole("link", { name: "Abrir" }).first().click();
 
   await expect(page.getByRole("heading", { name: "Taxi aeropuerto" })).toBeVisible();
   await page.getByRole("button", { name: "Aprobar solicitud" }).click();
-  await expect(page.getByText("El cambio fue aplicado y la vista se esta actualizando.")).toBeVisible();
+  await page.getByRole("button", { name: "Si, aprobar" }).click();
+  await expect(
+    page.getByText("Solicitud aprobada. Ahora la veras en la pestaña Pagos."),
+  ).toBeVisible();
 
   const fileInput = page.locator('input[type="file"]');
   await fileInput.setInputFiles({
@@ -348,4 +351,8 @@ test("approves request and uploads attachment from detail view", async ({ page }
   await expect(page.getByText("Adjunto registrado")).toBeVisible();
   await expect(page.getByText("invoice.pdf").first()).toBeVisible();
 });
+
+
+
+
 

@@ -10,8 +10,8 @@ import {
   TriangleAlert,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { cn } from "@/lib/utils";
 import { type ExpenseRequest, type ExpenseRequestStatus } from "@/lib/api/expenses.types";
+import { cn } from "@/lib/utils";
 
 type StatusMeta = {
   label: string;
@@ -81,6 +81,10 @@ const STATUS_TONE_CLASSES: Record<StatusMeta["tone"], string> = {
   rose: "border-rose-300/35 bg-rose-400/10 text-rose-700 dark:text-rose-100",
   zinc: "border-zinc-300/35 bg-zinc-400/10 text-zinc-700 dark:text-zinc-100",
 };
+
+function formatActor(userId: string | null): string {
+  return userId ?? "Pendiente";
+}
 
 export function getExpenseStatusMeta(status: ExpenseRequestStatus): StatusMeta {
   return STATUS_META[status];
@@ -181,6 +185,15 @@ export function ExpenseWorkflowStateCard({ request }: { request: ExpenseRequest 
       <div className="mt-4 grid gap-3 sm:grid-cols-2">
         <ExpenseStateField label="Cancelada" value={request.canceledAt ? formatExpenseDate(request.canceledAt) : "No"} />
         <ExpenseStateField label="Motivo rechazo" value={request.rejectionReasonCode ?? "Sin rechazo"} />
+      </div>
+
+      <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+        <ExpenseStateField label="Solicitante" value={request.requesterUserId} />
+        <ExpenseStateField label="Enviada por" value={formatActor(request.submittedByUserId)} />
+        <ExpenseStateField label="Revisada por" value={formatActor(request.reviewedByUserId)} />
+        <ExpenseStateField label="Aprobada por" value={formatActor(request.approvedByUserId)} />
+        <ExpenseStateField label="Rechazada por" value={formatActor(request.rejectedByUserId)} />
+        <ExpenseStateField label="Pagada por" value={formatActor(request.paidByUserId)} />
       </div>
     </article>
   );

@@ -16,15 +16,15 @@ import { LoadingScreen } from "@/components/ui/loading-screen";
 import { hasTenantPermission, TENANT_PERMISSION_KEYS } from "@/features/tenant/tenant-permissions";
 import { ApiRequestError } from "@/lib/api/client";
 import { getRequest } from "@/lib/api/expenses.client";
-import { ExpenseRequestFormDrawer } from "@/modules/expenses/components/requests/ExpenseRequestFormDrawer";
 import { ExpenseAttachmentsPanel } from "@/modules/expenses/components/attachments/ExpenseAttachmentsPanel";
-import { ExpenseWorkflowActions } from "@/modules/expenses/components/workflow/ExpenseWorkflowActions";
+import { ExpenseRequestFormDrawer } from "@/modules/expenses/components/requests/ExpenseRequestFormDrawer";
 import {
   ExpenseStatusBadge,
   ExpenseWorkflowStateCard,
   formatExpenseAmount,
   formatExpenseDate,
 } from "@/modules/expenses/components/workflow/ExpenseWorkflowStateCard";
+import { ExpenseWorkflowActions } from "@/modules/expenses/components/workflow/ExpenseWorkflowActions";
 import { useExpensesStore } from "@/modules/expenses/state/expenses.store";
 import { useTenantStore } from "@/store/tenant-store";
 
@@ -98,9 +98,12 @@ export function ExpenseRequestDetailPage({
     TENANT_PERMISSION_KEYS.EXPENSES_REQUEST_UPDATE_OWN,
   );
   const canEditRequest = canUpdateOwn && (request.status === "draft" || request.status === "returned");
+  const taxonomy = resolveTaxonomyMetadata(request.metadata);
+  const resolvedSubcategoryId = request.subcategoryId ?? taxonomy.subcategoryId;
+  const resolvedSubcategoryKey = request.subcategoryKey ?? taxonomy.subcategoryKey;
 
   return (
-    <section className="space-y-5">
+    <section className="mx-auto w-full max-w-[1240px] space-y-5 px-1 sm:px-2">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="space-y-2">
           <Link
@@ -136,7 +139,7 @@ export function ExpenseRequestDetailPage({
         </div>
       </div>
 
-      <div className="grid gap-4 xl:grid-cols-[minmax(0,1.15fr)_minmax(320px,0.85fr)]">
+      <div className="grid gap-4 xl:grid-cols-[minmax(0,1.12fr)_minmax(360px,0.88fr)]">
         <div className="space-y-4">
           <article className="surface-card rounded-[1.5rem] border-border/90 bg-card/96 p-5">
             <div className="flex flex-wrap items-center gap-2">
@@ -146,6 +149,11 @@ export function ExpenseRequestDetailPage({
               <span className="rounded-full border border-border/80 bg-background/72 px-2.5 py-1 text-xs font-medium text-muted-foreground">
                 {request.categoryKey}
               </span>
+              {resolvedSubcategoryKey ? (
+                <span className="rounded-full border border-border/80 bg-background/72 px-2.5 py-1 text-xs font-medium text-muted-foreground">
+                  {resolvedSubcategoryKey}
+                </span>
+              ) : null}
               <span className="rounded-full border border-border/80 bg-background/72 px-2.5 py-1 text-xs font-medium text-muted-foreground">
                 {request.currency}
               </span>
@@ -163,6 +171,24 @@ export function ExpenseRequestDetailPage({
                 icon={CalendarDays}
               />
               <RequestInfoCard label="Solicitante" value={request.requesterUserId} icon={UserRound} />
+            </div>
+
+            <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+              <RequestInfoCard
+                label="Categoria ID"
+                value={request.categoryId ?? "Sin categoria formal"}
+                icon={Hash}
+              />
+              <RequestInfoCard
+                label="Subcategoria ID"
+                value={resolvedSubcategoryId ?? "Sin subcategoria"}
+                icon={Hash}
+              />
+              <RequestInfoCard
+                label="Subcategoria"
+                value={resolvedSubcategoryKey ?? "Sin subcategoria"}
+                icon={Hash}
+              />
             </div>
 
             <div className="mt-4 space-y-3 rounded-2xl border border-border/80 bg-background/72 p-4">
@@ -216,7 +242,7 @@ export function ExpenseRequestDetailPage({
           </article>
         </div>
 
-        <div className="space-y-4">
+        <div className="space-y-4 xl:sticky xl:top-4 xl:self-start">
           <ExpenseWorkflowStateCard request={request} />
           <ExpenseWorkflowActions tenantId={tenantId} request={request} />
           <ExpenseAttachmentsPanel
@@ -237,10 +263,12 @@ export function ExpenseRequestDetailPage({
             requestId: request.id,
             title: request.title,
             categoryKey: request.categoryKey,
+            subcategoryId: resolvedSubcategoryId ?? undefined,
             amount: request.amount,
             currency: request.currency,
             expenseDate: request.expenseDate,
             description: request.description,
+            metadata: request.metadata,
           }}
           onOpenChange={setEditDrawerOpen}
           onCompleted={() => {
@@ -283,6 +311,24 @@ function renderMetadataValue(value: unknown): string {
   } catch {
     return String(value);
   }
+}
+
+function resolveTaxonomyMetadata(
+  metadata: Record<string, unknown>,
+): {
+  subcategoryId: string | null;
+  subcategoryKey: string | null;
+} {
+  const taxonomyRaw = metadata.taxonomy;
+  if (typeof taxonomyRaw !== "object" || taxonomyRaw === null) {
+    return { subcategoryId: null, subcategoryKey: null };
+  }
+
+  const taxonomy = taxonomyRaw as Record<string, unknown>;
+  return {
+    subcategoryId: typeof taxonomy.subcategoryId === "string" ? taxonomy.subcategoryId : null,
+    subcategoryKey: typeof taxonomy.subcategoryKey === "string" ? taxonomy.subcategoryKey : null,
+  };
 }
 
 function RequestInfoCard({

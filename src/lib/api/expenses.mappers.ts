@@ -5,14 +5,15 @@ import type {
   BulkRejectExpenseRequestsInput,
   CancelExpenseRequestInput,
   CreateExpenseAttachmentInput,
+  CreateExpenseCategoryInput,
   CreateExpenseRequestInput,
   CreateExpenseUploadPresignInput,
   ExpenseAttachment,
   ExpenseAttachmentListResult,
-  ExpenseCategory,
-  ExpenseCategoryListResult,
   ExpenseBulkOperationItemResult,
   ExpenseBulkOperationResult,
+  ExpenseCategory,
+  ExpenseCategoryListResult,
   ExpenseDashboard,
   ExpenseDashboardAlert,
   ExpenseDashboardAvailableCategory,
@@ -29,9 +30,8 @@ import type {
   MarkPaidExpenseRequestInput,
   RejectExpenseRequestInput,
   ReviewExpenseRequestInput,
-  UpdateExpenseRequestInput,
-  CreateExpenseCategoryInput,
   UpdateExpenseCategoryInput,
+  UpdateExpenseRequestInput,
   UpdateExpenseSettingsInput,
 } from "@/lib/api/expenses.types";
 
@@ -39,19 +39,61 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
 }
 
+function toNullableString(value: unknown): string | null {
+  if (value === null || value === undefined) {
+    return null;
+  }
+
+  if (typeof value !== "string") {
+    return null;
+  }
+
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : null;
+}
+
+function resolveLegacyTaxonomy(metadata: Record<string, unknown>): {
+  categoryId: string | null;
+  subcategoryId: string | null;
+  subcategoryKey: string | null;
+} {
+  const raw = metadata.taxonomy;
+  if (!isRecord(raw)) {
+    return { categoryId: null, subcategoryId: null, subcategoryKey: null };
+  }
+
+  return {
+    categoryId: toNullableString(raw.categoryId),
+    subcategoryId: toNullableString(raw.subcategoryId),
+    subcategoryKey: toNullableString(raw.subcategoryKey),
+  };
+}
+
 export function mapExpenseRequest(value: unknown): ExpenseRequest {
   if (!isRecord(value)) {
     throw new Error("Invalid expense request payload");
   }
+
+  const metadata = isRecord(value.metadata) ? value.metadata : {};
+  const taxonomy = resolveLegacyTaxonomy(metadata);
 
   return {
     id: String(value.id),
     tenantId: String(value.tenantId),
     requestNumber: String(value.requestNumber),
     requesterUserId: String(value.requesterUserId),
+    submittedByUserId: toNullableString(value.submittedByUserId),
+    reviewedByUserId: toNullableString(value.reviewedByUserId),
+    approvedByUserId: toNullableString(value.approvedByUserId),
+    rejectedByUserId: toNullableString(value.rejectedByUserId),
+    canceledByUserId: toNullableString(value.canceledByUserId),
+    paidByUserId: toNullableString(value.paidByUserId),
     title: String(value.title),
     description: value.description === null || typeof value.description === "string" ? value.description : null,
     categoryKey: String(value.categoryKey),
+    categoryId: toNullableString(value.categoryId) ?? taxonomy.categoryId,
+    subcategoryId: toNullableString(value.subcategoryId) ?? taxonomy.subcategoryId,
+    subcategoryKey: toNullableString(value.subcategoryKey) ?? taxonomy.subcategoryKey,
     amount: Number(value.amount),
     currency: String(value.currency),
     expenseDate: String(value.expenseDate),
@@ -68,7 +110,7 @@ export function mapExpenseRequest(value: unknown): ExpenseRequest {
       value.paymentReference === null || typeof value.paymentReference === "string"
         ? value.paymentReference
         : null,
-    metadata: isRecord(value.metadata) ? value.metadata : {},
+    metadata,
     createdAt: String(value.createdAt),
     updatedAt: String(value.updatedAt),
   };
@@ -259,9 +301,7 @@ export function mapExpenseDashboard(value: unknown): ExpenseDashboard {
           : null,
     },
     primaryCurrency:
-      value.primaryCurrency === null || typeof value.primaryCurrency === "string"
-        ? value.primaryCurrency
-        : null,
+      value.primaryCurrency === null || typeof value.primaryCurrency === "string" ? value.primaryCurrency : null,
     hasMixedCurrencies: Boolean(value.hasMixedCurrencies),
     totalsByCurrency: Array.isArray(value.totalsByCurrency)
       ? value.totalsByCurrency.map(mapExpenseDashboardCurrencyTotals)
@@ -387,9 +427,7 @@ export function mapExpenseCategory(value: unknown): ExpenseCategory {
     requiresAttachment: Boolean(value.requiresAttachment),
     isActive: Boolean(value.isActive),
     monthlyLimit:
-      value.monthlyLimit === null || value.monthlyLimit === undefined
-        ? null
-        : Number(value.monthlyLimit),
+      value.monthlyLimit === null || value.monthlyLimit === undefined ? null : Number(value.monthlyLimit),
     createdAt: String(value.createdAt),
     updatedAt: String(value.updatedAt),
   };

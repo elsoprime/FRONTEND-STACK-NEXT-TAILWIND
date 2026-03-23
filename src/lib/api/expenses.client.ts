@@ -1,17 +1,17 @@
-import { type ApiSuccessEnvelope } from "@/lib/api/contracts";
 import { apiRequest } from "@/lib/api/client";
+import { type ApiSuccessEnvelope } from "@/lib/api/contracts";
 import {
   mapExpenseAttachment,
   mapExpenseAttachmentList,
+  mapExpenseBulkOperationResult,
   mapExpenseCategory,
   mapExpenseCategoryList,
-  mapExpenseBulkOperationResult,
   mapExpenseDashboard,
   mapExpenseExportRows,
   mapExpenseRequest,
   mapExpenseRequestList,
-  mapExpenseSummary,
   mapExpenseSettings,
+  mapExpenseSummary,
   mapExpenseUploadPresign,
   toBulkApproveExpenseRequestsBody,
   toBulkExportExpenseRequestsBody,
@@ -19,14 +19,14 @@ import {
   toBulkRejectExpenseRequestsBody,
   toCancelExpenseRequestBody,
   toCreateExpenseAttachmentBody,
-  toCreateExpenseRequestBody,
   toCreateExpenseCategoryBody,
+  toCreateExpenseRequestBody,
   toCreateExpenseUploadPresignBody,
   toMarkPaidExpenseRequestBody,
   toRejectExpenseRequestBody,
   toReviewExpenseRequestBody,
-  toUpdateExpenseRequestBody,
   toUpdateExpenseCategoryBody,
+  toUpdateExpenseRequestBody,
   toUpdateExpenseSettingsBody,
 } from "@/lib/api/expenses.mappers";
 import type {
@@ -36,29 +36,29 @@ import type {
   BulkRejectExpenseRequestsInput,
   CancelExpenseRequestInput,
   CreateExpenseAttachmentInput,
-  CreateExpenseRequestInput,
   CreateExpenseCategoryInput,
+  CreateExpenseRequestInput,
   CreateExpenseUploadPresignInput,
   ExpenseAttachment,
   ExpenseAttachmentListResult,
+  ExpenseBulkOperationResult,
   ExpenseCategory,
   ExpenseCategoryListQuery,
   ExpenseCategoryListResult,
-  ExpenseBulkOperationResult,
   ExpenseDashboard,
   ExpenseDashboardQuery,
   ExpenseExportRow,
   ExpenseRequest,
   ExpenseRequestListQuery,
   ExpenseRequestListResult,
-  ExpenseSummary,
   ExpenseSettings,
+  ExpenseSummary,
   ExpenseUploadPresign,
   MarkPaidExpenseRequestInput,
   RejectExpenseRequestInput,
   ReviewExpenseRequestInput,
-  UpdateExpenseRequestInput,
   UpdateExpenseCategoryInput,
+  UpdateExpenseRequestInput,
   UpdateExpenseSettingsInput,
 } from "@/lib/api/expenses.types";
 
@@ -75,6 +75,7 @@ function asRecord(value: unknown, errorMessage: string): UnknownRecord {
   if (!isRecord(value)) {
     throw new Error(errorMessage);
   }
+
   return value;
 }
 
@@ -90,21 +91,45 @@ function getEnvelopePagination(response: ApiSuccessEnvelope<unknown>): UnknownRe
 function buildRequestListQuery(params: ExpenseRequestListQuery = {}): string {
   const searchParams = new URLSearchParams();
 
-  if (params.page !== undefined) searchParams.set("page", String(params.page));
-  if (params.limit !== undefined) searchParams.set("limit", String(params.limit));
-  if (params.status !== undefined) searchParams.set("status", params.status);
-  if (params.categoryKey !== undefined) searchParams.set("categoryKey", params.categoryKey);
-  if (params.search !== undefined) searchParams.set("search", params.search);
+  if (params.page !== undefined) {
+    searchParams.set("page", String(params.page));
+  }
+
+  if (params.limit !== undefined) {
+    searchParams.set("limit", String(params.limit));
+  }
+
+  if (params.status !== undefined) {
+    searchParams.set("status", params.status);
+  }
+
+  if (params.categoryKey !== undefined) {
+    searchParams.set("categoryKey", params.categoryKey);
+  }
+
+  if (params.search !== undefined) {
+    searchParams.set("search", params.search);
+  }
 
   const query = searchParams.toString();
   return query.length > 0 ? `?${query}` : "";
 }
+
 function buildCategoryListQuery(params: ExpenseCategoryListQuery = {}): string {
   const searchParams = new URLSearchParams();
 
-  if (params.page !== undefined) searchParams.set("page", String(params.page));
-  if (params.limit !== undefined) searchParams.set("limit", String(params.limit));
-  if (params.search !== undefined) searchParams.set("search", params.search);
+  if (params.page !== undefined) {
+    searchParams.set("page", String(params.page));
+  }
+
+  if (params.limit !== undefined) {
+    searchParams.set("limit", String(params.limit));
+  }
+
+  if (params.search !== undefined) {
+    searchParams.set("search", params.search);
+  }
+
   if (params.includeInactive !== undefined) {
     searchParams.set("includeInactive", params.includeInactive ? "true" : "false");
   }
@@ -116,9 +141,17 @@ function buildCategoryListQuery(params: ExpenseCategoryListQuery = {}): string {
 function buildDashboardQuery(params: ExpenseDashboardQuery = {}): string {
   const searchParams = new URLSearchParams();
 
-  if (params.dateWindowDays !== undefined) searchParams.set("dateWindowDays", String(params.dateWindowDays));
-  if (params.status !== undefined) searchParams.set("status", params.status);
-  if (params.categoryKey !== undefined) searchParams.set("categoryKey", params.categoryKey);
+  if (params.dateWindowDays !== undefined) {
+    searchParams.set("dateWindowDays", String(params.dateWindowDays));
+  }
+
+  if (params.status !== undefined) {
+    searchParams.set("status", params.status);
+  }
+
+  if (params.categoryKey !== undefined) {
+    searchParams.set("categoryKey", params.categoryKey);
+  }
 
   const query = searchParams.toString();
   return query.length > 0 ? `?${query}` : "";
@@ -130,6 +163,7 @@ export async function listQueue(
 ): Promise<ExpenseRequestListResult> {
   const response = await apiRequest(`${EXPENSES_BASE}/queue${buildRequestListQuery(params)}`, { tenantId });
   const data = getEnvelopeData(response);
+
   return mapExpenseRequestList({
     items: data.items,
     pagination: getEnvelopePagination(response),
@@ -139,6 +173,7 @@ export async function listQueue(
 export async function getCounters(tenantId: string): Promise<ExpenseSummary["counters"]> {
   const response = await apiRequest(`${EXPENSES_BASE}/counters`, { tenantId });
   const data = getEnvelopeData(response);
+
   return mapExpenseSummary({
     counters: data.counters,
     totalRequestedAmount: 0,
@@ -170,6 +205,7 @@ export async function listRequests(
 ): Promise<ExpenseRequestListResult> {
   const response = await apiRequest(`${EXPENSES_BASE}/requests${buildRequestListQuery(params)}`, { tenantId });
   const data = getEnvelopeData(response);
+
   return mapExpenseRequestList({
     items: data.items,
     pagination: getEnvelopePagination(response),
@@ -402,6 +438,7 @@ export async function listCategories(
     tenantId,
   });
   const data = getEnvelopeData(response);
+
   return mapExpenseCategoryList({
     items: data.items,
     pagination: getEnvelopePagination(response),
@@ -489,5 +526,3 @@ export async function updateSettings(
   const data = getEnvelopeData(response);
   return mapExpenseSettings(data.settings);
 }
-
-

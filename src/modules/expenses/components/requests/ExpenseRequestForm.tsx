@@ -1,14 +1,14 @@
-﻿"use client";
+"use client";
 
 import { type ReactNode, useEffect, useMemo, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { inventorySelectClassName } from "@/components/ui/inventory-records-shell";
-import { ApiRequestError } from "@/lib/api/client";
+import { ApiRequestError, apiRequest } from "@/lib/api/client";
 import {
   createRequest,
   getSettings,
@@ -26,6 +26,7 @@ import { ExpenseActionFeedback } from "@/modules/expenses/components/shared/Expe
 const expenseRequestFormSchema = z.object({
   title: z.string().trim().min(3, "El titulo debe tener al menos 3 caracteres."),
   categoryKey: z.string().trim().min(2, "Debes indicar una categoria."),
+  subcategoryId: z.string().trim().optional(),
   amount: z
     .string()
     .trim()
@@ -46,6 +47,17 @@ type ExpenseRequestFormValues = z.infer<typeof expenseRequestFormSchema>;
 type ExpenseRequestFormMode = "create" | "update";
 type SaveIntent = "save" | "submit";
 
+type ExpenseSubcategoryOption = {
+  id: string;
+  tenantId: string;
+  categoryId: string;
+  key: string;
+  name: string;
+  requiresAttachment: boolean;
+  isActive: boolean;
+  monthlyLimit: number | null;
+};
+
 export type ExpenseRequestFormInitialData = {
   requestId?: string;
   title?: string;
@@ -54,6 +66,8 @@ export type ExpenseRequestFormInitialData = {
   currency?: string;
   expenseDate?: string;
   description?: string | null;
+  metadata?: Record<string, unknown>;
+  subcategoryId?: string;
 };
 
 function toDateInputValue(value: string | null | undefined): string {
@@ -64,7 +78,53 @@ function toDateInputValue(value: string | null | undefined): string {
   return value.slice(0, 10);
 }
 
-function toCreatePayload(input: ExpenseRequestFormValues): CreateExpenseRequestInput {
+async function listSubcategoriesApi(
+  tenantId: string,
+  categoryId: string,
+): Promise<ExpenseSubcategoryOption[]> {
+  const response = await apiRequest(
+    `/api/v1/modules/expenses/subcategories?categoryId=${encodeURIComponent(categoryId)}&page=1&limit=100&includeInactive=false`,
+    { tenantId },
+  );
+  const payload = response.data as { items?: unknown[] };
+
+  return (payload.items ?? []).map((item) => {
+    const row = item as Record<string, unknown>;
+    return {
+      id: String(row.id),
+      tenantId: String(row.tenantId),
+      categoryId: String(row.categoryId),
+      key: String(row.key),
+      name: String(row.name),
+      requiresAttachment: Boolean(row.requiresAttachment),
+      isActive: Boolean(row.isActive),
+      monthlyLimit:
+        row.monthlyLimit === null || row.monthlyLimit === undefined ? null : Number(row.monthlyLimit),
+    };
+  });
+}
+
+function buildRequestMetadata(
+  values: ExpenseRequestFormValues,
+  initialMetadata: Record<string, unknown> | undefined,
+  selectedCategoryId: string | null,
+  selectedSubcategory: ExpenseSubcategoryOption | null,
+): Record<string, unknown> {
+  const metadata: Record<string, unknown> = { ...(initialMetadata ?? {}) };
+  metadata.taxonomy = {
+    categoryKey: values.categoryKey.trim(),
+    categoryId: selectedCategoryId,
+    subcategoryId: selectedSubcategory?.id ?? null,
+    subcategoryKey: selectedSubcategory?.key ?? null,
+  };
+
+  return metadata;
+}
+
+function toCreatePayload(
+  input: ExpenseRequestFormValues,
+  metadata: Record<string, unknown>,
+): CreateExpenseRequestInput {
   const normalizedDate = `${input.expenseDate}T00:00:00.000Z`;
 
   return {
@@ -74,11 +134,15 @@ function toCreatePayload(input: ExpenseRequestFormValues): CreateExpenseRequestI
     currency: input.currency.trim().toUpperCase(),
     expenseDate: normalizedDate,
     description: input.description?.trim().length ? input.description.trim() : null,
+    metadata,
   };
 }
 
-function toUpdatePayload(input: ExpenseRequestFormValues): UpdateExpenseRequestInput {
-  return toCreatePayload(input);
+function toUpdatePayload(
+  input: ExpenseRequestFormValues,
+  metadata: Record<string, unknown>,
+): UpdateExpenseRequestInput {
+  return toCreatePayload(input, metadata);
 }
 
 type ExpenseRequestFormProps = {
@@ -118,6 +182,7 @@ export function ExpenseRequestForm({
     () => ({
       title: initialData?.title ?? "",
       categoryKey: initialData?.categoryKey ?? "",
+      subcategoryId: initialData?.subcategoryId ?? "",
       amount: initialData?.amount !== undefined ? String(initialData.amount) : "",
       currency: (initialData?.currency ?? "CLP").toUpperCase(),
       expenseDate: toDateInputValue(initialData?.expenseDate),
@@ -149,6 +214,22 @@ export function ExpenseRequestForm({
     defaultValues,
   });
 
+  const selectedCategoryKey = useWatch({
+    control: form.control,
+    name: "categoryKey",
+  });
+  const selectedCategory = useMemo(
+    () => categoryOptions.find((item) => item.key === selectedCategoryKey) ?? null,
+    [categoryOptions, selectedCategoryKey],
+  );
+
+  const subcategoriesQuery = useQuery({
+    queryKey: ["tenant", tenantId, "expenses", "subcategories", "request-form", selectedCategory?.id ?? "none"],
+    enabled: Boolean(selectedCategory?.id) && selectedCategory?.id !== "legacy-category",
+    queryFn: async () => listSubcategoriesApi(tenantId, selectedCategory!.id),
+  });
+  const subcategoryOptions = useMemo(() => subcategoriesQuery.data ?? [], [subcategoriesQuery.data]);
+
   const policyCurrency = (settingsQuery.data?.allowedCurrencies[0] ?? "CLP").toUpperCase();
 
   useEffect(() => {
@@ -163,19 +244,51 @@ export function ExpenseRequestForm({
     });
   }, [form, mode, policyCurrency]);
 
+  useEffect(() => {
+    const currentSubcategoryId = form.getValues("subcategoryId");
+    if (!currentSubcategoryId) {
+      return;
+    }
+
+    const selectedExists = subcategoryOptions.some((item) => item.id === currentSubcategoryId);
+    if (!selectedExists) {
+      form.setValue("subcategoryId", "", {
+        shouldDirty: true,
+        shouldValidate: true,
+      });
+    }
+  }, [form, subcategoryOptions]);
+
   const mutation = useMutation({
     mutationFn: async (values: ExpenseRequestFormValues) => {
+      if (subcategoryOptions.length > 0 && !values.subcategoryId?.trim()) {
+        form.setError("subcategoryId", {
+          type: "manual",
+          message: "Debes seleccionar una subcategoria para la categoria elegida.",
+        });
+        throw new Error("Subcategoria requerida por politica de catalogo.");
+      }
+
+      const selectedSubcategory =
+        subcategoryOptions.find((item) => item.id === values.subcategoryId?.trim()) ?? null;
+      const metadata = buildRequestMetadata(
+        values,
+        initialData?.metadata,
+        selectedCategory?.id ?? null,
+        selectedSubcategory,
+      );
+
       let request: ExpenseRequest;
 
       if (mode === "create") {
-        request = await createRequest(tenantId, toCreatePayload(values));
+        request = await createRequest(tenantId, toCreatePayload(values, metadata));
       } else {
         const requestId = initialData?.requestId;
         if (!requestId) {
           throw new Error("No se encontro el id de la solicitud a actualizar.");
         }
 
-        request = await updateRequest(tenantId, requestId, toUpdatePayload(values));
+        request = await updateRequest(tenantId, requestId, toUpdatePayload(values, metadata));
       }
 
       if (saveIntent === "submit") {
@@ -187,9 +300,7 @@ export function ExpenseRequestForm({
     onSuccess: async (request) => {
       await queryClient.invalidateQueries({ queryKey: ["tenant", tenantId, "expenses"] });
       setFeedbackMessage(
-        saveIntent === "submit"
-          ? "Solicitud enviada a revision."
-          : "Solicitud guardada en borrador.",
+        saveIntent === "submit" ? "Solicitud enviada a revision." : "Solicitud guardada en borrador.",
       );
       onCompleted(request);
     },
@@ -256,6 +367,34 @@ export function ExpenseRequestForm({
             <FieldError message={form.formState.errors.currency?.message} />
           </FieldLabel>
         </div>
+
+        <FieldLabel htmlFor="expense-subcategory" label="Subcategoria">
+          <select
+            id="expense-subcategory"
+            className={inventorySelectClassName}
+            {...form.register("subcategoryId")}
+            disabled={!selectedCategory?.id || subcategoriesQuery.isLoading || subcategoriesQuery.isError}
+          >
+            <option value="">
+              {!selectedCategory?.id
+                ? "Primero selecciona una categoria"
+                : subcategoriesQuery.isLoading
+                  ? "Cargando subcategorias..."
+                  : subcategoryOptions.length === 0
+                    ? "Sin subcategorias activas (opcional)"
+                    : "Selecciona una subcategoria"}
+            </option>
+            {subcategoryOptions.map((subcategory) => (
+              <option key={subcategory.id} value={subcategory.id}>
+                {subcategory.name}
+              </option>
+            ))}
+          </select>
+          {subcategoriesQuery.isError ? (
+            <p className="text-xs text-destructive">No se pudo cargar el catalogo de subcategorias.</p>
+          ) : null}
+          <FieldError message={form.formState.errors.subcategoryId?.message} />
+        </FieldLabel>
       </FormSection>
 
       <FormSection
@@ -367,5 +506,3 @@ function FieldError({ message }: { message?: string }) {
 
   return <p className="text-xs text-destructive">{message}</p>;
 }
-
-

@@ -1,4 +1,4 @@
-import { expect, type Page, test } from "@playwright/test";
+﻿import { expect, type Page, test } from "@playwright/test";
 import { setCsrfCookie } from "./helpers/csrf";
 
 const TENANT_ID = "507f191e810c19729de860ea";
@@ -214,6 +214,39 @@ test("creates expense request and submits from workspace form", async ({ page })
     });
   });
 
+  page.route("**/api/v1/modules/expenses/subcategories**", async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        success: true,
+        data: {
+          items: [
+            {
+              id: "sub_01",
+              tenantId: TENANT_ID,
+              categoryId: "cat_01",
+              key: "travel_hotel",
+              name: "Hoteles",
+              requiresAttachment: true,
+              monthlyLimit: 250000,
+              isActive: true,
+              createdAt: "2026-03-20T10:00:00.000Z",
+              updatedAt: "2026-03-20T10:00:00.000Z",
+            },
+          ],
+        },
+        pagination: {
+          page: 1,
+          limit: 100,
+          total: 1,
+          totalPages: 1,
+        },
+        traceId: "trace-expenses-subcategories",
+      }),
+    });
+  });
+
   page.route("**/api/v1/modules/expenses/requests", async (route) => {
     if (route.request().method() !== "POST") {
       await route.fallback();
@@ -297,7 +330,8 @@ test("creates expense request and submits from workspace form", async ({ page })
 
   await page.getByRole("button", { name: "Nueva solicitud" }).click();
   await page.getByLabel("Titulo").fill("Hotel cliente");
-  await page.getByLabel("Categoria").selectOption("travel");
+  await page.locator("#expense-category").selectOption("travel");
+  await page.locator("#expense-subcategory").selectOption("sub_01");
   await page.getByLabel("Monto").fill("120");
   await expect(page.getByLabel("Moneda")).toHaveValue("CLP");
   await expect(page.getByLabel("Moneda")).toBeDisabled();
@@ -309,4 +343,13 @@ test("creates expense request and submits from workspace form", async ({ page })
   await expect(page.getByRole("heading", { name: "Solicitudes de gasto" })).toBeVisible();
   await expect(page.getByText("Hotel cliente")).toBeVisible();
   expect(capturedCreatePayload?.expenseDate).toBe("2026-03-21T00:00:00.000Z");
+  expect(capturedCreatePayload?.metadata).toMatchObject({
+    taxonomy: {
+      categoryKey: "travel",
+      categoryId: "cat_01",
+      subcategoryId: "sub_01",
+      subcategoryKey: "travel_hotel",
+    },
+  });
 });
+

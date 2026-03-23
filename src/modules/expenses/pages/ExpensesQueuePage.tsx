@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { startTransition, useDeferredValue, useEffect, useState } from "react";
+import { startTransition, useDeferredValue, useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { CheckCheck, FilterX } from "lucide-react";
 import { InventoryPaginationControls } from "@/components/modules/inventory/inventory-pagination-controls";
@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/inventory-records-shell";
 import { LoadingScreen } from "@/components/ui/loading-screen";
 import { ApiRequestError } from "@/lib/api/client";
-import { listQueue } from "@/lib/api/expenses.client";
+import { listCategories, listQueue } from "@/lib/api/expenses.client";
 import type { ExpenseRequestStatus } from "@/lib/api/expenses.types";
 import { cn } from "@/lib/utils";
 import { ExpenseBulkActionsPanel } from "@/modules/expenses/components/bulk/ExpenseBulkActionsPanel";
@@ -28,13 +28,13 @@ import { useExpensesStore } from "@/modules/expenses/state/expenses.store";
 
 const QUEUE_STATUS_OPTIONS: ReadonlyArray<{ value: ExpenseRequestStatus | "all"; label: string }> = [
   { value: "all", label: "Todos" },
-  { value: "submitted", label: "Submitted" },
-  { value: "returned", label: "Returned" },
-  { value: "approved", label: "Approved" },
-  { value: "rejected", label: "Rejected" },
-  { value: "paid", label: "Paid" },
-  { value: "canceled", label: "Canceled" },
-  { value: "draft", label: "Draft" },
+  { value: "submitted", label: "Enviadas" },
+  { value: "returned", label: "Devueltas" },
+  { value: "approved", label: "Aprobadas" },
+  { value: "rejected", label: "Rechazadas" },
+  { value: "paid", label: "Pagadas" },
+  { value: "canceled", label: "Canceladas" },
+  { value: "draft", label: "Borrador" },
 ];
 
 export function ExpensesQueuePage({ tenantId }: { tenantId: string }) {
@@ -73,6 +73,23 @@ export function ExpensesQueuePage({ tenantId }: { tenantId: string }) {
         search: deferredSearch.length > 0 ? deferredSearch : undefined,
       }),
   });
+  const categoriesQuery = useQuery({
+    queryKey: ["tenant", tenantId, "expenses", "categories", "queue-labels"],
+    queryFn: async () =>
+      listCategories(tenantId, {
+        page: 1,
+        limit: 100,
+        includeInactive: true,
+      }),
+  });
+  const items = queueQuery.data?.items ?? [];
+  const pagination = queueQuery.data?.pagination;
+  const hasFilters = queueFilters.status !== "all" || queueFilters.search.trim().length > 0;
+  const categoryNameByKey = useMemo(
+    () =>
+      new Map((categoriesQuery.data?.items ?? []).map((category) => [category.key, category.name] as const)),
+    [categoriesQuery.data?.items],
+  );
 
   if (queueQuery.isLoading) {
     return (
@@ -93,10 +110,6 @@ export function ExpensesQueuePage({ tenantId }: { tenantId: string }) {
       />
     );
   }
-
-  const items = queueQuery.data?.items ?? [];
-  const pagination = queueQuery.data?.pagination;
-  const hasFilters = queueFilters.status !== "all" || queueFilters.search.trim().length > 0;
 
   const toggleSelection = (requestId: string) => {
     setSelectedRequestIds((current) =>
@@ -248,7 +261,9 @@ export function ExpensesQueuePage({ tenantId }: { tenantId: string }) {
                     <div className="space-y-1">
                       <p className="font-semibold text-foreground">{request.requestNumber}</p>
                       <p className="text-xs text-muted-foreground">{request.title}</p>
-                      <p className="text-xs text-muted-foreground">{request.categoryKey}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {categoryNameByKey.get(request.categoryKey) ?? request.categoryKey}
+                      </p>
                     </div>
                   </InventoryCell>
                   <InventoryCell>

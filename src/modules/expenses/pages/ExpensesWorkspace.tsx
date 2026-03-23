@@ -263,7 +263,7 @@ export function ExpensesWorkspace({
     return (
       <RequestsByStatusPanel
         title="Aprobaciones pendientes"
-        description="Solicitudes en estado submitted para revision y decision."
+        description="Solo muestra solicitudes en estado submitted. Las aprobadas pasan automaticamente a la pestaña Pagos."
         tenantId={tenantId}
         status="submitted"
         emptyLabel="No hay solicitudes pendientes de aprobacion."
@@ -275,7 +275,7 @@ export function ExpensesWorkspace({
     return (
       <RequestsByStatusPanel
         title="Pagos por ejecutar"
-        description="Solicitudes aprobadas listas para marcar pago."
+        description="Muestra solicitudes en estado approved, listas para marcacion y conciliacion de pago."
         tenantId={tenantId}
         status="approved"
         emptyLabel="No hay solicitudes aprobadas pendientes de pago."
