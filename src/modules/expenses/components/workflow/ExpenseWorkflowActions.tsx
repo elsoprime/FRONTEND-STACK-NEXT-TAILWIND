@@ -11,6 +11,7 @@ import {
   TriangleAlert,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { DecisionDialog } from "@/components/ui/decision-dialog";
 import { Input } from "@/components/ui/input";
 import { ApiRequestError } from "@/lib/api/client";
 import {
@@ -50,6 +51,7 @@ export function ExpenseWorkflowActions({
   const updateWorkflowDraft = useExpensesStore((state) => state.updateWorkflowDraft);
   const resetWorkflowDraft = useExpensesStore((state) => state.resetWorkflowDraft);
   const [feedbackMessage, setFeedbackMessage] = useState<string | null>(null);
+  const [decisionAction, setDecisionAction] = useState<WorkflowAction | null>(null);
 
   const mutation = useMutation({
     mutationFn: async (action: WorkflowAction) => {
@@ -91,8 +93,17 @@ export function ExpenseWorkflowActions({
         }
       }
     },
-    onSuccess: async () => {
-      setFeedbackMessage("El cambio fue aplicado y la vista se esta actualizando.");
+    onSuccess: async (_request, action) => {
+      const feedbackByAction: Record<WorkflowAction, string> = {
+        submit: "Solicitud enviada. Ahora la veras en la pestaña Aprobaciones.",
+        review: "Solicitud devuelta al solicitante para correccion.",
+        approve: "Solicitud aprobada. Ahora la veras en la pestaña Pagos.",
+        reject: "Solicitud rechazada y cerrada en el workflow.",
+        cancel: "Solicitud cancelada correctamente.",
+        markPaid: "Solicitud marcada como pagada y conciliada.",
+      };
+
+      setFeedbackMessage(feedbackByAction[action]);
       resetWorkflowDraft();
       await queryClient.invalidateQueries({ queryKey: ["tenant", tenantId, "expenses"] });
     },
@@ -141,7 +152,7 @@ export function ExpenseWorkflowActions({
               icon={Send}
               buttonLabel={mutation.isPending ? "Enviando..." : "Enviar solicitud"}
               buttonVariant="primary"
-              onAction={() => mutation.mutate("submit")}
+              onAction={() => setDecisionAction("submit")}
               disabled={mutation.isPending}
             />
           ) : null}
@@ -153,7 +164,7 @@ export function ExpenseWorkflowActions({
               icon={CornerDownLeft}
               buttonLabel={mutation.isPending ? "Devolviendo..." : "Devolver solicitud"}
               buttonVariant="outline"
-              onAction={() => mutation.mutate("review")}
+              onAction={() => setDecisionAction("review")}
               disabled={mutation.isPending || draft.reviewComment.trim().length === 0}
             >
               <textarea
@@ -172,7 +183,7 @@ export function ExpenseWorkflowActions({
               icon={CheckCircle2}
               buttonLabel={mutation.isPending ? "Aprobando..." : "Aprobar solicitud"}
               buttonVariant="secondary"
-              onAction={() => mutation.mutate("approve")}
+              onAction={() => setDecisionAction("approve")}
               disabled={mutation.isPending}
             />
           ) : null}
@@ -184,7 +195,7 @@ export function ExpenseWorkflowActions({
               icon={TriangleAlert}
               buttonLabel={mutation.isPending ? "Rechazando..." : "Rechazar solicitud"}
               buttonVariant="destructive"
-              onAction={() => mutation.mutate("reject")}
+              onAction={() => setDecisionAction("reject")}
               disabled={mutation.isPending || draft.rejectionReasonCode.trim().length === 0}
             >
               <div className="space-y-3">
@@ -210,11 +221,11 @@ export function ExpenseWorkflowActions({
           {availableActions.includes("cancel") ? (
             <WorkflowActionBlock
               title="Cancelar solicitud"
-              description="Cierra la solicitud antes de que continÃºe su flujo."
+              description="Cierra la solicitud antes de que continue su flujo."
               icon={Ban}
               buttonLabel={mutation.isPending ? "Cancelando..." : "Cancelar solicitud"}
               buttonVariant="outline"
-              onAction={() => mutation.mutate("cancel")}
+              onAction={() => setDecisionAction("cancel")}
               disabled={mutation.isPending}
             >
               <textarea
@@ -233,7 +244,7 @@ export function ExpenseWorkflowActions({
               icon={HandCoins}
               buttonLabel={mutation.isPending ? "Marcando..." : "Marcar pagada"}
               buttonVariant="primary"
-              onAction={() => mutation.mutate("markPaid")}
+              onAction={() => setDecisionAction("markPaid")}
               disabled={mutation.isPending}
             >
               <Input
@@ -258,6 +269,31 @@ export function ExpenseWorkflowActions({
           {feedbackMessage}
         </div>
       ) : null}
+
+      <DecisionDialog
+        open={decisionAction !== null}
+        onOpenChange={(open) => {
+          if (!open) {
+            setDecisionAction(null);
+          }
+        }}
+        title={resolveDecisionTitle(decisionAction)}
+        description={resolveDecisionDescription(decisionAction)}
+        confirmLabel={resolveDecisionConfirmLabel(decisionAction)}
+        busyLabel="Procesando accion..."
+        tone={decisionAction === "reject" || decisionAction === "cancel" ? "danger" : "default"}
+        loading={mutation.isPending}
+        onConfirm={async () => {
+          if (!decisionAction) {
+            return;
+          }
+          await mutation.mutateAsync(decisionAction);
+          setDecisionAction(null);
+        }}
+        onCancel={() => setDecisionAction(null)}
+      >
+        {resolveDecisionHint(decisionAction)}
+      </DecisionDialog>
     </article>
   );
 }
@@ -309,3 +345,72 @@ function WorkflowActionBlock({
   );
 }
 
+function resolveDecisionTitle(action: WorkflowAction | null): string {
+  switch (action) {
+    case "submit":
+      return "Confirmar envio de solicitud";
+    case "review":
+      return "Confirmar devolucion de solicitud";
+    case "approve":
+      return "Confirmar aprobacion de solicitud";
+    case "reject":
+      return "Confirmar rechazo de solicitud";
+    case "cancel":
+      return "Confirmar cancelacion de solicitud";
+    case "markPaid":
+      return "Confirmar marcacion de pago";
+    default:
+      return "Confirmar accion";
+  }
+}
+
+function resolveDecisionDescription(action: WorkflowAction | null): string {
+  switch (action) {
+    case "submit":
+      return "La solicitud pasara a la cola de aprobaciones del modulo.";
+    case "review":
+      return "La solicitud volvera al solicitante con el comentario registrado.";
+    case "approve":
+      return "La solicitud cambiara a aprobada y se movera a la pestaña Pagos.";
+    case "reject":
+      return "La solicitud se cerrara con estado rechazada.";
+    case "cancel":
+      return "La solicitud se cerrara con estado cancelada.";
+    case "markPaid":
+      return "La solicitud pasara a estado pagada con referencia de conciliacion.";
+    default:
+      return "Confirma para ejecutar la accion seleccionada.";
+  }
+}
+
+function resolveDecisionConfirmLabel(action: WorkflowAction | null): string {
+  switch (action) {
+    case "submit":
+      return "Si, enviar";
+    case "review":
+      return "Si, devolver";
+    case "approve":
+      return "Si, aprobar";
+    case "reject":
+      return "Si, rechazar";
+    case "cancel":
+      return "Si, cancelar";
+    case "markPaid":
+      return "Si, marcar pagada";
+    default:
+      return "Confirmar";
+  }
+}
+
+function resolveDecisionHint(action: WorkflowAction | null): string {
+  switch (action) {
+    case "approve":
+      return "Despues de aprobar, no la veras en Aprobaciones; quedara disponible en Pagos.";
+    case "review":
+      return "Asegurate de que el comentario sea claro para la correccion del solicitante.";
+    case "reject":
+      return "Esta accion debe respaldarse con un codigo de rechazo valido.";
+    default:
+      return "La accion quedara registrada en auditoria.";
+  }
+}

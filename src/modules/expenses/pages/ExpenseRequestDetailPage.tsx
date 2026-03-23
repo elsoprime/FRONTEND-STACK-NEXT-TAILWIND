@@ -101,7 +101,7 @@ export function ExpenseRequestDetailPage({
   const taxonomy = resolveTaxonomyMetadata(request.metadata);
 
   return (
-    <section className="space-y-5">
+    <section className="mx-auto w-full max-w-[1240px] space-y-5 px-1 sm:px-2">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="space-y-2">
           <Link
@@ -137,7 +137,7 @@ export function ExpenseRequestDetailPage({
         </div>
       </div>
 
-      <div className="grid gap-4 xl:grid-cols-[minmax(0,1.15fr)_minmax(320px,0.85fr)]">
+      <div className="grid gap-4 xl:grid-cols-[minmax(0,1.12fr)_minmax(360px,0.88fr)]">
         <div className="space-y-4">
           <article className="surface-card rounded-[1.5rem] border-border/90 bg-card/96 p-5">
             <div className="flex flex-wrap items-center gap-2">
@@ -217,7 +217,7 @@ export function ExpenseRequestDetailPage({
           </article>
         </div>
 
-        <div className="space-y-4">
+        <div className="space-y-4 xl:sticky xl:top-4 xl:self-start">
           <ExpenseWorkflowStateCard request={request} />
           <ExpenseWorkflowActions tenantId={tenantId} request={request} />
           <ExpenseAttachmentsPanel
